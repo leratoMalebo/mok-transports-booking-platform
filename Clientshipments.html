@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mok Transports | My Shipments</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #0d2137;
+  --blue:   #1565c0;
+  --sky:    #1e88e5;
+  --accent: #f57c00;
+  --green:  #2e7d32;
+  --bg:     #f0f4f8;
+  --card:   #ffffff;
+  --border: #dce3ec;
+  --text:   #1a2535;
+  --muted:  #607d8b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ===== HEADER ===== */
+header {
+  background: var(--navy); border-bottom: 3px solid var(--accent);
+  padding: 0 32px; height: 62px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.header-left img { height: 38px; }
+.header-brand { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; color: #fff; letter-spacing: .5px; line-height: 1.2; }
+.header-brand span { display: block; font-size: 10px; font-weight: 400; color: #607d8b; letter-spacing: 1.5px; text-transform: uppercase; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.btn-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; background: transparent;
+  border: 1px solid rgba(255,255,255,.15); border-radius: 5px;
+  color: #90a4ae; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; text-decoration: none; transition: all .2s;
+}
+.btn-back:hover { border-color: rgba(30,136,229,.5); color: #90caf9; }
+.btn-logout-sm {
+  padding: 7px 16px; background: transparent;
+  border: 1px solid rgba(255,255,255,.15); border-radius: 5px;
+  color: #90a4ae; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; transition: all .2s;
+}
+.btn-logout-sm:hover { border-color: rgba(245,124,0,.5); color: #ffcc80; }
+
+/* ===== FILTER BAR ===== */
+.filter-bar {
+  background: var(--navy2, #0f2744);
+  padding: 0 32px; border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; gap: 0; height: 48px;
+  overflow-x: auto;
+}
+.filter-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 18px; height: 48px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 600;
+  letter-spacing: .8px; text-transform: uppercase;
+  color: #607d8b; cursor: pointer; border: none; background: transparent;
+  border-bottom: 2px solid transparent; white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+.filter-tab.active { color: #fff; border-bottom-color: var(--accent); }
+.filter-tab:hover:not(.active) { color: #b0bec5; }
+.filter-dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-green   { background: #4caf50; }
+.dot-blue    { background: #2196f3; }
+.dot-orange  { background: #ff9800; }
+.dot-teal    { background: #26c6da; }
+.dot-grey    { background: #607d8b; }
+
+.filter-bar-right {
+  margin-left: auto; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.search-bar {
+  display: flex; align-items: center;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 5px; overflow: hidden; height: 34px;
+}
+.search-bar input {
+  background: transparent; border: none; outline: none;
+  color: #fff; font-family: 'Barlow', sans-serif; font-size: 13px;
+  padding: 0 12px; width: 200px;
+}
+.search-bar input::placeholder { color: #455a64; }
+.search-bar button {
+  background: var(--blue); border: none; color: #fff; padding: 0 14px; height: 34px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: filter .15s;
+}
+.search-bar button:hover { filter: brightness(1.1); }
+
+/* ===== ORDER BY ===== */
+.order-row {
+  padding: 12px 32px; background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted);
+}
+.order-select {
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 4px 8px; font-family: 'Barlow', sans-serif; font-size: 12px;
+  background: var(--card); color: var(--text); outline: none;
+}
+
+/* ===== TABLE ===== */
+.page-body { padding: 20px 32px 60px; }
+.panel-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table thead th {
+  background: var(--navy); color: #fff;
+  padding: 11px 14px; font-size: 11px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; text-align: left;
+}
+.data-table tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
+.data-table tbody tr:hover { background: #f5f8ff; cursor: pointer; }
+.data-table tbody td { padding: 14px 14px; vertical-align: middle; }
+.data-table tbody tr:last-child { border-bottom: none; }
+
+.waybill-no {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
+  font-weight: 700; color: var(--navy);
+}
+.company-name { font-weight: 600; font-size: 13px; }
+.sub-text { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: .3px; }
+.pill-booked    { background: #e3f2fd; color: #1565c0; }
+.pill-transit   { background: #fff3e0; color: #e65100; }
+.pill-delivered { background: #e8f5e9; color: #2e7d32; }
+.pill-service   { background: #eceff1; color: #455a64; }
+
+.type-icon {
+  width: 32px; height: 32px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.type-local { background: #e3f2fd; }
+.type-intl  { background: #f3e5f5; }
+
+.empty-state { padding: 60px; text-align: center; color: var(--muted); }
+.empty-state p { font-size: 14px; margin-top: 10px; }
+
+/* ===== DETAIL DRAWER ===== */
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.4);
+  z-index: 200; display: none; backdrop-filter: blur(2px);
+}
+.drawer-overlay.open { display: block; }
+.drawer {
+  position: fixed; right: 0; top: 0; bottom: 0; width: 420px;
+  background: var(--card); z-index: 201; overflow-y: auto;
+  transform: translateX(100%); transition: transform .3s ease;
+  box-shadow: -8px 0 32px rgba(0,0,0,.12);
+}
+.drawer.open { transform: none; }
+.drawer-header {
+  background: var(--navy); color: #fff; padding: 18px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 3px solid var(--accent); position: sticky; top: 0;
+}
+.drawer-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: .5px; }
+.drawer-close { background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; }
+.drawer-body { padding: 20px; }
+.detail-section { margin-bottom: 20px; }
+.detail-section-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.detail-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #f5f5f5; }
+.detail-row:last-child { border-bottom: none; }
+.detail-key { color: var(--muted); }
+.detail-val { font-weight: 600; text-align: right; max-width: 60%; }
+
+/* tracking timeline */
+.timeline { padding: 6px 0; }
+.timeline-step { display: flex; gap: 12px; padding: 8px 0; position: relative; }
+.timeline-step:not(:last-child)::after {
+  content: ''; position: absolute; left: 11px; top: 28px; bottom: -8px; width: 2px;
+  background: var(--border);
+}
+.timeline-dot {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; margin-top: 2px;
+}
+.timeline-dot.done { background: var(--green); }
+.timeline-dot.current { background: var(--accent); }
+.timeline-dot.pending { background: var(--border); }
+.timeline-text { font-size: 13px; }
+.timeline-text-title { font-weight: 600; color: var(--text); }
+.timeline-text-time { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+@media (max-width: 768px) {
+  .filter-bar { padding: 0 16px; }
+  .page-body  { padding: 16px; }
+  .drawer { width: 100%; }
+  .order-row { padding: 10px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="header-left">
+    <img src="assets/images/mok-logo.png" alt="Mok Transports">
+    <div class="header-brand">
+      Mok Transports Services (Pty) Ltd
+      <span>My Shipments</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <a class="btn-back" href="clientDashboard.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Dashboard
+    </a>
+    <button class="btn-logout-sm" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<!-- ===== FILTER BAR ===== -->
+<div class="filter-bar">
+  <button class="filter-tab active" data-filter="all" onclick="setFilter('all', this)">
+    All
+  </button>
+  <button class="filter-tab" data-filter="booked" onclick="setFilter('booked', this)">
+    <span class="filter-dot dot-blue"></span> Booked
+  </button>
+  <button class="filter-tab" data-filter="transit" onclick="setFilter('transit', this)">
+    <span class="filter-dot dot-orange"></span> In Transit
+  </button>
+  <button class="filter-tab" data-filter="delivered" onclick="setFilter('delivered', this)">
+    <span class="filter-dot dot-green"></span> Delivered
+  </button>
+
+  <div class="filter-bar-right">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search waybill, company…" oninput="applyFilters()">
+      <button onclick="applyFilters()">Search</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER ROW -->
+<div class="order-row">
+  <span>Order by:</span>
+  <select class="order-select" id="orderSelect" onchange="applyFilters()">
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    <option value="waybill">Waybill No.</option>
+  </select>
+  <span id="resultCount" style="margin-left:auto;"></span>
+</div>
+
+<!-- ===== TABLE ===== -->
+<div class="page-body">
+  <div class="panel-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:32px"></th>
+          <th>Waybill No.</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Service</th>
+          <th>Shipment Date</th>
+          <th>Weight</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="shipmentsTable">
+        <tr><td colspan="8"><div class="empty-state"><p>No shipments found.</p></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== DETAIL DRAWER ===== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawerWaybill">—</div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<script>
+// ---- Auth guard ----
+const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+if (!session || session.role !== 'client') window.location.href = 'login.html';
+
+// ---- State ----
+let allBookings = [];
+let activeFilter = 'all';
+
+// Pre-select filter from URL
+const urlParams = new URLSearchParams(window.location.search);
+const preFilter = urlParams.get('filter');
+if (preFilter) {
+  activeFilter = preFilter;
+  document.querySelectorAll('.filter-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.filter === preFilter);
+  });
+}
+
+// ---- Load ----
+function loadBookings() {
+  const bookings = JSON.parse(localStorage.getItem('mokBookings') || '[]');
+  const email = session.email || '';
+  allBookings = bookings.filter(b =>
+    (b.fromEmail||'').toLowerCase() === email.toLowerCase() ||
+    (b.toEmail||'').toLowerCase() === email.toLowerCase()
+  );
+  if (!allBookings.length) allBookings = bookings; // demo fallback
+  applyFilters();
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q     = (document.getElementById('searchInput').value || '').toLowerCase();
+  const order = document.getElementById('orderSelect').value;
+
+  let data = [...allBookings];
+
+  // Status filter
+  if (activeFilter === 'booked')    data = data.filter(b => !b.status || b.status === 'Booked');
+  if (activeFilter === 'transit')   data = data.filter(b => b.status === 'In Transit');
+  if (activeFilter === 'delivered') data = data.filter(b => b.status === 'Delivered');
+
+  // Search
+  if (q) data = data.filter(b =>
+    (b.waybillNo||'').toLowerCase().includes(q) ||
+    (b.fromCompany||'').toLowerCase().includes(q) ||
+    (b.toCompany||'').toLowerCase().includes(q)
+  );
+
+  // Sort
+  if (order === 'newest')  data = data.reverse();
+  if (order === 'waybill') data = data.sort((a,b) => (a.waybillNo||'').localeCompare(b.waybillNo||''));
+
+  document.getElementById('resultCount').textContent = `${data.length} shipment${data.length !== 1 ? 's' : ''}`;
+  renderTable(data);
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('shipmentsTable');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>No shipments match your filter.</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map((b, i) => {
+    const sc = b.status === 'Delivered' ? 'pill-delivered' : b.status === 'In Transit' ? 'pill-transit' : 'pill-booked';
+    return `<tr onclick="openDrawer(${i})" data-idx="${i}">
+      <td>
+        <div class="type-icon type-local">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 5v3h-7V8z"/></svg>
+        </div>
+      </td>
+      <td><div class="waybill-no">${b.waybillNo || '—'}</div></td>
+      <td>
+        <div class="company-name">${b.fromCompany || '—'}</div>
+        <div class="sub-text">${b.fromTown || b.fromAddress || ''}</div>
+      </td>
+      <td>
+        <div class="company-name">${b.toCompany || '—'}</div>
+        <div class="sub-text">${b.toTown || b.toAddress || ''}</div>
+      </td>
+      <td><span class="pill pill-service">${b.service || '—'}</span></td>
+      <td>${b.shipmentDate || b.createdAt?.slice(0,10) || '—'}</td>
+      <td>${b.chargeWeight || '—'} kg</td>
+      <td><span class="pill ${sc}">${b.status || 'Booked'}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Store filtered data for drawer
+  window._filteredData = data;
+}
+
+// ---- Drawer ----
+function openDrawer(idx) {
+  const b = window._filteredData[idx];
+  if (!b) return;
+
+  document.getElementById('drawerWaybill').textContent = b.waybillNo || '—';
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+
+  const sc = b.status === 'Delivered' ? 'pill-delivered' : b.status === 'In Transit' ? 'pill-transit' : 'pill-booked';
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="detail-section">
+      <div class="detail-section-title">Shipment Info</div>
+      <div class="detail-row"><span class="detail-key">Waybill No.</span><span class="detail-val">${b.waybillNo || '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Service</span><span class="detail-val">${b.service || '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Date</span><span class="detail-val">${b.shipmentDate || '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Status</span><span class="detail-val"><span class="pill ${sc}">${b.status || 'Booked'}</span></span></div>
+      <div class="detail-row"><span class="detail-key">Zone</span><span class="detail-val">${b.zoneLabel || '—'}</span></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">From (Consignor)</div>
+      <div class="detail-row"><span class="detail-key">Company</span><span class="detail-val">${b.fromCompany || '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Address</span><span class="detail-val">${[b.fromAddress, b.fromSuburb, b.fromTown, b.fromPostal].filter(Boolean).join(', ') || '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Contact</span><span class="detail-val">${b.fromContact || '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Email</span><span class="detail-val">${b.fromEmail || '—'}</span></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">To (Consignee)</div>
+      <div class="detail-row"><span class="detail-key">Company</span><span class="detail-val">${b.toCompany || '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Address</span><span class="detail-val">${[b.toAddress, b.toSuburb, b.toTown, b.toPostal].filter(Boolean).join(', ') || '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Contact</span><span class="detail-val">${b.toContact || '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Email</span><span class="detail-val">${b.toEmail || '—'}</span></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Weight & Cost</div>
+      <div class="detail-row"><span class="detail-key">Actual Weight</span><span class="detail-val">${b.actualWeight || '—'} kg</span></div>
+      <div class="detail-row"><span class="detail-key">Volumetric</span><span class="detail-val">${b.volWeight || '—'} kg</span></div>
+      <div class="detail-row"><span class="detail-key">Chargeable</span><span class="detail-val">${b.chargeWeight || '—'} kg</span></div>
+      <div class="detail-row"><span class="detail-key">Total (excl. VAT)</span><span class="detail-val" style="color:var(--green);font-size:16px">R ${parseFloat(b.price||0).toFixed(2)}</span></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Tracking Timeline</div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-dot done">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="timeline-text">
+            <div class="timeline-text-title">Booking Confirmed</div>
+            <div class="timeline-text-time">${b.createdAt ? new Date(b.createdAt).toLocaleString('en-ZA') : b.shipmentDate || '—'}</div>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-dot ${b.status === 'In Transit' || b.status === 'Delivered' ? 'done' : 'pending'}">
+            ${b.status === 'In Transit' || b.status === 'Delivered' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+          </div>
+          <div class="timeline-text">
+            <div class="timeline-text-title">Collected</div>
+            <div class="timeline-text-time">${b.status === 'In Transit' || b.status === 'Delivered' ? 'Collected from sender' : 'Pending'}</div>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-dot ${b.status === 'In Transit' ? 'current' : b.status === 'Delivered' ? 'done' : 'pending'}">
+            ${b.status === 'Delivered' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+          </div>
+          <div class="timeline-text">
+            <div class="timeline-text-title">In Transit</div>
+            <div class="timeline-text-time">${b.status === 'In Transit' ? 'Currently in transit' : b.status === 'Delivered' ? 'Completed' : 'Pending'}</div>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-dot ${b.status === 'Delivered' ? 'done' : 'pending'}">
+            ${b.status === 'Delivered' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+          </div>
+          <div class="timeline-text">
+            <div class="timeline-text-title">Delivered</div>
+            <div class="timeline-text-time">${b.status === 'Delivered' ? 'Successfully delivered' : 'Pending'}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
+
+loadBookings();
+
+function logout() {
+  localStorage.removeItem('mokSession');
+  window.location.href = 'login.html';
+}
+</script>
+</body>
+</html>
+

@@ -1,0 +1,12 @@
+{
+  "LOCAL": {
+    "base": 50,
+    "perKg": 12,
+    "perKm": 3
+  },
+  "INTERNATIONAL": {
+    "base": 200,
+    "perKg": 25,
+    "perKm": 5
+  }
+}

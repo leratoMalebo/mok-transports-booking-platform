@@ -1,0 +1,78 @@
+body {
+  font-family: "Segoe UI", sans-serif;
+}
+
+.logo {
+  width: 180px;
+  margin: 20px auto;
+}
+
+.nav-logo {
+  height: 50px;
+  margin-top: 7px;
+}
+
+.login-box {
+  max-width: 400px;
+  margin-top: 80px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.booking-form {
+  margin-top: 40px;
+  padding: 30px;
+  border-radius: 8px;
+}
+
+h6 {
+  margin-top: 30px;
+  font-weight: 600;
+}
+
+.invoice-box {
+  width: 600px;
+  margin: auto;
+  padding: 30px;
+  border: 1px solid #ccc;
+}
+
+@media print {
+  button {
+    display: none;
+  }
+}
+
+.card i.material-icons {
+  margin-top: 15px;
+}
+
+.dropdown-content li a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 15px auto;
+}
+
+.dashboard-icon i {
+  font-size: 32px;
+  color: #fff;
+}
+
+/* Icon colors */
+.icon-create { background-color: #1e88e5; }   /* Blue */
+.icon-track { background-color: #43a047; }    /* Green */
+.icon-invoice { background-color: #fb8c00; }  /* Orange */
+.icon-view { background-color: #8e24aa; }     /* Purple */
+

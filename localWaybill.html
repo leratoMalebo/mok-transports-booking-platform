@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Local Waybill | Mok Transports</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --mok-navy: #0d2137;
+      --mok-blue: #1565c0;
+      --mok-accent: #f4fcff;
+      --mok-border: #dce3ec;
+    }
+
+    body {
+      background: #f0f4f8;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+    }
+
+    .waybill-container {
+      max-width: 780px;
+      margin: 24px auto;
+      background: #fff;
+      border: 1px solid var(--mok-border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .waybill-header {
+      background: var(--mok-navy);
+      color: #fff;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--mok-accent);
+    }
+
+    .waybill-header img {
+      height: 44px;
+    }
+
+    .waybill-header h4 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+
+    .waybill-number {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      color: var(--mok-accent);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .waybill-body {
+      padding: 20px 24px;
+    }
+
+    .waybill-section {
+      border: 1px solid var(--mok-border);
+      border-radius: 4px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .waybill-section-title {
+      background: #eceff1;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--mok-navy);
+      padding: 7px 14px;
+      border-bottom: 1px solid var(--mok-border);
+    }
+
+    .waybill-section-body {
+      padding: 12px 14px;
+    }
+
+    .waybill-section-body p {
+      margin: 3px 0;
+      line-height: 1.6;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .cost-bar {
+      background: var(--mok-navy);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cost-bar .cost-label {
+      font-size: 12px;
+      color: #90a4ae;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .cost-bar .cost-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .cost-bar .zone-badge {
+      background: rgba(255, 255, 255, .1);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      color: #b0bec5;
+    }
+
+    .action-bar {
+      padding: 16px 24px;
+      background: #f8fafc;
+      border-top: 1px solid var(--mok-border);
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn-mok {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 20px;
+      height: 40px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .btn-mok.blue {
+      background: #1565c0;
+      color: #fff;
+    }
+
+    .btn-mok.red {
+      background: #3113b5;
+      color: #fff;
+    }
+
+    .btn-mok.green {
+      background: #2e7d32;
+      color: #fff;
+    }
+
+    #qrcode {
+      display: inline-block;
+    }
+
+    @media print {
+      .action-bar {
+        display: none;
+      }
+
+      body {
+        background: #fff;
+        margin: 0;
+      }
+
+      .waybill-container {
+        border: none;
+        box-shadow: none;
+        margin: 0;
+        max-width: 100%;
+      }
+
+      .detail-grid {
+        page-break-inside: avoid;
+      }
+
+      .waybill-section {
+        page-break-inside: avoid;
+      }
+    }
+
+    /* Ensure PDF capture gets full height — no overflow clipping */
+    .waybill-container {
+      overflow: visible;
+    }
+
+    .waybill-body {
+      overflow: visible;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="waybill-container" id="waybillContent">
+
+    <!-- HEADER -->
+    <div class="waybill-header">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <img src="assets/images/mok-logo.png" alt="Mok Transports">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;">Mok
+            Transports Services (Pty) Ltd</div>
+          <div style="font-size:11px;color:#90a4ae;">12 Jupiter Road, Crown Mines, Johannesburg &nbsp;|&nbsp; 011 839
+            8496</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <h4>WAYBILL NO:</h4>
+        <div class="waybill-number" id="waybillNumber">—</div>
+      </div>
+    </div>
+
+    <div class="waybill-body">
+
+      <!-- SHIP FROM / TO -->
+      <div class="detail-grid">
+        <div class="waybill-section">
+          <div class="waybill-section-title">Ship From</div>
+          <div class="waybill-section-body" id="shipFrom">—</div>
+        </div>
+        <div class="waybill-section">
+          <div class="waybill-section-title">Ship To</div>
+          <div class="waybill-section-body" id="shipTo">—</div>
+        </div>
+      </div>
+
+      <!-- SHIPMENT DETAILS -->
+      <div class="waybill-section">
+        <div class="waybill-section-title">Shipment Details</div>
+        <div class="waybill-section-body">
+          <div class="detail-grid">
+            <p><strong>Pickup Date:</strong> <span id="pickupDate">—</span></p>
+            <p><strong>Service:</strong> <span id="deliveryType">—</span></p>
+            <p><strong>Pieces:</strong> <span id="pieces">—</span></p>
+            <p><strong>Weight:</strong> <span id="weight">—</span> kg</p>
+            <p><strong>Volumetric Weight:</strong> <span id="volumetricWeight">—</span> kg</p>
+          </div>
+          <p style="margin-top:8px"><strong>Description:</strong> <span id="description">—</span></p>
+        </div>
+      </div>
+
+      <!-- QR + COST -->
+      <div class="detail-grid" style="margin-bottom:16px">
+        <div class="waybill-section">
+          <div class="waybill-section-title">Scan to Track</div>
+          <div class="waybill-section-body" style="text-align:center;overflow:hidden;">
+            <svg id="waybillBarcode"></svg>
+          </div>
+        </div>
+        <div class="waybill-section">
+          <div class="waybill-section-title">Shipping Cost</div>
+          <div class="waybill-section-body">
+            <p><strong>Zone:</strong> <span id="waybillZone">—</span></p>
+            <div style="margin-top:14px">
+              <div style="font-size:11px;color:#607d8b;text-transform:uppercase;letter-spacing:1px;">Total Amount (excl.
+                VAT)</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;color:#0d2137;"
+                id="waybillPrice">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGNATURE -->
+      <div class="detail-grid">
+        <div class="waybill-section">
+          <div class="waybill-section-title">Sender Signature</div>
+          <div class="waybill-section-body" style="min-height:50px;"></div>
+        </div>
+        <div class="waybill-section">
+          <div class="waybill-section-title">Receiver Signature</div>
+          <div class="waybill-section-body" style="min-height:50px;"></div>
+        </div>
+      </div>
+
+    </div><!-- /body -->
+  </div><!-- /waybill-container -->
+
+  <!-- ACTIONS (outside print area) -->
+  <div class="action-bar">
+    <a class="btn-mok blue" onclick="window.print()">
+      <i class="material-icons">print</i> Print
+    </a>
+    <a class="btn-mok red" onclick="savePDF()">
+      <i class="material-icons">picture_as_pdf</i> Save PDF
+    </a>
+    <a class="btn-mok green" onclick="generateInvoice()">
+      <i class="material-icons">receipt</i> Generate Invoice
+    </a>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="assets/js/localWaybill.js"></script>
+
+</body>
+
+</html>
+

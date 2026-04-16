@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mok Transports | Shipment Booking</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ===== ROOT VARS ===== */
+:root {
+  --mok-navy:   #0d2137;
+  --mok-blue:   #1565c0;
+  --mok-sky:    #1e88e5;
+  --mok-accent: #2d00f565;
+  --mok-green:  #2e7d32;
+  --mok-bg:     #f0f4f8;
+  --mok-card:   #ffffff;
+  --mok-border: #dce3ec;
+  --mok-text:   #1a2535;
+  --mok-muted:  #607d8b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--mok-bg);
+  font-family: 'Barlow', sans-serif;
+  color: var(--mok-text);
+  font-size: 14px;
+}
+
+/* ===== PAGE HEADER ===== */
+.page-header {
+  background: var(--mok-navy);
+  color: #fff;
+  padding: 0;
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  border-bottom: 3px solid var(--mok-accent);
+}
+.header-logo img { height: 52px; }
+.header-logo h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 1px;
+}
+.header-logo p {
+  font-size: 11px;
+  color: #90a4ae;
+  margin: 2px 0 0;
+}
+.header-badge {
+  background: var(--mok-accent);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 10px 22px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ===== CARD ===== */
+.booking-card {
+  background: var(--mok-card);
+  border-radius: 6px;
+  border: 1px solid var(--mok-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+
+/* ===== SECTION TITLES ===== */
+.section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--mok-blue);
+  border-bottom: 2px solid var(--mok-sky);
+  padding-bottom: 6px;
+  margin-bottom: 18px;
+}
+
+/* ===== MATERIALIZE OVERRIDES ===== */
+.input-field label {
+  color: var(--mok-muted) !important;
+  font-size: 13px;
+}
+.input-field input:focus + label,
+.input-field input.valid + label {
+  color: var(--mok-blue) !important;
+}
+.input-field input {
+  border-bottom: 1px solid var(--mok-border) !important;
+  font-family: 'Barlow', sans-serif;
+}
+.input-field input:focus {
+  border-bottom: 1px solid var(--mok-blue) !important;
+  box-shadow: 0 1px 0 var(--mok-blue) !important;
+}
+.select-wrapper input.select-dropdown {
+  border-bottom: 1px solid var(--mok-border) !important;
+}
+
+/* ===== SUMMARY BOX ===== */
+.summary-box {
+  background: linear-gradient(135deg, var(--mok-navy) 0%, #1a3a5c 100%);
+  color: #fff;
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-top: 4px;
+}
+.summary-box .label {
+  font-size: 12px;
+  color: #90caf9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.summary-box .value {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.summary-box .total-price {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+}
+.summary-box .total-price span {
+  font-size: 18px;
+  color: #90caf9;
+  vertical-align: super;
+  margin-right: 4px;
+}
+.zone-pill {
+  display: inline-block;
+  background: rgba(255,255,255,.15);
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 11px;
+  color: #e3f2fd;
+  margin-top: 6px;
+}
+
+/* ===== SHIPMENT TABLE ===== */
+.shipment-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.shipment-table thead th {
+  background: var(--mok-navy);
+  color: #fff;
+  padding: 10px 12px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.shipment-table tbody tr:nth-child(even) { background: #f8fafc; }
+.shipment-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--mok-border);
+}
+.shipment-table input {
+  border: 1px solid var(--mok-border) !important;
+  border-radius: 3px;
+  padding: 5px 8px;
+  width: 100%;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  margin: 0 !important;
+  height: 32px !important;
+}
+.shipment-table input:focus {
+  outline: none;
+  border-color: var(--mok-sky) !important;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.btn-mok {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 22px;
+  height: 42px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: filter .15s, transform .1s;
+}
+.btn-mok:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-mok:active { transform: translateY(0); }
+.btn-mok.primary { background: var(--mok-blue); color: #fff; }
+.btn-mok.success { background: var(--mok-green); color: #fff; }
+.btn-mok.warning { background: var(--mok-accent); color: #fff; }
+.btn-mok.grey    { background: #546e7a; color: #fff; }
+.btn-mok.small   { height: 32px; font-size: 12px; padding: 0 12px; }
+.btn-mok.danger  { background: #2b12cc; color: #fff; }
+
+/* ===== MODAL ===== */
+.modal {
+  border-radius: 8px;
+  max-width: 680px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.modal-header {
+  background: var(--mok-navy);
+  color: #fff;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.modal-header h5 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 1px;
+}
+.modal-body { padding: 20px 24px; }
+.modal-footer {
+  padding: 14px 24px;
+  background: #f8fafc;
+  border-top: 1px solid var(--mok-border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+}
+
+/* Summary table inside modal */
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+.summary-table th.summary-section {
+  background: var(--mok-navy);
+  color: #fff;
+  padding: 7px 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.summary-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--mok-border);
+}
+.summary-table td:first-child { color: var(--mok-muted); width: 38%; }
+.summary-table tr.total-row {
+  background: #e8f5e9;
+}
+.summary-table tr.total-row td { color: var(--mok-green) !important; font-size: 15px; }
+.items-table th {
+  background: #eceff1;
+  color: var(--mok-navy);
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+/* Date field */
+#shipmentDate.active + label,
+#shipmentDate + label { top: -14px; font-size: 12px; }
+
+/* Service select */
+.service-select-wrap { margin-bottom: 10px; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .header-inner { flex-direction: column; gap: 12px; text-align: center; }
+  .action-bar { flex-direction: column; }
+  .btn-mok { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ============ PAGE HEADER ============ -->
+<div class="page-header">
+  <div class="header-inner">
+    <div class="header-logo" style="display:flex;align-items:center;gap:16px;">
+      <img src="assets/images/mok-logo.png" alt="Mok Transports">
+      <div>
+        <h2>Mok Transports Services</h2>
+        <p>12 Jupiter Road, Crown Mines, Johannesburg &nbsp;|&nbsp; Tel: 011 839 8496</p>
+      </div>
+    </div>
+    <div class="header-badge">Shipment Booking</div>
+  </div>
+</div>
+
+<!-- ============ MAIN CONTAINER ============ -->
+<div class="container" style="max-width:900px; padding-top:24px; padding-bottom:40px;">
+
+  <!-- DATE & SERVICE -->
+  <div class="booking-card">
+    <div class="row" style="margin-bottom:0">
+      <div class="input-field col s12 m4">
+        <input type="date" id="shipmentDate">
+        <label class="active" for="shipmentDate">Shipment Date</label>
+      </div>
+      <div class="input-field col s12 m8 service-select-wrap">
+        <select id="serviceType">
+          <option value="SAMEDAY">SameDay Express Air</option>
+          <option value="ONX" selected>Overnight Express (ONX)</option>
+          <option value="NDD">NextDay Express</option>
+          <option value="ECO">Economy Service (ECO)</option>
+        </select>
+        <label>Service Type</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- FROM -->
+  <div class="booking-card">
+    <div class="section-title">From (Consignor)</div>
+    <div class="row">
+      <div class="input-field col s12 m6">
+        <input id="fromCompany" type="text" required>
+        <label for="fromCompany">Company Name *</label>
+      </div>
+      <div class="input-field col s12 m6">
+        <input id="fromAddress" type="text" required autocomplete="off">
+        <label for="fromAddress">Street Address *</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m4">
+        <input id="fromSuburb" type="text">
+        <label for="fromSuburb">Suburb</label>
+      </div>
+      <div class="input-field col s12 m4">
+        <input id="fromTown" type="text">
+        <label for="fromTown">Town / City</label>
+      </div>
+      <div class="input-field col s12 m4">
+        <input id="fromPostal" type="text">
+        <label for="fromPostal">Postal Code</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m6">
+        <input id="fromEmail" type="email">
+        <label for="fromEmail">Email</label>
+      </div>
+      <div class="input-field col s12 m6">
+        <input id="fromContact" type="text">
+        <label for="fromContact">Contact Number</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- TO -->
+  <div class="booking-card">
+    <div class="section-title">To (Consignee)</div>
+    <div class="row">
+      <div class="input-field col s12 m6">
+        <input id="toCompany" type="text" required>
+        <label for="toCompany">Company Name *</label>
+      </div>
+      <div class="input-field col s12 m6">
+        <input id="toAddress" type="text" required autocomplete="off">
+        <label for="toAddress">Street Address *</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m4">
+        <input id="toSuburb" type="text">
+        <label for="toSuburb">Suburb</label>
+      </div>
+      <div class="input-field col s12 m4">
+        <input id="toTown" type="text">
+        <label for="toTown">Town / City</label>
+      </div>
+      <div class="input-field col s12 m4">
+        <input id="toPostal" type="text">
+        <label for="toPostal">Postal Code</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m6">
+        <input id="toEmail" type="email">
+        <label for="toEmail">Email</label>
+      </div>
+      <div class="input-field col s12 m6">
+        <input id="toContact" type="text">
+        <label for="toContact">Contact Number</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHIPMENT TABLE -->
+  <div class="booking-card">
+    <div class="section-title">Shipment Items</div>
+    <table class="shipment-table">
+      <thead>
+        <tr>
+          <th style="width:80px">Qty</th>
+          <th>Description</th>
+          <th style="width:120px">Weight (kg)</th>
+          <th style="width:50px"></th>
+        </tr>
+      </thead>
+      <tbody id="shipmentTable">
+        <tr>
+          <td><input type="number" class="qty" value="1" min="1"></td>
+          <td><input type="text" class="desc-input" placeholder="e.g. Carton boxes"></td>
+          <td><input type="number" class="weight" oninput="calculateAll()" step="0.1" min="0" placeholder="0.00"></td>
+          <td>
+            <button type="button" class="btn-mok danger small" onclick="removeRow(this)">
+              <i class="material-icons" style="font-size:16px">delete</i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px">
+      <button type="button" class="btn-mok grey small" onclick="addRow()">
+        <i class="material-icons" style="font-size:16px">add</i> Add Item
+      </button>
+    </div>
+  </div>
+
+  <!-- DIMENSIONS -->
+  <div class="booking-card">
+    <div class="section-title">Dimensions (cm)</div>
+    <div class="row" style="margin-bottom:0">
+      <div class="input-field col s4">
+        <input id="length" type="number" oninput="calculateAll()" min="0" step="0.1">
+        <label for="length">Length</label>
+      </div>
+      <div class="input-field col s4">
+        <input id="width" type="number" oninput="calculateAll()" min="0" step="0.1">
+        <label for="width">Width</label>
+      </div>
+      <div class="input-field col s4">
+        <input id="height" type="number" oninput="calculateAll()" min="0" step="0.1">
+        <label for="height">Height</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="booking-card" style="padding:0;overflow:hidden;">
+    <div class="summary-box">
+      <div class="row" style="margin-bottom:0">
+        <div class="col s6 m3" style="margin-bottom:12px">
+          <div class="label">Actual Weight</div>
+          <div class="value"><span id="actualWeight">0.00</span> kg</div>
+        </div>
+        <div class="col s6 m3" style="margin-bottom:12px">
+          <div class="label">Volumetric Weight</div>
+          <div class="value"><span id="volWeight">0.00</span> kg</div>
+        </div>
+        <div class="col s6 m3" style="margin-bottom:12px">
+          <div class="label">Chargeable Weight</div>
+          <div class="value"><span id="chargeWeight">0.00</span> kg</div>
+        </div>
+        <div class="col s6 m3" style="margin-bottom:12px">
+          <div class="label">Distance</div>
+          <div class="value"><span id="distance">0</span> km</div>
+        </div>
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,.15);padding-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="label">Total Cost (excl. VAT)</div>
+          <div class="total-price"><span>R</span><span id="price">0.00</span></div>
+          <div class="zone-pill" id="zoneLabel">Select addresses to detect zone</div>
+        </div>
+        <div style="font-size:11px;color:#78909c;max-width:200px;text-align:right">
+          Chargeable = max(actual, volumetric).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="action-bar">
+    <button type="button" class="btn-mok primary" onclick="saveBooking()">
+      <i class="material-icons">save</i> Review &amp; Save Booking
+    </button>
+    <button type="button" id="waybillConfirmBtn" class="btn-mok success" onclick="generateWaybill()" style="display:none">
+      <i class="material-icons">description</i> Open Waybill
+    </button>
+    <button type="button" class="btn-mok warning" onclick="createInvoice()">
+      <i class="material-icons">receipt</i> Invoice
+    </button>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ============ SUMMARY MODAL ============ -->
+<div id="summaryModal" class="modal">
+  <div class="modal-header">
+    <h5><i class="material-icons" style="vertical-align:middle;margin-right:8px">fact_check</i>Shipment Summary</h5>
+    <button class="btn-mok grey small modal-close">✕</button>
+  </div>
+  <div class="modal-body" id="summaryBody">
+    <!-- populated by JS -->
+  </div>
+  <div class="modal-footer">
+    <button class="btn-mok grey modal-close">
+      <i class="material-icons">edit</i> Edit
+    </button>
+    <button class="btn-mok success" onclick="confirmBooking()">
+      <i class="material-icons">check_circle</i> Confirm &amp; Generate Waybill
+    </button>
+  </div>
+</div>
+<div class="modal-overlay"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsZik-na0xiGCAdoGfMrvzMhQHOGQjhkM&libraries=places"></script>
+<script src="assets/js/booking.js"></script>
+
+</body>
+</html>
+
+
+
