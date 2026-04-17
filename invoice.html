@@ -1,113 +1,780 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Tax Invoice | Mok Transports</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tax Invoice | Mok Transports</title>
 
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-    rel="stylesheet">
+<style>
+/* ===== ROOT ===== */
+:root {
+  --navy:   #0d2137;
+  --blue:   #1565c0;
+  --sky:    #1e88e5;
+  --accent: #f57c00;
+  --green:  #2e7d32;
+  --red:    #c62828;
+  --bg:     #f0f4f8;
+  --card:   #ffffff;
+  --border: #dce3ec;
+  --text:   #1a2535;
+  --muted:  #607d8b;
+}
 
-  <link rel="stylesheet" href="assets/css/style.css">
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+}
+
+/* ===== ACTION BAR (screen only) ===== */
+.action-bar {
+  background: var(--navy);
+  border-bottom: 3px solid var(--accent);
+  padding: 0 32px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.action-bar-left {
+  display: flex; align-items: center; gap: 14px;
+}
+.action-bar-left img { height: 36px; }
+.action-bar-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 700; color: #fff;
+  letter-spacing: .5px;
+}
+.action-bar-title span { display: block; font-size: 10px; font-weight: 400; color: #607d8b; letter-spacing: 1.5px; text-transform: uppercase; }
+
+.action-bar-right { display: flex; gap: 10px; }
+
+.btn-act {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 18px; height: 38px; border-radius: 5px; border: none; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  transition: filter .15s;
+  text-decoration: none;
+}
+.btn-act:hover { filter: brightness(1.12); }
+.btn-blue   { background: var(--blue);   color: #fff; }
+.btn-green  { background: var(--green);  color: #fff; }
+.btn-orange { background: var(--accent); color: #fff; }
+.btn-red    { background: var(--red);    color: #fff; }
+.btn-grey   { background: #546e7a;       color: #fff; }
+
+/* ===== PAGE WRAP ===== */
+.page-wrap {
+  max-width: 1080px;
+  margin: 28px auto;
+  padding: 0 20px 60px;
+}
+
+/* ===== INVOICE DOCUMENT ===== */
+.invoice-doc {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.06);
+}
+
+/* ---- Invoice Header ---- */
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 28px 32px 20px;
+  border-bottom: 3px solid var(--accent);
+  background: var(--navy);
+  color: #fff;
+}
+.inv-header-left img { height: 52px; margin-bottom: 12px; }
+.inv-company-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 700; color: #fff; letter-spacing: .5px;
+}
+.inv-company-details { font-size: 12px; color: #90a4ae; line-height: 1.8; margin-top: 4px; }
+
+.inv-header-right { text-align: right; }
+.inv-type-badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px; font-weight: 800; letter-spacing: 2px;
+  text-transform: uppercase; color: #fff; margin-bottom: 16px;
+  display: block;
+}
+.inv-type-badge span { color: var(--accent); }
+
+/* ---- Meta fields ---- */
+.inv-meta-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+.inv-meta-cell {
+  padding: 14px 20px;
+  border-right: 1px solid var(--border);
+}
+.inv-meta-cell:last-child { border-right: none; }
+.inv-meta-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.inv-meta-input {
+  width: 100%; border: none; outline: none;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700;
+  color: var(--navy); background: transparent; padding: 0;
+}
+.inv-meta-input[type="date"] { font-size: 14px; font-weight: 500; font-family: 'Barlow', sans-serif; }
+
+/* ---- Bill To / Invoice To ---- */
+.inv-bill-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--border);
+}
+.inv-bill-cell {
+  padding: 16px 20px;
+  border-right: 1px solid var(--border);
+}
+.inv-bill-cell:last-child { border-right: none; }
+.inv-bill-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+}
+.inv-bill-textarea {
+  width: 100%; border: 1px dashed var(--border); border-radius: 4px;
+  padding: 8px 10px; font-family: 'Barlow', sans-serif; font-size: 13px;
+  color: var(--text); background: #fafbfc; resize: vertical; min-height: 72px;
+  outline: none; line-height: 1.6;
+}
+.inv-bill-textarea:focus { border-color: var(--sky); background: #fff; }
+
+/* ---- Waybill Ref Box ---- */
+.inv-ref-row {
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: var(--muted);
+}
+.inv-ref-row strong { color: var(--navy); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; }
+
+/* ---- Invoice Table ---- */
+.inv-table-wrap { overflow-x: auto; }
+
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.inv-table thead tr {
+  background: var(--navy);
+}
+.inv-table thead th {
+  color: #fff;
+  padding: 10px 10px;
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  text-align: center; white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,.1);
+}
+.inv-table thead th:first-child  { text-align: left; border-right: 1px solid rgba(255,255,255,.1); }
+.inv-table thead th:last-child   { border-right: none; }
+
+.inv-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+.inv-table tbody tr:hover { background: #f5f8ff; }
+.inv-table tbody tr:last-child { border-bottom: none; }
+
+.inv-table tbody td {
+  padding: 8px 10px;
+  vertical-align: middle;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.inv-table tbody td:first-child  { text-align: left; }
+.inv-table tbody td:last-child   { border-right: none; }
+
+/* editable cells */
+.cell-input {
+  width: 100%; border: none; outline: none;
+  background: transparent; font-family: 'Barlow', sans-serif; font-size: 12px;
+  color: var(--text); text-align: center; padding: 2px 4px;
+  border-radius: 3px; transition: background .15s;
+}
+.cell-input:focus { background: #eef4ff; }
+.cell-select {
+  border: none; outline: none; background: transparent;
+  font-family: 'Barlow', sans-serif; font-size: 12px;
+  color: var(--text); width: 100%; padding: 2px 2px; cursor: pointer;
+}
+.cell-select:focus { background: #eef4ff; border-radius: 3px; }
+
+/* receiver stacked display */
+.receiver-stack { line-height: 1.5; }
+.receiver-from { font-weight: 600; color: var(--navy); }
+.receiver-arrow { color: var(--accent); font-size: 10px; }
+.receiver-to { color: var(--muted); }
+
+/* computed cells */
+.cell-computed {
+  font-weight: 600; color: var(--navy);
+  background: #fafbfc;
+}
+.cell-net { background: #e8f5e9; color: var(--green); font-weight: 700; }
+
+/* delete btn */
+.btn-del-row {
+  background: none; border: none; cursor: pointer; color: #ef9a9a;
+  padding: 4px; border-radius: 3px; transition: background .12s, color .12s;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-del-row:hover { background: #ffebee; color: var(--red); }
+
+/* add row btn */
+.add-row-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px; background: none; border: none; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--blue); border-bottom: 1px solid var(--border); width: 100%;
+  transition: background .12s;
+}
+.add-row-btn:hover { background: #f5f8ff; }
+
+/* ---- Totals ---- */
+.inv-totals-row {
+  display: flex; justify-content: flex-end;
+  padding: 20px 28px 24px;
+  border-top: 2px solid var(--border);
+}
+.totals-box { min-width: 320px; }
+.totals-line {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+.totals-line:last-child { border-bottom: none; }
+.totals-line .lbl { color: var(--muted); font-size: 12px; letter-spacing: .3px; }
+.totals-line .val { font-weight: 600; color: var(--navy); font-family: 'Barlow Condensed', sans-serif; font-size: 15px; }
+.totals-line.divider { border-top: 2px solid var(--border); margin-top: 4px; padding-top: 10px; }
+.totals-line.grand {
+  background: var(--navy); border-radius: 6px;
+  padding: 12px 16px; margin-top: 8px; border-bottom: none;
+}
+.totals-line.grand .lbl { color: #90a4ae; font-size: 12px; }
+.totals-line.grand .val { color: #fff; font-size: 22px; }
+
+/* ---- Bank / Notes footer ---- */
+.inv-footer {
+  background: #f8fafc;
+  border-top: 1px solid var(--border);
+  padding: 18px 32px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px; font-size: 12px;
+}
+.inv-footer-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.inv-footer-content { color: var(--text); line-height: 1.8; }
+.inv-footer-content strong { color: var(--navy); }
+
+/* ---- Stamp row ---- */
+.inv-stamp-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0; border-top: 1px solid var(--border);
+}
+.inv-stamp-cell {
+  padding: 16px 28px; border-right: 1px solid var(--border);
+  font-size: 12px; color: var(--muted);
+}
+.inv-stamp-cell:last-child { border-right: none; }
+.inv-stamp-line {
+  border-top: 1px solid var(--border);
+  margin-top: 30px; padding-top: 6px;
+  font-size: 11px; text-align: center;
+}
+
+/* ===== PRINT / PDF ===== */
+@media print {
+  .action-bar { display: none !important; }
+  .add-row-btn { display: none !important; }
+  .btn-del-row { display: none !important; }
+  .inv-bill-textarea { border: none; background: transparent; }
+  .cell-input, .cell-select { border: none; background: transparent; }
+  body { background: #fff; }
+  .invoice-doc { border: none; box-shadow: none; border-radius: 0; }
+  .page-wrap { margin: 0; padding: 0; max-width: 100%; }
+}
+</style>
 </head>
-
 <body>
 
-<div class="container invoice-container">
-
-  <!-- HEADER -->
-  <div class="row">
-    <div class="col s6">
-      <img src="assets/images/mok-logo.png" width="180">
-      <p>
-        <strong>Mok Transports Services (Pty) Ltd</strong><br>
-        12 Jupiter Road, Crown Mines<br>
-        Johannesburg, South Africa<br>
-        Tel: 011 839 8496
-      </p>
-    </div>
-
-    <div class="col s6 right-align">
-      <h5>Tax Invoice</h5>
-
-      <div class="input-field">
-        <input id="invoiceNumber">
-        <label>Invoice Number</label>
-      </div>
-
-      <div class="input-field">
-        <input type="date" id="invoiceDate">
-        <label class="active">Invoice Date</label>
-      </div>
-
-      <div class="input-field">
-        <input type="date" id="dueDate">
-        <label class="active">Due Date</label>
-      </div>
+<!-- ===== ACTION BAR (screen only) ===== -->
+<div class="action-bar" id="actionBar">
+  <div class="action-bar-left">
+    <img src="assets/images/mok-logo.png" alt="">
+    <div class="action-bar-title">
+      Tax Invoice
+      <span>Mok Transports Services (Pty) Ltd</span>
     </div>
   </div>
-
-  <hr>
-
-  <!-- BILL TO -->
-  <div class="row">
-    <div class="col s12">
-      <h6>Bill To</h6>
-      <textarea id="billTo" class="materialize-textarea"></textarea>
-    </div>
-  </div>
-
-  <!-- SHIPMENT TABLE -->
-  <table class="striped bordered">
-    <thead>
-      <tr>
-        <th>Carrier-Airbill # Ship Date</th>
-        <th>Sender Address</th>
-        <th>Receiver Address</th>
-        <th>Pieces</th>
-        <th>Weight (kg)</th>
-        <th>Charge (ZAR)</th>
-      </tr>
-    </thead>
-    <tbody id="invoiceLines"></tbody>
-  </table>
-
-  <br>
-
-  <a class="btn green" onclick="addLine()">
-    <i class="material-icons left">add</i>Add Line
-  </a>
-
-  <!-- TOTALS -->
-  <div class="row right-align">
-    <div class="col s6 offset-s6">
-      <p>Subtotal: <strong>R <span id="subtotal">0.00</span></strong></p>
-      <p>VAT (15%): <strong>R <span id="vat">0.00</span></strong></p>
-      <h6>Total: R <span id="total">0.00</span></h6>
-    </div>
-  </div>
-
-  <!-- ACTIONS -->
-  <div class="row center">
-    <a class="btn blue" onclick="sendInvoice()">
-      <i class="material-icons left">email</i>Send Invoice
+  <div class="action-bar-right">
+    <a class="btn-act btn-grey" href="dashboard.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Dashboard
     </a>
-
-    <a class="btn orange" onclick="window.print()">
-      <i class="material-icons left">print</i>Print
-    </a>
-
-    <a class="btn red" onclick="downloadPDF()">
-      <i class="material-icons left">picture_as_pdf</i>Download PDF
-    </a>
+    <button class="btn-act btn-green" onclick="addLine()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Line
+    </button>
+    <button class="btn-act btn-blue" onclick="sendInvoice()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Send
+    </button>
+    <button class="btn-act btn-orange" onclick="window.print()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print
+    </button>
+    <button class="btn-act btn-red" onclick="downloadPDF()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      PDF
+    </button>
   </div>
-
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="assets/js/invoice.js"></script>
+<!-- ===== PAGE WRAP ===== -->
+<div class="page-wrap">
+<div class="invoice-doc" id="invoiceDoc">
 
+  <!-- ===== HEADER ===== -->
+  <div class="inv-header">
+    <div class="inv-header-left">
+      <img src="assets/images/mok-logo.png" alt="Mok Transports">
+      <div class="inv-company-name">Mok Transports Services (Pty) Ltd</div>
+      <div class="inv-company-details">
+        12 Jupiter Road, Crown Mines<br>
+        Johannesburg, South Africa<br>
+        Tel: 011 839 8496<br>
+        VAT No: <span id="vatNumber">—</span>
+      </div>
+    </div>
+    <div class="inv-header-right">
+      <span class="inv-type-badge">TAX <span>INVOICE</span></span>
+    </div>
+  </div>
+
+  <!-- ===== META: INV NO / DATE / DUE ===== -->
+  <div class="inv-meta-grid">
+    <div class="inv-meta-cell">
+      <div class="inv-meta-label">Invoice Number</div>
+      <input class="inv-meta-input" id="invoiceNumber" placeholder="INV-000001" spellcheck="false">
+    </div>
+    <div class="inv-meta-cell">
+      <div class="inv-meta-label">Invoice Date</div>
+      <input class="inv-meta-input" type="date" id="invoiceDate">
+    </div>
+    <div class="inv-meta-cell">
+      <div class="inv-meta-label">Due Date</div>
+      <input class="inv-meta-input" type="date" id="dueDate">
+    </div>
+  </div>
+
+  <!-- ===== BILL TO / SHIP TO ===== -->
+  <div class="inv-bill-row">
+    <div class="inv-bill-cell">
+      <div class="inv-bill-label">Bill To</div>
+      <textarea class="inv-bill-textarea" id="billTo" placeholder="Company Name&#10;Address Line 1&#10;Suburb, Town&#10;Postal Code&#10;Email | Tel"></textarea>
+    </div>
+    <div class="inv-bill-cell">
+      <div class="inv-bill-label">Reference / PO Number</div>
+      <textarea class="inv-bill-textarea" id="poRef" placeholder="Purchase order or reference number" style="min-height:40px;resize:none;"></textarea>
+      <div class="inv-bill-label" style="margin-top:12px">Notes</div>
+      <textarea class="inv-bill-textarea" id="invoiceNotes" placeholder="Additional notes or instructions…" style="min-height:40px;"></textarea>
+    </div>
+  </div>
+
+  <!-- ===== WAYBILL REF BAR ===== -->
+  <div class="inv-ref-row" id="waybillRefBar" style="display:none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+    Linked to Waybill: <strong id="waybillRefNo">—</strong>
+  </div>
+
+  <!-- ===== INVOICE TABLE ===== -->
+  <div class="inv-table-wrap">
+    <table class="inv-table" id="invTable">
+      <thead>
+        <tr>
+          <th style="text-align:left;width:120px">Service</th>
+          <th style="width:110px">Waybill No.</th>
+          <th style="width:140px">Receiver<br><small style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">Collection → Delivery</small></th>
+          <th style="width:70px">Date</th>
+          <th style="width:80px">Basic (R)</th>
+          <th style="width:80px">Freight<br><small style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">R15.00</small></th>
+          <th style="width:80px">Fuel<br><small style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">28% of Basic</small></th>
+          <th style="width:70px">Others<br><small style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">R8.40</small></th>
+          <th style="width:75px">VAT<br><small style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">15%</small></th>
+          <th style="width:85px">Net Price</th>
+          <th style="width:32px"></th>
+        </tr>
+      </thead>
+      <tbody id="invoiceLines">
+        <!-- rows injected by JS -->
+      </tbody>
+    </table>
+    <button class="add-row-btn" onclick="addLine()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Line Item
+    </button>
+  </div>
+
+  <!-- ===== TOTALS ===== -->
+  <div class="inv-totals-row">
+    <div class="totals-box">
+      <div class="totals-line">
+        <span class="lbl">Subtotal (Sum of Basic)</span>
+        <span class="val">R <span id="tSubtotal">0.00</span></span>
+      </div>
+      <div class="totals-line">
+        <span class="lbl">Freight Total</span>
+        <span class="val">R <span id="tFreight">0.00</span></span>
+      </div>
+      <div class="totals-line">
+        <span class="lbl">Fuel Surcharge Total</span>
+        <span class="val">R <span id="tFuel">0.00</span></span>
+      </div>
+      <div class="totals-line">
+        <span class="lbl">Others Total</span>
+        <span class="val">R <span id="tOthers">0.00</span></span>
+      </div>
+      <div class="totals-line divider">
+        <span class="lbl">Amount Excl. VAT</span>
+        <span class="val">R <span id="tExcl">0.00</span></span>
+      </div>
+      <div class="totals-line">
+        <span class="lbl">VAT Amount (15%)</span>
+        <span class="val">R <span id="tVatAmt">0.00</span></span>
+      </div>
+      <div class="totals-line grand">
+        <span class="lbl">TOTAL</span>
+        <span class="val">R <span id="tTotal">0.00</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FOOTER: BANKING DETAILS ===== -->
+  <div class="inv-footer">
+    <div>
+      <div class="inv-footer-section-title">Banking Details</div>
+      <div class="inv-footer-content">
+        <strong>Bank:</strong> <span contenteditable="true" id="bankName">First National Bank (FNB)</span><br>
+        <strong>Account Name:</strong> <span contenteditable="true" id="bankAccName">Mok Transports Services (Pty) Ltd</span><br>
+        <strong>Account No:</strong> <span contenteditable="true" id="bankAccNo">— — — — — — —</span><br>
+        <strong>Branch Code:</strong> <span contenteditable="true" id="bankBranch">250655</span><br>
+        <strong>Account Type:</strong> <span contenteditable="true" id="bankAccType">Business Current</span>
+      </div>
+    </div>
+    <div>
+      <div class="inv-footer-section-title">Terms &amp; Conditions</div>
+      <div class="inv-footer-content" contenteditable="true" id="terms">
+        Payment is due within 30 days of invoice date.<br>
+        Please use the Invoice Number as payment reference.<br>
+        Prices are exclusive of VAT unless otherwise stated.<br>
+        Queries must be raised within 7 days of receipt.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SIGNATURE ROW ===== -->
+  <div class="inv-stamp-row">
+    <div class="inv-stamp-cell">
+      <div>Authorised Signatory</div>
+      <div class="inv-stamp-line">Signature &amp; Company Stamp</div>
+    </div>
+    <div class="inv-stamp-cell">
+      <div>Received by</div>
+      <div class="inv-stamp-line">Signature &amp; Date</div>
+    </div>
+  </div>
+
+</div><!-- /invoice-doc -->
+</div><!-- /page-wrap -->
+
+<script>
+// ===================================================================
+// CONSTANTS
+// ===================================================================
+const FREIGHT = 15.00;
+const OTHERS  = 8.40;
+const FUEL_RATE = 0.28;   // 28% of Basic
+const VAT_RATE  = 0.15;   // 15%
+
+const SERVICE_OPTIONS = [
+  'SameDay Express Air',
+  'Overnight Express (ONX)',
+  'NextDay Express',
+  'Economy Service (ECO)',
+  'Economy Service Special',
+  'International'
+];
+
+// ===================================================================
+// INVOICE NUMBER — sequential INV000001, INV000002 …
+// ===================================================================
+function generateInvoiceNumber() {
+  const n = parseInt(localStorage.getItem('mokInvoiceCounter') || '0', 10) + 1;
+  localStorage.setItem('mokInvoiceCounter', String(n));
+  return `INV${String(n).padStart(6, '0')}`;
+}
+
+// ===================================================================
+// ROW MANAGEMENT
+// ===================================================================
+let rowId = 0;
+
+function addLine(prefill = {}) {
+  rowId++;
+  const id  = rowId;
+  const basic = parseFloat(prefill.basic || '') || '';
+
+  const tbody = document.getElementById('invoiceLines');
+  const tr = document.createElement('tr');
+  tr.id = `row-${id}`;
+
+  // Service select options
+  const opts = SERVICE_OPTIONS.map(s =>
+    `<option value="${s}" ${s === (prefill.service||'') ? 'selected' : ''}>${s}</option>`
+  ).join('');
+
+  tr.innerHTML = `
+    <td>
+      <select class="cell-select" id="svc-${id}" onchange="recalcRow(${id})">
+        <option value="">Select…</option>
+        ${opts}
+      </select>
+    </td>
+    <td>
+      <input class="cell-input" id="wb-${id}" value="${prefill.waybill || ''}" placeholder="MOK000001">
+    </td>
+    <td>
+      <div class="receiver-stack">
+        <input class="cell-input" id="from-${id}" value="${prefill.fromTown || ''}" placeholder="Collection" style="text-align:left;font-weight:600;color:var(--navy)">
+        <div class="receiver-arrow" style="font-size:10px;color:var(--accent);padding:1px 4px">↓</div>
+        <input class="cell-input" id="to-${id}" value="${prefill.toTown || ''}" placeholder="Delivery" style="text-align:left;color:var(--muted)">
+      </div>
+    </td>
+    <td>
+      <input class="cell-input" id="dt-${id}" type="date" value="${prefill.date || ''}" style="font-size:11px">
+    </td>
+    <td>
+      <input class="cell-input" id="basic-${id}" type="number" step="0.01" min="0"
+        value="${basic}" placeholder="0.00"
+        oninput="recalcRow(${id})" style="font-weight:600;color:var(--blue)">
+    </td>
+    <td class="cell-computed" id="freight-${id}">${fmt(FREIGHT)}</td>
+    <td class="cell-computed" id="fuel-${id}">${basic ? fmt(basic * FUEL_RATE) : '0.00'}</td>
+    <td class="cell-computed" id="others-${id}">${fmt(OTHERS)}</td>
+    <td class="cell-computed" id="vat-${id}">0.00</td>
+    <td class="cell-computed cell-net" id="net-${id}">0.00</td>
+    <td>
+      <button class="btn-del-row" onclick="removeRow(${id})" title="Remove row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+
+  if (basic) recalcRow(id);
+  recalcTotals();
+}
+
+function removeRow(id) {
+  const row = document.getElementById(`row-${id}`);
+  if (row) row.remove();
+  recalcTotals();
+}
+
+// ===================================================================
+// CALCULATIONS
+// ===================================================================
+function fmt(n) {
+  return parseFloat(n || 0).toFixed(2);
+}
+
+function recalcRow(id) {
+  const basic   = parseFloat(document.getElementById(`basic-${id}`)?.value) || 0;
+  const fuel    = basic * FUEL_RATE;
+  const excl    = basic + FREIGHT + fuel + OTHERS;
+  const vat     = excl * VAT_RATE;
+  const net     = excl + vat;
+
+  const set = (elId, val) => {
+    const el = document.getElementById(elId);
+    if (el) el.textContent = fmt(val);
+  };
+
+  set(`freight-${id}`, FREIGHT);
+  set(`fuel-${id}`,    fuel);
+  set(`others-${id}`,  OTHERS);
+  set(`vat-${id}`,     vat);
+  set(`net-${id}`,     net);
+
+  recalcTotals();
+}
+
+function recalcTotals() {
+  let sumBasic   = 0;
+  let sumFreight = 0;
+  let sumFuel    = 0;
+  let sumOthers  = 0;
+
+  // Collect from all rows
+  document.querySelectorAll('[id^="basic-"]').forEach(el => {
+    const rowNum  = el.id.split('-')[1];
+    const basic   = parseFloat(el.value) || 0;
+    const fuel    = basic * FUEL_RATE;
+    sumBasic   += basic;
+    sumFreight += FREIGHT;
+    sumFuel    += fuel;
+    sumOthers  += OTHERS;
+  });
+
+  const excl   = sumBasic + sumFreight + sumFuel + sumOthers;
+  const vatAmt = excl * VAT_RATE;
+  const total  = excl + vatAmt;
+
+  document.getElementById('tSubtotal').textContent = fmt(sumBasic);
+  document.getElementById('tFreight').textContent  = fmt(sumFreight);
+  document.getElementById('tFuel').textContent     = fmt(sumFuel);
+  document.getElementById('tOthers').textContent   = fmt(sumOthers);
+  document.getElementById('tExcl').textContent     = fmt(excl);
+  document.getElementById('tVatAmt').textContent   = fmt(vatAmt);
+  document.getElementById('tTotal').textContent    = fmt(total);
+}
+
+// ===================================================================
+// LOAD FROM WAYBILL / BOOKING
+// ===================================================================
+window.addEventListener('DOMContentLoaded', () => {
+  // Auth guard — only office staff can access invoice
+  const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+  if (!session || session.role !== 'office') {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Set invoice number and dates
+  document.getElementById('invoiceNumber').value = generateInvoiceNumber();
+  const today = new Date();
+  document.getElementById('invoiceDate').value = today.toISOString().slice(0, 10);
+  const due = new Date(today); due.setDate(due.getDate() + 30);
+  document.getElementById('dueDate').value = due.toISOString().slice(0, 10);
+
+  // ---- Try loading from waybill handoff ----
+  const inv = localStorage.getItem('invoiceFromWaybill');
+  if (inv) {
+    const d = JSON.parse(inv);
+    const refBar = document.getElementById('waybillRefBar');
+    refBar.style.display = 'flex';
+    document.getElementById('waybillRefNo').textContent = d.waybillNo || '—';
+
+    // Pre-fill Bill To with shipTo
+    if (d.shipTo) document.getElementById('billTo').value = d.shipTo.replace(/<[^>]+>/g, '\n').trim();
+
+    addLine({
+      service:  d.service   || '',
+      waybill:  d.waybillNo || '',
+      fromTown: d.fromTown  || '',
+      toTown:   d.toTown    || '',
+      date:     d.date      || today.toISOString().slice(0, 10),
+      basic:    d.price     || ''
+    });
+
+    localStorage.removeItem('invoiceFromWaybill');
+    return;
+  }
+
+  // ---- Try loading from booking direct (createInvoice button) ----
+  const bookings = JSON.parse(localStorage.getItem('mokBookings') || '[]');
+  if (bookings.length) {
+    const last = bookings[bookings.length - 1];
+    document.getElementById('billTo').value =
+      [last.toCompany, last.toAddress, last.toSuburb, last.toTown, last.toPostal, last.toEmail].filter(Boolean).join('\n');
+
+    addLine({
+      service:  last.service      || '',
+      waybill:  last.waybillNo    || '',
+      fromTown: last.fromTown     || last.fromAddress || '',
+      toTown:   last.toTown       || last.toAddress   || '',
+      date:     last.shipmentDate || today.toISOString().slice(0, 10),
+      basic:    last.price        || ''
+    });
+    return;
+  }
+
+  // ---- Blank invoice ----
+  addLine();
+});
+
+// ===================================================================
+// SEND INVOICE (email prompt)
+// ===================================================================
+function sendInvoice() {
+  const billTo  = document.getElementById('billTo').value;
+  const invNo   = document.getElementById('invoiceNumber').value;
+  const total   = document.getElementById('tTotal').textContent;
+
+  const emailMatch = billTo.match(/[\w.-]+@[\w.-]+\.\w+/);
+  const email = emailMatch ? emailMatch[0] : '';
+
+  const subject = encodeURIComponent(`Tax Invoice ${invNo} – Mok Transports Services (Pty) Ltd`);
+  const body    = encodeURIComponent(
+    `Dear Client,\n\nPlease find attached Tax Invoice ${invNo} for an amount of R ${total}.\n\nKindly ensure payment is made within 30 days.\n\nRegards,\nMok Transports Services (Pty) Ltd\nTel: 011 839 8496`
+  );
+
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
+// ===================================================================
+// PDF DOWNLOAD
+// ===================================================================
+function downloadPDF() {
+  const invNo   = document.getElementById('invoiceNumber').value || 'Invoice';
+  const element = document.getElementById('invoiceDoc');
+
+  // Hide action bar during capture
+  document.getElementById('actionBar').style.display = 'none';
+
+  html2pdf()
+    .set({
+      margin:      [8, 8, 8, 8],
+      filename:    `${invNo}_MokTransports.pdf`,
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    })
+    .from(element)
+    .save()
+    .then(() => {
+      document.getElementById('actionBar').style.display = 'flex';
+    });
+}
+</script>
 </body>
 </html>
+
