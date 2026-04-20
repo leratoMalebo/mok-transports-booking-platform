@@ -17,7 +17,7 @@
       --navy: #0d2137;
       --blue: #1565c0;
       --sky: #1e88e5;
-      --accent: #f57c00;
+      --accent: #ffffff;
       --green: #2e7d32;
       --red: #c62828;
       --bg: #f0f4f8;
@@ -663,13 +663,6 @@
         </svg>
         Dashboard
       </a>
-      <button class="btn-act btn-green" onclick="addLine()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        Add Line
-      </button>
       <button class="btn-act btn-blue" onclick="sendInvoice()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -708,8 +701,10 @@
           <div class="inv-company-details">
             12 Jupiter Road, Crown Mines<br>
             Johannesburg, South Africa<br>
-            Tel: 011 839 8496<br>
-            VAT No: <span id="vatNumber">—</span>
+            Tel: 011 839 6496<br>
+            Email: accounts@moktransports.com<br>
+            VAT No: 4400269363
+
           </div>
         </div>
         <div class="inv-header-right">
@@ -798,22 +793,7 @@
       <!-- ===== TOTALS ===== -->
       <div class="inv-totals-row">
         <div class="totals-box">
-          <div class="totals-line">
-            <span class="lbl">Subtotal (Sum of Basic)</span>
-            <span class="val">R <span id="tSubtotal">0.00</span></span>
-          </div>
-          <div class="totals-line">
-            <span class="lbl">Freight Total</span>
-            <span class="val">R <span id="tFreight">0.00</span></span>
-          </div>
-          <div class="totals-line">
-            <span class="lbl">Fuel Surcharge Total</span>
-            <span class="val">R <span id="tFuel">0.00</span></span>
-          </div>
-          <div class="totals-line">
-            <span class="lbl">Others Total</span>
-            <span class="val">R <span id="tOthers">0.00</span></span>
-          </div>
+          
           <div class="totals-line divider">
             <span class="lbl">Amount Excl. VAT</span>
             <span class="val">R <span id="tExcl">0.00</span></span>
@@ -837,9 +817,9 @@
             <strong>Bank:</strong> <span contenteditable="true" id="bankName">First National Bank (FNB)</span><br>
             <strong>Account Name:</strong> <span contenteditable="true" id="bankAccName">Mok Transports Services (Pty)
               Ltd</span><br>
-            <strong>Account No:</strong> <span contenteditable="true" id="bankAccNo">— — — — — — —</span><br>
+            <strong>Account No:</strong> <span contenteditable="true" id="bankAccNo">62537955116</span><br>
             <strong>Branch Code:</strong> <span contenteditable="true" id="bankBranch">250655</span><br>
-            <strong>Account Type:</strong> <span contenteditable="true" id="bankAccType">Business Current</span>
+            <strong>Account Type:</strong> <span contenteditable="true" id="bankAccType">Gold Business Account</span>
           </div>
         </div>
         <div>
@@ -857,7 +837,7 @@
       <div class="inv-stamp-row">
         <div class="inv-stamp-cell">
           <div>Authorised Signatory</div>
-          <div class="inv-stamp-line">Signature &amp; Company Stamp</div>
+          
         </div>
         <div class="inv-stamp-cell">
           <div>Received by</div>
@@ -885,6 +865,41 @@
       'Economy Service Special',
       'International'
     ];
+
+    // ===================================================================
+    // CLIENT PROFILE AUTO-FILL (NEW)
+    // ===================================================================
+    function loadClientProfile(clientId) {
+      const clients = JSON.parse(localStorage.getItem('mokClients') || '[]');
+      return clients.find(c => c.id === clientId);
+    }
+
+
+    // ===================================================================
+    // LOAD WAYBILL FUNCTION (NEW - SAFE ADDITION)
+    // ===================================================================
+    function loadWaybill(d) {
+      const today = new Date();
+
+      const refBar = document.getElementById('waybillRefBar');
+      refBar.style.display = 'flex';
+      document.getElementById('waybillRefNo').textContent = d.waybillNo || '—';
+
+      // Bill To auto-fill
+      if (d.shipTo) {
+        document.getElementById('billTo').value =
+          d.shipTo.replace(/<[^>]+>/g, '\n').trim();
+      }
+
+      addLine({
+        service: d.service || '',
+        waybill: d.waybillNo || '',
+        fromTown: d.fromTown || '',
+        toTown: d.toTown || '',
+        date: d.date || today.toISOString().slice(0, 10),
+        basic: parseFloat(d.price || 0)
+      });
+    }
 
     // ===================================================================
     // INVOICE NUMBER — sequential INV000001, INV000002 …
@@ -975,7 +990,7 @@
       const freight = FREIGHT;
       const fuel = basic * FUEL_RATE;
       const others = OTHERS;
-      const vat = basic * VAT_RATE; // ✅ VAT ONLY on BASIC
+      const vat = basic * VAT_RATE; // 
       const net = basic + freight + fuel + others + vat;
 
       const set = (elId, val) => {
@@ -1041,22 +1056,7 @@
       const inv = localStorage.getItem('invoiceFromWaybill');
       if (inv) {
         const d = JSON.parse(inv);
-        const refBar = document.getElementById('waybillRefBar');
-        refBar.style.display = 'flex';
-        document.getElementById('waybillRefNo').textContent = d.waybillNo || '—';
-
-        // Pre-fill Bill To with shipTo
-        if (d.shipTo) document.getElementById('billTo').value = d.shipTo.replace(/<[^>]+>/g, '\n').trim();
-
-        addLine({
-          service: d.service || '',
-          waybill: d.waybillNo || '',
-          fromTown: d.fromTown || '',
-          toTown: d.toTown || '',
-          date: d.date || today.toISOString().slice(0, 10),
-          basic: d.price || ''
-        });
-
+        loadWaybill(d);
         localStorage.removeItem('invoiceFromWaybill');
         return;
       }
@@ -1129,4 +1129,5 @@
 </body>
 
 </html>
+
 
