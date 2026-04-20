@@ -233,7 +233,7 @@
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 18px;
       font-weight: 700;
-      color: var(--navy);
+      color: #fff;
       background: transparent;
       padding: 0;
     }
@@ -828,8 +828,9 @@
           <div class="inv-footer-section-title">Terms &amp; Conditions</div>
           <div class="inv-footer-content" contenteditable="true" id="terms">
             Payment is due within 30 days of invoice date.<br>
+            Interest charged on all overdue accounts.<br>
             Please use the Invoice Number as payment reference.<br>
-            Prices are exclusive of VAT unless otherwise stated.<br>
+
             Queries must be raised within 7 days of receipt.
           </div>
         </div>
@@ -1180,7 +1181,7 @@
           html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           pagebreak: { mode: ['avoid-all'] }
-          
+
         })
         .from(element)
         .save()
