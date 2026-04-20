@@ -155,15 +155,15 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      padding: 28px 32px 20px;
+      padding: 18px 28px 12px;
       border-bottom: 3px solid var(--accent);
       background: var(--navy);
       color: #fff;
     }
 
     .inv-header-left img {
-      height: 52px;
-      margin-bottom: 12px;
+      height: 44px;
+      margin-bottom: 6px;
     }
 
     .inv-company-name {
@@ -175,9 +175,9 @@
     }
 
     .inv-company-details {
-      font-size: 12px;
+      font-size: 11px;
       color: #90a4ae;
-      line-height: 1.8;
+      line-height: 1.5;
       margin-top: 4px;
     }
 
@@ -187,12 +187,12 @@
 
     .inv-type-badge {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 800;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: #fff;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
       display: block;
     }
 
@@ -702,6 +702,7 @@
             12 Jupiter Road, Crown Mines<br>
             Johannesburg, South Africa<br>
             Tel: 011 839 6496<br>
+            Cell: 084 902 2258<br>
             Email: accounts@moktransports.com<br>
             VAT No: 4400269363
 
@@ -734,6 +735,7 @@
           <div class="inv-bill-label">Invoice To</div>
           <textarea class="inv-bill-textarea" id="billTo"
             placeholder="Company Name&#10;Address Line 1&#10;Suburb, Town&#10;Postal Code&#10;Email | Tel"></textarea>
+          <div id="billToDisplay" style="display:none; white-space:pre-line;"></div>
         </div>
         <div class="inv-bill-cell">
           <div class="inv-bill-label">Reference / PO Number</div>
@@ -818,7 +820,7 @@
             <strong>Account Name:</strong> <span contenteditable="true" id="bankAccName">Mok Transports Services (Pty)
               Ltd</span><br>
             <strong>Account No:</strong> <span contenteditable="true" id="bankAccNo">62537955116</span><br>
-            <strong>Branch Code:</strong> <span contenteditable="true" id="bankBranch">250655</span><br>
+            <strong>Branch Code:</strong> <span contenteditable="true" id="bankBranch">254205</span><br>
             <strong>Account Type:</strong> <span contenteditable="true" id="bankAccType">Gold Business Account</span>
           </div>
         </div>
@@ -1122,6 +1124,20 @@
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
     }
 
+    function cleanOptionalFields() {
+      const po = document.getElementById('poRef');
+      const poContainer = po.closest('.inv-bill-cell');
+
+      if (!po.value.trim()) {
+        poContainer.style.display = 'none';
+      }
+
+      const notes = document.getElementById('invoiceNotes');
+      if (!notes.value.trim()) {
+        notes.style.display = 'none';
+      }
+    }
+
     // ===================================================================
     // PDF DOWNLOAD
     // ===================================================================
@@ -1130,33 +1146,62 @@
       const element = document.getElementById('invoiceDoc');
 
       const actionBar = document.getElementById('actionBar');
+      const addBtn = document.querySelector('.add-row-btn');
+      const waybillBar = document.getElementById('waybillRefBar');
+
+      const po = document.getElementById('poRef');
+      const poContainer = po.closest('.inv-bill-cell');
+
+      const notes = document.getElementById('invoiceNotes');
+
+      const billTo = document.getElementById('billTo');
+      const billToDisplay = document.getElementById('billToDisplay');
+
+      // ===== PREP UI =====
       actionBar.style.display = 'none';
+      if (addBtn) addBtn.style.display = 'none';
+      if (waybillBar) waybillBar.style.display = 'none';
+
+      // Hide empty PO
+      if (!po.value.trim()) poContainer.style.display = 'none';
+
+      // Hide empty notes
+      if (!notes.value.trim()) notes.style.display = 'none';
+
+      // Clean address formatting
+      billToDisplay.innerText = billTo.value.trim();
+      billTo.style.display = 'none';
+      billToDisplay.style.display = 'block';
 
       html2pdf()
         .set({
           margin: [10, 10, 10, 10],
           filename: `Invoice_${invNo}.pdf`,
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            scrollY: 0
-          },
-          jsPDF: {
-            unit: "mm",
-            format: "a4",
-            orientation: "portrait"   // ✅ IMPORTANT FIX
-          }
+          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ['avoid-all'] }
+          
         })
         .from(element)
         .save()
         .then(() => {
+
+          // ===== RESTORE UI =====
           actionBar.style.display = 'flex';
+          if (addBtn) addBtn.style.display = 'flex';
+          if (waybillBar) waybillBar.style.display = 'flex';
+
+          poContainer.style.display = '';
+          notes.style.display = '';
+
+          billTo.style.display = 'block';
+          billToDisplay.style.display = 'none';
         });
     }
+
   </script>
 </body>
 
 </html>
-
 
 
