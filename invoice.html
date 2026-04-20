@@ -731,7 +731,7 @@
       <!-- ===== BILL TO / SHIP TO ===== -->
       <div class="inv-bill-row">
         <div class="inv-bill-cell">
-          <div class="inv-bill-label">Bill To</div>
+          <div class="inv-bill-label">Invoice To</div>
           <textarea class="inv-bill-textarea" id="billTo"
             placeholder="Company Name&#10;Address Line 1&#10;Suburb, Town&#10;Postal Code&#10;Email | Tel"></textarea>
         </div>
@@ -793,7 +793,7 @@
       <!-- ===== TOTALS ===== -->
       <div class="inv-totals-row">
         <div class="totals-box">
-          
+
           <div class="totals-line divider">
             <span class="lbl">Amount Excl. VAT</span>
             <span class="val">R <span id="tExcl">0.00</span></span>
@@ -837,7 +837,7 @@
       <div class="inv-stamp-row">
         <div class="inv-stamp-cell">
           <div>Authorised Signatory</div>
-          
+
         </div>
         <div class="inv-stamp-cell">
           <div>Received by</div>
@@ -1026,10 +1026,6 @@
       const vatAmt = sumBasic * VAT_RATE; // ✅ VAT ONLY ON SUBTOTAL
       const total = excl + vatAmt;
 
-      document.getElementById('tSubtotal').textContent = fmt(sumBasic);
-      document.getElementById('tFreight').textContent = fmt(sumFreight);
-      document.getElementById('tFuel').textContent = fmt(sumFuel);
-      document.getElementById('tOthers').textContent = fmt(sumOthers);
       document.getElementById('tExcl').textContent = fmt(excl);
       document.getElementById('tVatAmt').textContent = fmt(vatAmt);
       document.getElementById('tTotal').textContent = fmt(total);
@@ -1051,6 +1047,30 @@
       document.getElementById('invoiceDate').value = today.toISOString().slice(0, 10);
       const due = new Date(today); due.setDate(due.getDate() + 30);
       document.getElementById('dueDate').value = due.toISOString().slice(0, 10);
+
+      // =======================================================
+      // AUTO-FILL FROM CLIENT PROFILE (NEW)
+      // =======================================================
+      const selectedClientId = localStorage.getItem('selectedClientId');
+
+      if (selectedClientId) {
+        const client = loadClientProfile(selectedClientId);
+
+        if (client) {
+          document.getElementById('billTo').value = [
+            client.companyName,
+            client.address,
+            client.suburb,
+            client.city,
+            client.postalCode,
+            client.email,
+            client.phone
+          ].filter(Boolean).join('\n');
+        }
+
+        // clear after use
+        localStorage.removeItem('selectedClientId');
+      }
 
       // ---- Try loading from waybill handoff ----
       const inv = localStorage.getItem('invoiceFromWaybill');
@@ -1109,25 +1129,34 @@
       const invNo = document.getElementById('invoiceNumber').value || 'Invoice';
       const element = document.getElementById('invoiceDoc');
 
-      // Hide action bar during capture
-      document.getElementById('actionBar').style.display = 'none';
+      const actionBar = document.getElementById('actionBar');
+      actionBar.style.display = 'none';
 
       html2pdf()
         .set({
-          margin: [8, 8, 8, 8],
-          filename: `${invNo}_MokTransports.pdf`,
-          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+          margin: [10, 10, 10, 10],
+          filename: `Invoice_${invNo}.pdf`,
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            scrollY: 0
+          },
+          jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait"   // ✅ IMPORTANT FIX
+          }
         })
         .from(element)
         .save()
         .then(() => {
-          document.getElementById('actionBar').style.display = 'flex';
+          actionBar.style.display = 'flex';
         });
     }
   </script>
 </body>
 
 </html>
+
 
 
