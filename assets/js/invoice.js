@@ -1,7 +1,7 @@
 // =====================================================================
 // invoice.js — Mok Transports Tax Invoice Logic
 // All core logic is embedded in invoice.html for portability.
-// This file is kept for compatibility with assets/js/ structure.
+
 // =====================================================================
 
 // Constants (mirrored from invoice.html)

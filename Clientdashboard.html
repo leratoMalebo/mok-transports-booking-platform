@@ -400,6 +400,10 @@ loadBookings();
 
 function logout() {
   localStorage.removeItem('mokSession');
+
+  // OPTIONAL: Reset role to default (client or office)
+  localStorage.removeItem('mokLoginRole'); 
+
   window.location.href = 'login.html';
 }
 </script>

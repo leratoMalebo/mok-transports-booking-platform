@@ -32,12 +32,12 @@ window.addEventListener("DOMContentLoaded", () => {
   const wb = data.waybillNo || generateLocalWaybillNumber();
 
   document.getElementById("waybillNumber").innerText = wb;
-  document.getElementById("shipFrom").innerHTML  = data.shipFrom  || "—";
-  document.getElementById("shipTo").innerHTML    = data.shipTo    || "—";
-  document.getElementById("pickupDate").innerText  = data.pickupDate   || "—";
+  document.getElementById("shipFrom").innerHTML = data.shipFrom || "—";
+  document.getElementById("shipTo").innerHTML = data.shipTo || "—";
+  document.getElementById("pickupDate").innerText = data.pickupDate || "—";
   document.getElementById("deliveryType").innerText = data.deliveryType || "—";
-  document.getElementById("pieces").innerText    = data.pieces    || "—";
-  document.getElementById("weight").innerText    = data.weight    || "—";
+  document.getElementById("pieces").innerText = data.pieces || "—";
+  document.getElementById("weight").innerText = data.weight || "—";
   document.getElementById("volumetricWeight").innerText = data.volumetricWeight || "—";
   document.getElementById("description").innerText = data.description || "—";
 
@@ -56,8 +56,13 @@ window.addEventListener("DOMContentLoaded", () => {
     status: "Booked",
     location: "Local Depot",
     updated: new Date().toLocaleString(),
+
     shipFrom: data.shipFrom,
-    shipTo: data.shipTo
+    shipTo: data.shipTo,
+    service: data.deliveryType,
+    weight: data.weight,
+    volumetricWeight: data.volumetricWeight,
+    price: data.price
   }));
 
   localStorage.removeItem("localWaybill");
@@ -80,15 +85,39 @@ function renderBarcode(wb) {
 
 function generateInvoice() {
   const invoiceData = {
-    waybillNo:    document.getElementById("waybillNumber").innerText,
-    shipTo:       document.getElementById("shipTo").innerText,
-    pieces:       document.getElementById("pieces").innerText,
-    weight:       document.getElementById("weight").innerText,
-    service:      document.getElementById("deliveryType").innerText,
-    date:         new Date().toISOString().slice(0,10)
+    waybillNo: document.getElementById("waybillNumber").innerText,
+
+    // FULL structured data
+    shipTo: document.getElementById("shipTo").innerText,
+    service: document.getElementById("deliveryType").innerText,
+
+    // Locations (important for invoice table)
+    fromTown: document.getElementById("shipFrom").innerText,
+    toTown: document.getElementById("shipTo").innerText,
+
+    // Dates
+    date: document.getElementById("pickupDate").innerText || new Date().toISOString().slice(0,10),
+
+    // Pricing
+    price: extractNumber(document.getElementById("waybillPrice").innerText),
+
+    // Weights (🔥 THIS IS WHAT YOU WANTED)
+    weight: document.getElementById("weight").innerText,
+    volumetricWeight: document.getElementById("volumetricWeight").innerText,
+
+    // Extra
+    pieces: document.getElementById("pieces").innerText,
+    description: document.getElementById("description").innerText
   };
+
   localStorage.setItem("invoiceFromWaybill", JSON.stringify(invoiceData));
   window.location.href = "invoice.html";
+}
+
+// helper
+function extractNumber(text) {
+  if (!text) return 0;
+  return parseFloat(text.replace(/[^\d.]/g, "")) || 0;
 }
 
 

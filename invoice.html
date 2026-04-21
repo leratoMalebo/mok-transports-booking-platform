@@ -120,7 +120,7 @@
     }
 
     .btn-orange {
-      background: var(--accent);
+      background: #fb8c00;
       color: #fff;
     }
 
@@ -233,7 +233,7 @@
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 18px;
       font-weight: 700;
-      color: #fff;
+      color: var(--navy);
       background: transparent;
       padding: 0;
     }
@@ -309,13 +309,15 @@
 
     /* ---- Invoice Table ---- */
     .inv-table-wrap {
-      overflow-x: auto;
+      overflow: visible;
+
     }
 
     .inv-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
+      min-width: 1000px;
     }
 
     .inv-table thead tr {
@@ -636,6 +638,15 @@
         border-radius: 0;
       }
 
+      .inv-table {
+        font-size: 10px;
+      }
+
+      .inv-table th,
+      .inv-table td {
+        padding: 6px;
+      }
+
       .page-wrap {
         margin: 0;
         padding: 0;
@@ -775,7 +786,7 @@
                   style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">R8.40</small></th>
               <th style="width:75px">VAT<br><small
                   style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">15%</small></th>
-              <th style="width:85px">Net Price</th>
+              <th style="width:75px">Nett Price</th>
               <th style="width:32px"></th>
             </tr>
           </thead>
@@ -1026,7 +1037,7 @@
       });
 
       const excl = sumBasic + sumFreight + sumFuel + sumOthers;
-      const vatAmt = sumBasic * VAT_RATE; // ✅ VAT ONLY ON SUBTOTAL
+      const vatAmt = sumBasic * VAT_RATE; // VAT ONLY ON SUBTOTAL
       const total = excl + vatAmt;
 
       document.getElementById('tExcl').textContent = fmt(excl);
@@ -1052,7 +1063,7 @@
       document.getElementById('dueDate').value = due.toISOString().slice(0, 10);
 
       // =======================================================
-      // AUTO-FILL FROM CLIENT PROFILE (NEW)
+      // AUTO-FILL FROM CLIENT PROFILE 
       // =======================================================
       const selectedClientId = localStorage.getItem('selectedClientId');
 
@@ -1085,20 +1096,42 @@
       }
 
       // ---- Try loading from booking direct (createInvoice button) ----
-      const bookings = JSON.parse(localStorage.getItem('mokBookings') || '[]');
-      if (bookings.length) {
-        const last = bookings[bookings.length - 1];
-        document.getElementById('billTo').value =
-          [last.toCompany, last.toAddress, last.toSuburb, last.toTown, last.toPostal, last.toEmail].filter(Boolean).join('\n');
+      const bookingData = localStorage.getItem('invoiceFromBooking');
 
+      if (bookingData) {
+        const d = JSON.parse(bookingData);
+
+        // Waybill ref
+        document.getElementById('waybillRefBar').style.display = 'flex';
+        document.getElementById('waybillRefNo').textContent = d.waybillNo || '—';
+
+        // Load client
+        if (d.clientId) {
+          const client = loadClientProfile(d.clientId);
+          if (client) {
+            document.getElementById('billTo').value = [
+              client.companyName,
+              client.address,
+              client.suburb,
+              client.city,
+              client.postalCode,
+              client.email,
+              client.phone
+            ].filter(Boolean).join('\n');
+          }
+        }
+
+        // Add invoice line (NO WEIGHT)
         addLine({
-          service: last.service || '',
-          waybill: last.waybillNo || '',
-          fromTown: last.fromTown || last.fromAddress || '',
-          toTown: last.toTown || last.toAddress || '',
-          date: last.shipmentDate || today.toISOString().slice(0, 10),
-          basic: last.price || ''
+          service: d.service || '',
+          waybill: d.waybillNo || '',
+          fromTown: d.fromTown || '',
+          toTown: d.toTown || '',
+          date: d.date || new Date().toISOString().slice(0, 10),
+          basic: parseFloat(d.price || 0)
         });
+
+        localStorage.removeItem('invoiceFromBooking');
         return;
       }
 
@@ -1119,7 +1152,7 @@
 
       const subject = encodeURIComponent(`Tax Invoice ${invNo} – Mok Transports Services (Pty) Ltd`);
       const body = encodeURIComponent(
-        `Dear Client,\n\nPlease find attached Tax Invoice ${invNo} for an amount of R ${total}.\n\nKindly ensure payment is made within 30 days.\n\nRegards,\nMok Transports Services (Pty) Ltd\nTel: 011 839 8496`
+        `Dear Client,\n\nPlease find attached Tax Invoice ${invNo} for an amount of R ${total}.\n\nKindly ensure payment is made within 30 days.\n\nRegards,\nMok Transports Services (Pty) Ltd\nTel: 011 839 6496`
       );
 
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
@@ -1178,9 +1211,9 @@
         .set({
           margin: [10, 10, 10, 10],
           filename: `Invoice_${invNo}.pdf`,
-          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+          html2canvas: { scale: 1.5, useCORS: true },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ['avoid-all'] }
+          pagebreak: { mode: ['css', 'legacy'] }
 
         })
         .from(element)
@@ -1200,9 +1233,14 @@
         });
     }
 
+
+
+
   </script>
 </body>
 
 </html>
+
+
 
 
