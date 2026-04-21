@@ -333,7 +333,8 @@
     /* ===== GRID LAYOUT ===== */
     .content-grid {
       display: grid;
-      grid-template-columns: 1fr 320px;
+      grid-template-columns: 1fr;
+      /* This allows the table to take 100% width */
       gap: 20px;
     }
 
@@ -810,104 +811,7 @@
           </div>
         </div>
 
-        <!-- QUICK ACTIONS -->
-        <div class="quick-actions">
 
-          <a class="action-tile" href="booking.html">
-            <div class="action-tile-icon blue">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2">
-                <rect x="1" y="3" width="15" height="13" />
-                <path d="M16 8h4l3 5v3h-7V8z" />
-                <circle cx="5.5" cy="18.5" r="2.5" />
-                <circle cx="18.5" cy="18.5" r="2.5" />
-              </svg>
-            </div>
-            <div>
-              <div class="action-tile-label">New Local Booking</div>
-              <div class="action-tile-desc">Create a local shipment</div>
-            </div>
-            <svg class="action-tile-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </a>
-
-          <a class="action-tile" href="localWaybill.html">
-            <div class="action-tile-icon orange">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
-            </div>
-            <div>
-              <div class="action-tile-label">Waybill</div>
-              <div class="action-tile-desc">View / print last waybill</div>
-            </div>
-            <svg class="action-tile-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </a>
-
-          <a class="action-tile" href="invoice.html">
-            <div class="action-tile-icon green">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2">
-                <rect x="2" y="5" width="20" height="14" rx="2" />
-                <line x1="2" y1="10" x2="22" y2="10" />
-              </svg>
-            </div>
-            <div>
-              <div class="action-tile-label">Invoices</div>
-              <div class="action-tile-desc">Manage billing &amp; invoices</div>
-            </div>
-            <svg class="action-tile-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </a>
-
-          <a class="action-tile" href="track.html">
-            <div class="action-tile-icon teal">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2">
-                <circle cx="12" cy="12" r="10" />
-                <circle cx="12" cy="12" r="3" />
-                <line x1="12" y1="2" x2="12" y2="5" />
-                <line x1="12" y1="19" x2="12" y2="22" />
-                <line x1="2" y1="12" x2="5" y2="12" />
-                <line x1="19" y1="12" x2="22" y2="12" />
-              </svg>
-            </div>
-            <div>
-              <div class="action-tile-label">Track Shipment</div>
-              <div class="action-tile-desc">Real-time shipment tracking</div>
-            </div>
-            <svg class="action-tile-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </a>
-
-          <a class="action-tile" href="imports.html">
-            <div class="action-tile-icon purple">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6a1b9a" stroke-width="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
-              </svg>
-            </div>
-            <div>
-              <div class="action-tile-label">International</div>
-              <div class="action-tile-desc">Manage import/export shipments</div>
-            </div>
-            <svg class="action-tile-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </a>
-
-        </div>
 
       </div>
     </div>
