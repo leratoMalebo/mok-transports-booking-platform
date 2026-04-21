@@ -1,915 +1,375 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mok Transports | Office Dashboard</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --navy: #0d2137;
-      --navy2: #132d47;
-      --blue: #1565c0;
-      --sky: #1e88e5;
-      --accent: #4c2fef;
-      --green: #2e7d32;
-      --red: #c62828;
-      --bg: #f0f4f8;
-      --card: #ffffff;
+      --navy:   #0d2137;
+      --blue:   #1565c0;
+      --accent: #f57c00;
+      --green:  #2e7d32;
+      --red:    #c62828;
+      --bg:     #f0f4f8;
+      --card:   #ffffff;
       --border: #dce3ec;
-      --text: #1a2535;
-      --muted: #607d8b;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Barlow', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    /* ===== SIDEBAR ===== */
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      width: 240px;
-      background: var(--navy);
-      display: flex;
-      flex-direction: column;
-      z-index: 100;
-      transition: transform .3s;
-    }
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 20px 20px 18px;
-      border-bottom: 1px solid rgba(255, 255, 255, .08);
-    }
-
-    .sidebar-logo img {
-      height: 38px;
-    }
-
-    .sidebar-logo-text {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.2;
-      letter-spacing: .3px;
-    }
-
-    .sidebar-logo-text span {
-      display: block;
-      font-size: 10px;
-      font-weight: 400;
-      color: #607d8b;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .sidebar-user {
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, .06);
-    }
-
-    .sidebar-user-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: #e0e0e0;
-    }
-
-    .sidebar-user-role {
-      font-size: 11px;
-      color: #607d8b;
-      margin-top: 2px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .sidebar-nav {
-      flex: 1;
-      padding: 10px 0;
-      overflow-y: auto;
-    }
-
-    .nav-section {
-      padding: 12px 20px 4px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: #37474f;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 20px;
-      color: #90a4ae;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all .15s;
-      text-decoration: none;
-      border-left: 3px solid transparent;
-    }
-
-    .nav-item:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, .05);
-      border-left-color: rgba(245, 124, 0, .4);
-    }
-
-    .nav-item.active {
-      color: #fff;
-      background: rgba(21, 101, 192, .2);
-      border-left-color: var(--accent);
-    }
-
-    .nav-item svg {
-      flex-shrink: 0;
-    }
-
-    .sidebar-bottom {
-      padding: 16px 20px;
-      border-top: 1px solid rgba(255, 255, 255, .08);
-    }
-
-    .btn-logout {
-      width: 100%;
-      padding: 10px;
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, .12);
-      border-radius: 6px;
-      color: #78909c;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all .2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn-logout:hover {
-      background: rgba(198, 40, 40, .15);
-      border-color: rgba(198, 40, 40, .4);
-      color: #ef9a9a;
-    }
-
-    /* ===== MAIN CONTENT ===== */
-    .main {
-      margin-left: 240px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ===== TOPBAR ===== */
-    .topbar {
-      background: var(--card);
-      border-bottom: 1px solid var(--border);
-      padding: 0 28px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-
-    .topbar-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--navy);
-      letter-spacing: .5px;
-    }
-
-    .topbar-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 0 18px;
-      height: 38px;
-      border-radius: 5px;
-      border: none;
-      cursor: pointer;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      background: var(--blue);
-      color: #fff;
-      text-decoration: none;
-      transition: filter .15s;
-    }
-
-    .btn-primary:hover {
-      filter: brightness(1.1);
-    }
-
-    .btn-accent {
-      background: var(--accent);
-    }
-
-    /* ===== PAGE BODY ===== */
-    .page-body {
-      padding: 28px;
-      flex: 1;
-    }
-
-    /* ===== STAT CARDS ===== */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .stat-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 18px 20px;
-      position: relative;
-      overflow: hidden;
-      animation: fadeIn .4s ease both;
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-    }
-
-    .stat-card.blue::before {
-      background: var(--blue);
-    }
-
-    .stat-card.orange::before {
-      background: var(--accent);
-    }
-
-    .stat-card.green::before {
-      background: var(--green);
-    }
-
-    .stat-card.navy::before {
-      background: var(--navy);
-    }
-
-    .stat-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .stat-value {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--navy);
-      line-height: 1;
-    }
-
-    .stat-sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 5px;
-    }
-
-    .stat-icon {
-      position: absolute;
-      right: 16px;
-      top: 16px;
-      opacity: .08;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
-
-    /* ===== GRID LAYOUT ===== */
-    .content-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      /* This allows the table to take 100% width */
-      gap: 20px;
-    }
-
-    /* ===== CARD ===== */
-    .panel-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      background: #fafbfc;
-    }
-
-    .panel-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--navy);
-      letter-spacing: .5px;
-      text-transform: uppercase;
-    }
-
-    .panel-body {
-      padding: 0;
-    }
-
-    /* ===== TABLE ===== */
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .data-table thead th {
-      background: var(--navy);
-      color: #fff;
-      padding: 10px 14px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      text-align: left;
-    }
-
-    .data-table tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background .12s;
-    }
-
-    .data-table tbody tr:hover {
-      background: #f5f8ff;
-    }
-
-    .data-table tbody td {
-      padding: 11px 14px;
-      color: var(--text);
-      vertical-align: middle;
-    }
-
-    .data-table tbody tr:last-child {
-      border-bottom: none;
-    }
-
-    /* status pills */
-    .pill {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .5px;
-    }
-
-    .pill-booked {
-      background: #e3f2fd;
-      color: #1565c0;
-    }
-
-    .pill-transit {
-      background: #fff3e0;
-      color: #e65100;
-    }
-
-    .pill-delivered {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .pill-local {
-      background: #e8eaf6;
-      color: #3949ab;
-    }
-
-    .pill-intl {
-      background: #f3e5f5;
-      color: #6a1b9a;
-    }
-
-    /* ===== QUICK ACTIONS (right column) ===== */
-    .quick-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .action-tile {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 16px 18px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: border-color .15s, box-shadow .15s, transform .1s;
-      color: var(--text);
-    }
-
-    .action-tile:hover {
-      border-color: var(--blue);
-      box-shadow: 0 4px 16px rgba(21, 101, 192, .1);
-      transform: translateY(-1px);
-    }
-
-    .action-tile-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .action-tile-icon.blue {
-      background: #e3f2fd;
-    }
-
-    .action-tile-icon.orange {
-      background: #fff3e0;
-    }
-
-    .action-tile-icon.green {
-      background: #e8f5e9;
-    }
-
-    .action-tile-icon.purple {
-      background: #f3e5f5;
-    }
-
-    .action-tile-icon.teal {
-      background: #e0f2f1;
-    }
-
-    .action-tile-label {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--navy);
-      letter-spacing: .3px;
-    }
-
-    .action-tile-desc {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .action-tile-arrow {
-      margin-left: auto;
-      color: var(--border);
-      transition: color .15s, transform .15s;
-    }
-
-    .action-tile:hover .action-tile-arrow {
-      color: var(--blue);
-      transform: translateX(3px);
-    }
-
-    /* ===== DROPDOWN ===== */
-    .dropdown-wrap {
-      position: relative;
-    }
-
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: calc(100% + 6px);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, .1);
-      min-width: 220px;
-      z-index: 200;
-      overflow: hidden;
-    }
-
-    .dropdown-menu.open {
-      display: block;
-    }
-
-    .dropdown-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 11px 16px;
-      font-size: 13px;
-      color: var(--text);
-      text-decoration: none;
-      transition: background .12s;
-    }
-
-    .dropdown-item:hover {
-      background: #f5f8ff;
-    }
-
-    .dropdown-divider {
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* ===== EMPTY STATE ===== */
-    .empty-state {
-      padding: 40px;
-      text-align: center;
-      color: var(--muted);
-    }
-
-    .empty-state svg {
-      opacity: .3;
-      margin-bottom: 12px;
-    }
-
-    .empty-state p {
-      font-size: 13px;
-    }
-
-    @media (max-width: 1100px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .content-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-      }
-
-      .main {
-        margin-left: 0;
-      }
-    }
+      --text:   #1a2535;
+      --muted:  #607d8b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* SIDEBAR */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 240px; background: var(--navy); display: flex; flex-direction: column; z-index: 100; }
+    .sidebar-logo { display: flex; align-items: center; gap: 12px; padding: 20px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .sidebar-logo img { height: 38px; }
+    .sidebar-logo-text { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .sidebar-logo-text span { display: block; font-size: 10px; font-weight: 400; color: #607d8b; letter-spacing: 1px; text-transform: uppercase; }
+    .sidebar-user { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .sidebar-user-name { font-size: 13px; font-weight: 600; color: #e0e0e0; }
+    .sidebar-user-role { font-size: 11px; color: #607d8b; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+    .sidebar-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+    .nav-section { padding: 12px 20px 4px; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #37474f; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 20px; color: #90a4ae; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; text-decoration: none; border-left: 3px solid transparent; }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,.05); border-left-color: rgba(245,124,0,.4); }
+    .nav-item.active { color: #fff; background: rgba(21,101,192,.2); border-left-color: var(--accent); }
+    .sidebar-bottom { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.08); }
+    .btn-logout { width: 100%; padding: 10px; background: transparent; border: 1px solid rgba(255,255,255,.12); border-radius: 6px; color: #78909c; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-logout:hover { background: rgba(198,40,40,.15); border-color: rgba(198,40,40,.4); color: #ef9a9a; }
+
+    /* MAIN */
+    .main { margin-left: 240px; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* TOPBAR */
+    .topbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--navy); }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+    .btn-primary { display: inline-flex; align-items: center; gap: 7px; padding: 0 18px; height: 38px; border-radius: 5px; border: none; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; background: var(--blue); color: #fff; text-decoration: none; transition: filter .15s; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-accent { background: var(--accent); }
+
+    /* PAGE BODY */
+    .page-body { padding: 28px; flex: 1; }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; position: relative; overflow: hidden; animation: fadeIn .4s ease both; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .stat-card.blue::before   { background: var(--blue); }
+    .stat-card.orange::before { background: var(--accent); }
+    .stat-card.green::before  { background: var(--green); }
+    .stat-card.navy::before   { background: var(--navy); }
+    .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .stat-value { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 700; color: var(--navy); line-height: 1; }
+    .stat-sub   { font-size: 11px; color: var(--muted); margin-top: 5px; }
+    .stat-icon  { position: absolute; right: 16px; top: 16px; opacity: .08; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+    /* CONTENT GRID */
+    .content-grid { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+
+    /* PANEL */
+    .panel-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); background: #fafbfc; }
+    .panel-title { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; color: var(--navy); letter-spacing: .5px; text-transform: uppercase; }
+    .panel-body { padding: 0; overflow-x: auto; }
+
+    /* TABLE */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 680px; }
+    .data-table thead th { background: var(--navy); color: #fff; padding: 10px 12px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; text-align: left; white-space: nowrap; }
+    .data-table tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
+    .data-table tbody tr:hover { background: #f5f8ff; }
+    .data-table tbody td { padding: 10px 12px; color: var(--text); vertical-align: middle; }
+    .data-table tbody tr:last-child { border-bottom: none; }
+
+    .pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .pill-booked    { background: #e3f2fd; color: #1565c0; }
+    .pill-transit   { background: #fff3e0; color: #e65100; }
+    .pill-delivered { background: #e8f5e9; color: #2e7d32; }
+    .pill-local     { background: #e8eaf6; color: #3949ab; }
+
+    /* Invoice button */
+    .btn-invoice { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; background: var(--green); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; transition: filter .15s; white-space: nowrap; }
+    .btn-invoice:hover { filter: brightness(1.1); }
+
+    .empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+
+    /* QUICK ACTIONS */
+    .quick-actions { display: flex; flex-direction: column; gap: 12px; }
+    .action-tile { display: flex; align-items: center; gap: 12px; padding: 13px 15px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-decoration: none; transition: border-color .15s, box-shadow .15s, transform .1s; color: var(--text); }
+    .action-tile:hover { border-color: var(--blue); box-shadow: 0 4px 16px rgba(21,101,192,.1); transform: translateY(-1px); }
+    .action-tile-icon { width: 38px; height: 38px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .action-tile-icon.blue   { background: #e3f2fd; }
+    .action-tile-icon.orange { background: #fff3e0; }
+    .action-tile-icon.green  { background: #e8f5e9; }
+    .action-tile-icon.purple { background: #f3e5f5; }
+    .action-tile-icon.teal   { background: #e0f2f1; }
+    .action-tile-label { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; color: var(--navy); }
+    .action-tile-desc  { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .action-tile-arrow { margin-left: auto; color: var(--border); transition: color .15s, transform .15s; flex-shrink: 0; }
+    .action-tile:hover .action-tile-arrow { color: var(--blue); transform: translateX(3px); }
+
+    /* DROPDOWN */
+    .dropdown-wrap { position: relative; }
+    .dropdown-menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.1); min-width: 200px; z-index: 200; overflow: hidden; }
+    .dropdown-menu.open { display: block; }
+    .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; font-size: 13px; color: var(--text); text-decoration: none; transition: background .12s; }
+    .dropdown-item:hover { background: #f5f8ff; }
+    .dropdown-divider { height: 1px; background: var(--border); }
+
+    @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .content-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px)  { .sidebar { display: none; } .main { margin-left: 0; } }
   </style>
 </head>
-
 <body>
 
-  <!-- ===== SIDEBAR ===== -->
-  <div class="sidebar">
-    <div class="sidebar-logo">
-      <img src="assets/images/mok-logo.png" alt="">
-      <div class="sidebar-logo-text">
-        Mok Transports
-        <span>Office Portal</span>
-      </div>
-    </div>
-
-    <div class="sidebar-user">
-      <div class="sidebar-user-name" id="sidebarName">—</div>
-      <div class="sidebar-user-role" id="sidebarRole">Staff</div>
-    </div>
-
-    <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <a class="nav-item active" href="dashboard.html">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7" />
-          <rect x="14" y="3" width="7" height="7" />
-          <rect x="3" y="14" width="7" height="7" />
-          <rect x="14" y="14" width="7" height="7" />
-        </svg>
-        Dashboard
-      </a>
-      <a class="nav-item" href="booking.html">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-        New Booking
-      </a>
-      <a class="nav-item" href="bookings.html">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-        </svg>
-        All Shipments
-      </a>
-      <a class="nav-item" href="track.html">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-        Track Shipment
-      </a>
-
-      <div class="nav-section">Finance</div>
-      <a class="nav-item" href="invoice.html">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-          <line x1="2" y1="10" x2="22" y2="10" />
-        </svg>
-        Invoices
-      </a>
-
-      <div class="nav-section">Settings</div>
-      <a class="nav-item" href="#">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.07 4.93a10 10 0 010 14.14" />
-          <path d="M4.93 4.93a10 10 0 000 14.14" />
-        </svg>
-        Settings
-      </a>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <button class="btn-logout" onclick="logout()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
-        Logout
-      </button>
-    </div>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <img src="assets/images/mok-logo.png" alt="">
+    <div class="sidebar-logo-text">Mok Transports<span>Office Portal</span></div>
   </div>
-
-  <!-- ===== MAIN ===== -->
-  <div class="main">
-
-    <!-- TOPBAR -->
-    <div class="topbar">
-      <div class="topbar-title">Office Dashboard</div>
-      <div class="topbar-actions">
-        <div class="dropdown-wrap">
-          <button class="btn-primary btn-accent" id="createBtn" onclick="toggleDropdown()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            New Shipment
-          </button>
-          <div class="dropdown-menu" id="createDropdown">
-            <a class="dropdown-item" href="booking.html">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="1" y="3" width="15" height="13" />
-                <path d="M16 8h4l3 5v3h-7V8z" />
-                <circle cx="5.5" cy="18.5" r="2.5" />
-                <circle cx="18.5" cy="18.5" r="2.5" />
-              </svg>
-              Local Shipment
-            </a>
-            <a class="dropdown-item" href="imports.html">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path
-                  d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.18 0h3a2 2 0 012 1.72" />
-              </svg>
-              International
-            </a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="#">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                <polyline points="22,6 12,13 2,6" />
-              </svg>
-              Address Book
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE BODY -->
-    <div class="page-body">
-
-      <!-- STATS -->
-      <div class="stats-grid">
-        <div class="stat-card blue" style="animation-delay:.05s">
-          <div class="stat-label">Total Shipments</div>
-          <div class="stat-value" id="statTotal">0</div>
-          <div class="stat-sub">All time bookings</div>
-          <svg class="stat-icon" width="56" height="56" viewBox="0 0 24 24" fill="var(--blue)">
-            <rect x="1" y="3" width="15" height="13" />
-            <path d="M16 8h4l3 5v3h-7V8z" />
-            <circle cx="5.5" cy="18.5" r="2.5" />
-            <circle cx="18.5" cy="18.5" r="2.5" />
-          </svg>
-        </div>
-        <div class="stat-card orange" style="animation-delay:.1s">
-          <div class="stat-label">In Transit</div>
-          <div class="stat-value" id="statTransit">0</div>
-          <div class="stat-sub">Active shipments</div>
-          <svg class="stat-icon" width="56" height="56" viewBox="0 0 24 24" fill="var(--accent)">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        </div>
-        <div class="stat-card green" style="animation-delay:.15s">
-          <div class="stat-label">Delivered</div>
-          <div class="stat-value" id="statDelivered">0</div>
-          <div class="stat-sub">Completed deliveries</div>
-          <svg class="stat-icon" width="56" height="56" viewBox="0 0 24 24" fill="var(--green)">
-            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-        </div>
-        <div class="stat-card navy" style="animation-delay:.2s">
-          <div class="stat-label">Revenue (ZAR)</div>
-          <div class="stat-value" id="statRevenue">R0</div>
-          <div class="stat-sub">Total billed</div>
-          <svg class="stat-icon" width="56" height="56" viewBox="0 0 24 24" fill="var(--navy)">
-            <line x1="12" y1="1" x2="12" y2="23" />
-            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-          </svg>
-        </div>
-      </div>
-
-      <!-- CONTENT GRID -->
-      <div class="content-grid">
-
-        <!-- RECENT SHIPMENTS TABLE -->
-        <div class="panel-card">
-          <div class="panel-header">
-            <div class="panel-title">Recent Shipments</div>
-            <a href="bookings.html" style="font-size:12px;color:var(--blue);text-decoration:none;font-weight:600;">View
-              All →</a>
-          </div>
-          <div class="panel-body">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Waybill No.</th>
-                  <th>From</th>
-                  <th>To</th>
-                  <th>Service</th>
-                  <th>Weight</th>
-                  <th>Cost</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="bookingTable">
-                <tr>
-                  <td colspan="7">
-                    <div class="empty-state">
-                      <p>No shipments found. <a href="booking.html" style="color:var(--blue)">Create your first booking
-                          →</a></p>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-
-
-      </div>
-    </div>
+  <div class="sidebar-user">
+    <div class="sidebar-user-name" id="sidebarName">—</div>
+    <div class="sidebar-user-role" id="sidebarRole">Staff</div>
   </div>
-
-  <script>
-    // ---- Auth guard ----
-    const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
-    if (!session || session.role !== 'office') {
-      window.location.href = 'login.html';
-    }
-    document.getElementById('sidebarName').textContent = session ? session.name : '—';
-    document.getElementById('sidebarRole').textContent = session ? (session.staffRole === 'admin' ? 'Administrator' : 'Office Staff') : '';
-
-    // ---- Dropdown ----
-    function toggleDropdown() {
-      document.getElementById('createDropdown').classList.toggle('open');
-    }
-    document.addEventListener('click', e => {
-      if (!document.getElementById('createBtn').contains(e.target)) {
-        document.getElementById('createDropdown').classList.remove('open');
-      }
-    });
-
-    // ---- Load bookings from localStorage ----
-    function loadBookings() {
-      const bookings = JSON.parse(localStorage.getItem('mokBookings') || '[]');
-      const tbody = document.getElementById('bookingTable');
-
-      // Stats
-      const total = bookings.length;
-      const delivered = bookings.filter(b => (b.status || '').toLowerCase() === 'delivered').length;
-      const transit = bookings.filter(b => !b.status || b.status === 'Booked' || b.status === 'In Transit').length;
-      const revenue = bookings.reduce((s, b) => s + (parseFloat(b.price) || 0), 0);
-
-      document.getElementById('statTotal').textContent = total;
-      document.getElementById('statDelivered').textContent = delivered;
-      document.getElementById('statTransit').textContent = transit;
-      document.getElementById('statRevenue').textContent = `R${revenue.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-      if (!bookings.length) return;
-
-      const recent = [...bookings].reverse().slice(0, 10);
-      tbody.innerHTML = recent.map(b => {
-        const statusClass = b.status === 'Delivered' ? 'pill-delivered' : b.status === 'In Transit' ? 'pill-transit' : 'pill-booked';
-        return `
-<tr>
-  <td><strong style="color:var(--navy);font-family:'Barlow Condensed',sans-serif;font-size:14px">${b.waybillNo || '—'}</strong></td>
-  <td>${b.fromCompany || '—'}</td>
-  <td>${b.toCompany || '—'}</td>
-  <td><span class="pill pill-local">${b.service || '—'}</span></td>
-  <td>${b.chargeWeight || '—'} kg</td>
-  <td style="font-weight:600">R ${parseFloat(b.price || 0).toFixed(2)}</td>
-  <td><span class="pill ${statusClass}">${b.status || 'Booked'}</span></td>
-  <td>
-    <button onclick="createInvoiceFromBooking('${b.waybillNo}')"
-      style="padding:6px 10px;background:#1565c0;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">
-      Create Invoice
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a class="nav-item active" href="dashboard.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+    </a>
+    <a class="nav-item" href="booking.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New Booking
+    </a>
+    <a class="nav-item" href="bookings.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>All Shipments
+    </a>
+    <a class="nav-item" href="track.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>Track Shipment
+    </a>
+    <div class="nav-section">Finance</div>
+    <a class="nav-item" href="invoice.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Invoices
+    </a>
+    <div class="nav-section">Settings</div>
+    <a class="nav-item" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>Settings
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="btn-logout" onclick="logout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout
     </button>
-  </td>
-</tr>
-`;
-      }).join('');
-    }
+  </div>
+</div>
 
-    loadBookings();
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Office Dashboard</div>
+    <div class="topbar-actions">
+      <div class="dropdown-wrap">
+        <button class="btn-primary btn-accent" id="createBtn" onclick="toggleDropdown()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          New Shipment
+        </button>
+        <div class="dropdown-menu" id="createDropdown">
+          <a class="dropdown-item" href="booking.html">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Local Shipment
+          </a>
+          <a class="dropdown-item" href="imports.html">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>International
+          </a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Address Book
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    function createInvoiceFromBooking(bookingId) {
-      const bookings = JSON.parse(localStorage.getItem('mokBookings') || '[]');
-      const booking = bookings.find(b => b.id === bookingId);
+  <div class="page-body">
+    <div class="stats-grid">
+      <div class="stat-card blue" style="animation-delay:.05s">
+        <div class="stat-label">Total Shipments</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-sub">All time bookings</div>
+        <svg class="stat-icon" width="56" height="56" viewBox="0 0 24 24" fill="var(--blue)"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 5v3h-7V8z"/></svg>
+      </div>
+      <div class="stat-card orange" style="animation-delay:.1s">
+        <div class="stat-label">In Transit</div>
+        <div class="stat-value" id="statTransit">0</div>
+        <div class="stat-sub">Active shipments</div>
+        <svg class="stat-icon" width="56" height="56" viewBox="0 0 24 24" fill="var(--accent)"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="stat-card green" style="animation-delay:.15s">
+        <div class="stat-label">Delivered</div>
+        <div class="stat-value" id="statDelivered">0</div>
+        <div class="stat-sub">Completed deliveries</div>
+        <svg class="stat-icon" width="56" height="56" viewBox="0 0 24 24" fill="var(--green)"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="stat-card navy" style="animation-delay:.2s">
+        <div class="stat-label">Revenue (ZAR)</div>
+        <div class="stat-value" id="statRevenue">R0</div>
+        <div class="stat-sub">Total billed</div>
+        <svg class="stat-icon" width="56" height="56" viewBox="0 0 24 24" fill="var(--navy)"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      </div>
+    </div>
 
-      if (!booking) return;
+    <div class="content-grid">
+      <!-- TABLE -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">Recent Shipments</div>
+          <a href="bookings.html" style="font-size:12px;color:var(--blue);text-decoration:none;font-weight:600;">View All →</a>
+        </div>
+        <div class="panel-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Waybill No.</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Service</th>
+                <th>Weight</th>
+                <th>Cost</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="bookingTable">
+              <tr><td colspan="8"><div class="empty-state">No shipments yet. <a href="booking.html" style="color:var(--blue)">Create your first booking →</a></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      const invoiceData = {
-        clientId: booking.clientId,
-        waybillNo: booking.waybillNo,
-        service: booking.service,
-        fromTown: booking.fromTown,
-        toTown: booking.toTown,
-        date: booking.shipmentDate,
-        price: booking.price
-      };
+      <!-- QUICK ACTIONS -->
+      <div class="quick-actions">
+        <a class="action-tile" href="booking.html">
+          <div class="action-tile-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 5v3h-7V8z"/></svg></div>
+          <div><div class="action-tile-label">New Booking</div><div class="action-tile-desc">Create local shipment</div></div>
+          <svg class="action-tile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <a class="action-tile" href="localWaybill.html">
+          <div class="action-tile-icon orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div><div class="action-tile-label">Waybill</div><div class="action-tile-desc">View / print last waybill</div></div>
+          <svg class="action-tile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <a class="action-tile" href="invoice.html">
+          <div class="action-tile-icon green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+          <div><div class="action-tile-label">Invoices</div><div class="action-tile-desc">Manage billing</div></div>
+          <svg class="action-tile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <a class="action-tile" href="track.html">
+          <div class="action-tile-icon teal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <div><div class="action-tile-label">Track Shipment</div><div class="action-tile-desc">Real-time tracking</div></div>
+          <svg class="action-tile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <a class="action-tile" href="imports.html">
+          <div class="action-tile-icon purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6a1b9a" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg></div>
+          <div><div class="action-tile-label">International</div><div class="action-tile-desc">Import / export</div></div>
+          <svg class="action-tile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
-      localStorage.setItem('invoiceFromBooking', JSON.stringify(invoiceData));
-      window.location.href = 'invoice.html';
-    }
+<script>
+// Auth guard
+const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+if (!session || session.role !== 'office') window.location.href = 'login.html';
+document.getElementById('sidebarName').textContent = session ? session.name : '—';
+document.getElementById('sidebarRole').textContent = session ? (session.staffRole === 'admin' ? 'Administrator' : 'Office Staff') : '';
 
-    function logout() {
-      localStorage.removeItem('mokSession');
+// Dropdown
+function toggleDropdown() { document.getElementById('createDropdown').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  if (!document.getElementById('createBtn').contains(e.target))
+    document.getElementById('createDropdown').classList.remove('open');
+});
 
-      // OPTIONAL: Reset role to default (client or office)
-      localStorage.removeItem('mokLoginRole');
+// Load bookings
+function loadBookings() {
+  const bookings = JSON.parse(localStorage.getItem('mokBookings') || '[]');
+  const tbody = document.getElementById('bookingTable');
 
-      window.location.href = 'login.html';
-    }
-  </script>
+  const total     = bookings.length;
+  const delivered = bookings.filter(b => (b.status||'').toLowerCase() === 'delivered').length;
+  const transit   = bookings.filter(b => !b.status || b.status === 'Booked' || b.status === 'In Transit').length;
+  const revenue   = bookings.reduce((s, b) => s + (parseFloat(b.price)||0), 0);
+
+  document.getElementById('statTotal').textContent     = total;
+  document.getElementById('statDelivered').textContent = delivered;
+  document.getElementById('statTransit').textContent   = transit;
+  document.getElementById('statRevenue').textContent   = `R${revenue.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+  if (!bookings.length) return;
+
+  tbody.innerHTML = [...bookings].reverse().slice(0,15).map(b => {
+    const sc = b.status === 'Delivered' ? 'pill-delivered' : b.status === 'In Transit' ? 'pill-transit' : 'pill-booked';
+    const safeWb = (b.waybillNo||'').replace(/'/g, "\\'");
+    return `<tr>
+      <td><strong style="color:var(--navy);font-family:'Barlow Condensed',sans-serif;font-size:14px">${b.waybillNo||'—'}</strong></td>
+      <td>${b.fromCompany||'—'}</td>
+      <td>${b.toCompany||'—'}</td>
+      <td><span class="pill pill-local">${b.service||'—'}</span></td>
+      <td>${b.chargeWeight||'—'} kg</td>
+      <td style="font-weight:600">R ${parseFloat(b.price||0).toFixed(2)}</td>
+      <td><span class="pill ${sc}">${b.status||'Booked'}</span></td>
+      <td><button class="btn-invoice" onclick="createInvoiceFromBooking('${safeWb}')">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Invoice
+      </button></td>
+    </tr>`;
+  }).join('');
+}
+
+loadBookings();
+
+// ── KEY FIX: match by waybillNo (bookings are stored with waybillNo, NOT b.id) ──
+function createInvoiceFromBooking(waybillNo) {
+  const bookings = JSON.parse(localStorage.getItem('mokBookings') || '[]');
+  const b = bookings.find(bk => bk.waybillNo === waybillNo);
+  if (!b) { alert(`Booking not found: ${waybillNo}`); return; }
+
+  localStorage.setItem('invoiceFromBooking', JSON.stringify({
+    waybillNo:    b.waybillNo,
+    service:      b.service       || '',
+    fromCompany:  b.fromCompany   || '',
+    fromAddress:  b.fromAddress   || '',
+    fromSuburb:   b.fromSuburb    || '',
+    fromTown:     b.fromTown      || b.fromAddress || '',
+    fromPostal:   b.fromPostal    || '',
+    toCompany:    b.toCompany     || '',
+    toAddress:    b.toAddress     || '',
+    toSuburb:     b.toSuburb      || '',
+    toTown:       b.toTown        || b.toAddress   || '',
+    toPostal:     b.toPostal      || '',
+    toEmail:      b.toEmail       || '',
+    toContact:    b.toContact     || '',
+    date:         b.shipmentDate  || new Date().toISOString().slice(0,10),
+    price:        b.price         || '0',
+    chargeWeight: b.chargeWeight  || '',
+    pieces:       b.pieces        || '',
+    descriptions: b.descriptions  || '',
+    zoneLabel:    b.zoneLabel     || ''
+  }));
+
+  window.location.href = 'invoice.html';
+}
+
+function logout() {
+  localStorage.removeItem('mokSession');
+  window.location.href = 'login.html';
+}
+</script>
 </body>
-
 </html>
+
 
 
