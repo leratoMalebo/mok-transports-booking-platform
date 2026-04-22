@@ -66,6 +66,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }));
 
   localStorage.removeItem("localWaybill");
+  localStorage.setItem("lastWaybillData", JSON.stringify(data));
 });
 
 function renderBarcode(wb) {
@@ -84,28 +85,26 @@ function renderBarcode(wb) {
 }
 
 function generateInvoice() {
+
+  const stored = JSON.parse(localStorage.getItem("lastWaybillData") || "{}");
+
   const invoiceData = {
     waybillNo: document.getElementById("waybillNumber").innerText,
 
-    // FULL structured data
     shipTo: document.getElementById("shipTo").innerText,
     service: document.getElementById("deliveryType").innerText,
 
-    // Locations (important for invoice table)
     fromTown: document.getElementById("shipFrom").innerText,
     toTown: document.getElementById("shipTo").innerText,
 
-    // Dates
-    date: document.getElementById("pickupDate").innerText || new Date().toISOString().slice(0,10),
+    date: document.getElementById("pickupDate").innerText || new Date().toISOString().slice(0, 10),
 
-    // Pricing
-    price: extractNumber(document.getElementById("waybillPrice").innerText),
+    // ✅ Price now comes from stored data (not UI)
+    price: parseFloat(stored.price || 0),
 
-    // Weights (🔥 THIS IS WHAT YOU WANTED)
     weight: document.getElementById("weight").innerText,
     volumetricWeight: document.getElementById("volumetricWeight").innerText,
 
-    // Extra
     pieces: document.getElementById("pieces").innerText,
     description: document.getElementById("description").innerText
   };
