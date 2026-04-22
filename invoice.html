@@ -138,6 +138,10 @@
       color: #fff;
     }
 
+    .cell-input[type="date"] {
+      min-width: 110px;
+    }
+
     /* ===== PAGE WRAP ===== */
     .page-wrap {
       max-width: 960px;
@@ -371,17 +375,16 @@
 
     .inv-table tbody td:first-child {
       text-align: left;
-      white-space: nowrap;
-      /* Prevents text from wrapping to a new line */
-      overflow: visible;
-      /* Ensures the full text is shown */
-      padding-right: 15px;
-      /* Adds a small buffer */
+      white-space: normal;
+      word-break: break-word;
+      overflow: hidden;
+      padding-right: 8px;
     }
 
     .inv-table tbody td:last-child {
       border-right: none;
     }
+
 
     .cell-input {
       width: 100%;
@@ -859,11 +862,11 @@
       <div class="inv-table-wrap">
         <table class="inv-table" id="invTable">
           <colgroup>
-            <col style="width:13%"><!-- Service -->
-            <col style="width:10%"><!-- Waybill -->
-            <col style="width:13%"><!-- Receiver -->
-            <col style="width:8%"> <!-- Date -->
-            <col style="width:9%"> <!-- Basic -->
+            <col style="width:16%"><!-- Service -->
+            <col style="width:12%"><!-- Waybill -->
+            <col style="width:16%"><!-- Receiver -->
+            <col style="width:10%"> <!-- Date -->
+            <col style="width:8%"> <!-- Basic -->
             <col style="width:8%"> <!-- Freight -->
             <col style="width:9%"> <!-- Fuel -->
             <col style="width:7%"> <!-- Others -->
@@ -882,8 +885,7 @@
               <th>Basic (R)</th>
               <th>Freight<br><small
                   style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">R15.00</small></th>
-              <th>Fuel<br><small style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">28%
-                  Basic</small></th>
+              <th>Fuel</th>
               <th>Others<br><small
                   style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">R8.40</small></th>
               <th>VAT<br><small style="font-weight:400;letter-spacing:0;text-transform:none;font-size:9px">15%</small>
@@ -1272,7 +1274,7 @@
         .set({
           margin: [8, 6, 8, 6],
           filename: `Invoice_${invNo}.pdf`,
-          html2canvas: { scale: 2, useCORS: true, scrollY: 0, logging: false },
+          html2canvas: { scale: 2, useCORS: true, scrollY: 0, letterRendering: true },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         })
         .from(document.getElementById('invoiceDoc'))
@@ -1283,6 +1285,5 @@
 </body>
 
 </html>
-
 
 
