@@ -5,18 +5,21 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors({
+const corsOptions = {
   origin: [
-    'http://127.0.0.1:5500',
-    'http://localhost:5500',
-    'http://localhost:5000',
-    'http://127.0.0.1:5000',
+    'https://bookings.moktransports.com',
     'https://mok-transports-booking-platform.vercel.app',
-    'https://bookings.moktransports.com'
+    'http://localhost:3000', // Keep for local testing
+    'http://localhost:5000'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // This handles the "preflight" check
 
 app.use(express.json());
 
