@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://bookings.moktransports.com";
 
 function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
