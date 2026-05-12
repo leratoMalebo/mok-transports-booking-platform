@@ -8,6 +8,10 @@ const ALLOWED_ORIGINS = [
   'https://mok-transports-booking-platform.vercel.app'
 ];
 
+// ----------------------------------------------------------------
+// CORS — handles both allowed origins dynamically.
+// vercel.json no longer sets CORS headers so Express is in control.
+// ----------------------------------------------------------------
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
@@ -21,28 +25,39 @@ app.use(cors({
   credentials: true
 }));
 
-// This is the "Magic Fix" for the preflight error you are seeing
+// ----------------------------------------------------------------
+// Preflight — respond to OPTIONS for every route.
+// Dynamically mirrors the requesting origin so both domains work.
+// ----------------------------------------------------------------
 app.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://bookings.moktransports.com');
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.sendStatus(200);
 });
 
 app.use(express.json());
 
-// Routes - using ../ because the routes folder is in the root, one level up
-app.use('/api/auth',     require('../routes/auth'));
-app.use('/api/client',   require('../routes/clients'));
-app.use('/api/bookings', require('../routes/bookings'));
-app.use('/api/waybills', require('../routes/waybills'));
-app.use('/api/invoices', require('../routes/invoices'));
+// ----------------------------------------------------------------
+// Routes
+// NOTE: /api prefix is removed here because Vercel's rewrite rule
+// already strips it before the request reaches this Express app.
+// e.g. POST /api/auth/login → Express sees → POST /auth/login
+// ----------------------------------------------------------------
+app.use('/auth',     require('../routes/auth'));
+app.use('/client',   require('../routes/clients'));
+app.use('/bookings', require('../routes/bookings'));
+app.use('/waybills', require('../routes/waybills'));
+app.use('/invoices', require('../routes/invoices'));
 
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Mok Transports API live' });
 });
 
 module.exports = app;
-
 
 
