@@ -6,6 +6,10 @@
       "destination": "/api/index.js"
     },
     {
+      "source": "/clientDashboard.html",
+      "destination": "/Clientdashboard.html"
+    },
+    {
       "source": "/",
       "destination": "/login.html"
     },
