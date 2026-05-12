@@ -1,11 +1,11 @@
 // =============================================================
-// mok-backend/routes/auth.js
+// mok-backend/routes/Auth.js
 // Authentication routes — register, login, profile
 // =============================================================
 
 const express    = require('express');
 const router     = express.Router();
-const controller = require('../controllers/authController');
+const controller = require('../controllers/Authcontroller');
 
 // POST /api/auth/register
 router.post('/register', controller.register);
@@ -17,3 +17,4 @@ router.post('/login', controller.login);
 router.get('/profile/:id', controller.getProfile);
 
 module.exports = router;
+
