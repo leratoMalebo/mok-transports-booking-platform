@@ -513,7 +513,7 @@ async function confirmBooking() {
 console.log("BOOKING PAYLOAD:", payload);
     
 
-    const response = await fetch("http://localhost:5000/api/bookings", {
+    const response = await fetch("https://bookings.moktransports.com/api/bookings", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -526,7 +526,7 @@ console.log("BOOKING PAYLOAD:", payload);
     }
 
     const savedBooking = await response.json();
-    const waybillResponse = await fetch("http://localhost:5000/api/waybills", {
+    const waybillResponse = await fetch("https://bookings.moktransports.com/api/waybills", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -680,7 +680,4 @@ function fallbackDistance() {
   document.getElementById("distance").innerText = dist;
   calculateAll();
 }
-
-
-
 
