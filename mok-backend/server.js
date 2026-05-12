@@ -4,12 +4,12 @@ const cors    = require('cors');
 const app     = express();
 
 // ================================================================
-// CORS — all domains that are allowed to call this API
+// CORS
 // ================================================================
 const ALLOWED_ORIGINS = [
-  'https://bookings.moktransports.com',          // custom domain (primary)
-  'https://mok-transports-booking-platform.vercel.app', // vercel default
-  'http://localhost:5500',                         // VS Code Live Server
+  'https://bookings.moktransports.com',
+  'https://mok-transports-booking-platform.vercel.app',
+  'http://localhost:5500',
   'http://127.0.0.1:5500',
   'http://localhost:3000',
   'http://localhost:5000'
@@ -17,11 +17,11 @@ const ALLOWED_ORIGINS = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (Postman, curl, server-to-server)
+    // Allow requests with no origin (Postman, server-to-server, curl)
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS blocked for origin: ${origin}`));
+      callback(new Error(`CORS blocked: ${origin}`));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -30,14 +30,22 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
-// Apply CORS to all routes
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // handle preflight for all routes
 
-// Handle preflight OPTIONS for every route
-app.options('*', cors(corsOptions));
-
-// Body parser
+// ================================================================
+// BODY PARSER
+// ================================================================
 app.use(express.json());
+
+// ================================================================
+// HEALTH CHECK — test this first after deploy:
+// https://bookings.moktransports.com/api/health
+// Should return: { "status": "OK" }
+// ================================================================
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Mok Transports API is live', time: new Date().toISOString() });
+});
 
 // ================================================================
 // ROUTES
@@ -49,40 +57,29 @@ app.use('/api/waybills', require('./routes/waybills'));
 app.use('/api/invoices', require('./routes/invoices'));
 
 // ================================================================
-// HEALTH CHECK — visit /api/health in browser to confirm API is up
-// ================================================================
-app.get('/api/health', (req, res) => {
-  res.json({
-    status:  'OK',
-    message: 'Mok Transports API is live',
-    time:    new Date().toISOString()
-  });
-});
-
-// ================================================================
-// 404 FALLBACK — returns JSON, never HTML (prevents "Unexpected
-// end of JSON input" errors on the frontend)
+// 404 — always return JSON so frontend never gets "Unexpected end
+// of JSON input" from an HTML error page
 // ================================================================
 app.use((req, res) => {
-  res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });
+  res.status(404).json({ error: `Not found: ${req.method} ${req.path}` });
 });
 
 // ================================================================
-// GLOBAL ERROR HANDLER — also returns JSON, not HTML
+// GLOBAL ERROR HANDLER
 // ================================================================
 app.use((err, req, res, next) => {
-  console.error('UNHANDLED ERROR:', err.message);
+  console.error('SERVER ERROR:', err.message);
   res.status(500).json({ error: 'Internal server error.' });
 });
 
 // ================================================================
-// EXPORT FOR VERCEL (serverless)
-// Local dev: node server.js or nodemon server.js
+// EXPORT FOR VERCEL — do NOT call app.listen() in production
 // ================================================================
 module.exports = app;
 
+// Local dev only
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  app.listen(PORT, () => console.log(`Running locally on port ${PORT}`));
 }
 
