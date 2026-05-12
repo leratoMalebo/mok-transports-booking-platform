@@ -1,4 +1,5 @@
-require('dotenv').config({ path: '../mok-backend/.env' });
+// No need to point to a .env file on Vercel; it uses the Dashboard variables automatically
+require('dotenv').config(); 
 const express = require('express');
 const cors    = require('cors');
 const app     = express();
@@ -8,10 +9,6 @@ const ALLOWED_ORIGINS = [
   'https://mok-transports-booking-platform.vercel.app'
 ];
 
-// ----------------------------------------------------------------
-// CORS — handles both allowed origins dynamically.
-// vercel.json no longer sets CORS headers so Express is in control.
-// ----------------------------------------------------------------
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
@@ -25,10 +22,6 @@ app.use(cors({
   credentials: true
 }));
 
-// ----------------------------------------------------------------
-// Preflight — respond to OPTIONS for every route.
-// Dynamically mirrors the requesting origin so both domains work.
-// ----------------------------------------------------------------
 app.options('*', (req, res) => {
   const origin = req.headers.origin;
   if (ALLOWED_ORIGINS.includes(origin)) {
@@ -42,27 +35,16 @@ app.options('*', (req, res) => {
 
 app.use(express.json());
 
-// ----------------------------------------------------------------
-// Routes
-// NOTE: /api prefix is removed here because Vercel's rewrite rule
-// already strips it before the request reaches this Express app.
-// e.g. POST /api/auth/login → Express sees → POST /auth/login
-// ----------------------------------------------------------------
-require('../routes/Auth')
-require('../routes/Clients')
-require('../routes/bookings')
-require('../routes/waybills')
-require('../routes/invoices')
+// IMPORTANT: You must use app.use() to connect the routes
+app.use('/api/auth',     require('../routes/Auth'));
+app.use('/api/client',   require('../routes/Clients'));
+app.use('/api/bookings', require('../routes/bookings'));
+app.use('/api/waybills', require('../routes/waybills'));
+app.use('/api/invoices', require('../routes/invoices'));
 
-
-
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Mok Transports API live' });
 });
 
 module.exports = app;
-
-
-
-
 
