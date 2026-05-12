@@ -424,7 +424,7 @@ function saveBooking() {
   const serviceNames = {
     SAMEDAY: "SameDay Express Air",
     ONX: "Overnight Express (ONX)",
-    NDD: "NextDay Express",
+    NDX: "NextDay Express",
     ECO: "Economy Service (ECO)"
   };
 
@@ -473,57 +473,165 @@ function saveBooking() {
   instance.open();
 }
 
-function confirmBooking() {
+async function confirmBooking() {
   const data = window._pendingBooking;
   if (!data) return;
 
-  const waybillNo = generateWaybillNumber();
-  data.waybillNo = waybillNo;
+  try {
+    const waybillNo = generateWaybillNumber();
+    data.waybillNo = waybillNo;
 
-  // Persist to localStorage
-  const existing = JSON.parse(localStorage.getItem("mokBookings") || "[]");
-  existing.push({ ...data, createdAt: new Date().toISOString() });
-  localStorage.setItem("mokBookings", JSON.stringify(existing));
+    const session = JSON.parse(localStorage.getItem("mokSession") || "{}");
 
-  // Helper: build 4-line address block
-  function buildAddr(company, street, suburb, town, postal, email, contact) {
-    const lines = [
-      `<strong>${company}</strong>`,
-      street,
-      suburb,
-      town,
-      postal,
-      email,
-      contact
-    ].filter(Boolean);
-    return lines.join("<br>");
+    console.log("SESSION DATA:", session);
+
+    const payload = {
+  user_id: session?.user?.id || session?.id || null,
+  service: data.service,
+  consignor_name: data.fromCompany,
+  consignor_address: [
+    data.fromAddress,
+    data.fromSuburb,
+    data.fromTown,
+    data.fromPostal
+  ].filter(Boolean).join(", "),
+  consignor_contact: data.fromContact || data.fromEmail,
+  consignee_name: data.toCompany,
+  consignee_address: [
+    data.toAddress,
+    data.toSuburb,
+    data.toTown,
+    data.toPostal
+  ].filter(Boolean).join(", "),
+  consignee_contact: data.toContact || data.toEmail,
+  weight: parseFloat(data.chargeWeight || 0),
+  volumetric_weight: parseFloat(data.volWeight || 0),
+  price: parseFloat(data.price || 0),
+  zone_label: data.zoneLabel || document.getElementById("zoneLabel")?.innerText || ""
+};
+
+console.log("BOOKING PAYLOAD:", payload);
+    
+
+    const response = await fetch("http://localhost:5000/api/bookings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error("Booking save failed");
+    }
+
+    const savedBooking = await response.json();
+    const waybillResponse = await fetch("http://localhost:5000/api/waybills", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        booking_id: savedBooking.id,
+        waybill_no: waybillNo,
+        weight: parseFloat(data.chargeWeight || 0),
+        volumetric_weight: parseFloat(data.volWeight || 0)
+      })
+    });
+
+    if (!waybillResponse.ok) {
+      throw new Error("Waybill save failed");
+    }
+
+    const savedWaybill = await waybillResponse.json();
+    console.log("✅ Waybill saved to database:", savedWaybill);
+    console.log("✅ Booking saved to database:", savedBooking);
+
+    // Keep localStorage temporarily while system is still being migrated
+    const existing = JSON.parse(localStorage.getItem("mokBookings") || "[]");
+    existing.push({
+      ...data,
+      bookingId: savedBooking.id,
+      createdAt: new Date().toISOString()
+    });
+    localStorage.setItem("mokBookings", JSON.stringify(existing));
+
+    function buildAddr(company, street, suburb, town, postal, email, contact) {
+      const lines = [
+        `<strong>${company}</strong>`,
+        street,
+        suburb,
+        town,
+        postal,
+        email,
+        contact
+      ].filter(Boolean);
+
+      return lines.join("<br>");
+    }
+
+    localStorage.setItem("localWaybill", JSON.stringify({
+      bookingId: savedBooking.id,
+      waybillNo,
+      shipFrom: buildAddr(
+        data.fromCompany,
+        data.fromAddress,
+        data.fromSuburb,
+        data.fromTown,
+        data.fromPostal,
+        data.fromEmail,
+        data.fromContact
+      ),
+      shipTo: buildAddr(
+        data.toCompany,
+        data.toAddress,
+        data.toSuburb,
+        data.toTown,
+        data.toPostal,
+        data.toEmail,
+        data.toContact
+      ),
+      pickupDate: data.shipmentDate,
+      deliveryType: (() => {
+        const m = {
+          SAMEDAY: "SameDay Express Air",
+          ONX: "Overnight Express (ONX)",
+          NDD: "NextDay Express",
+          ECO: "Economy Service (ECO)"
+        };
+        return m[data.service] || data.service;
+      })(),
+      pieces: data.pieces,
+      weight: data.chargeWeight,
+      volumetricWeight: data.volWeight,
+      description: data.descriptions,
+      price: data.price,
+      zoneLabel: data.zoneLabel
+    }));
+
+    const modal = document.getElementById("summaryModal");
+    M.Modal.getInstance(modal).close();
+
+    M.toast({
+      html: `✅ Booking confirmed! Waybill: <strong>${waybillNo}</strong>`,
+      classes: "green darken-2",
+      displayLength: 5000
+    });
+
+    document.getElementById("waybillConfirmBtn").style.display = "inline-flex";
+    document.getElementById("waybillConfirmBtn").setAttribute("data-waybill", waybillNo);
+
+    window._pendingBooking = null;
+
+  } catch (err) {
+    console.error("❌ Error saving booking:", err);
+
+    M.toast({
+      html: "❌ Failed to save booking to database.",
+      classes: "red darken-2",
+      displayLength: 5000
+    });
   }
-
-  // Handoff for waybill page
-  localStorage.setItem("localWaybill", JSON.stringify({
-    waybillNo,
-    shipFrom: buildAddr(data.fromCompany, data.fromAddress, data.fromSuburb, data.fromTown, data.fromPostal, data.fromEmail, data.fromContact),
-    shipTo: buildAddr(data.toCompany, data.toAddress, data.toSuburb, data.toTown, data.toPostal, data.toEmail, data.toContact),
-    pickupDate: data.shipmentDate,
-    deliveryType: (() => { const m = { SAMEDAY: "SameDay Express Air", ONX: "Overnight Express (ONX)", NDD: "NextDay Express", ECO: "Economy Service (ECO)" }; return m[data.service] || data.service; })(),
-    pieces: data.pieces,
-    weight: data.chargeWeight,
-    volumetricWeight: data.volWeight,
-    description: data.descriptions,
-    price: data.price,
-    zoneLabel: data.zoneLabel
-  }));
-
-  const modal = document.getElementById("summaryModal");
-  M.Modal.getInstance(modal).close();
-
-  M.toast({ html: `✅ Booking confirmed! Waybill: <strong>${waybillNo}</strong>`, classes: "green darken-2", displayLength: 5000 });
-
-  // Show waybill button
-  document.getElementById("waybillConfirmBtn").style.display = "inline-flex";
-  document.getElementById("waybillConfirmBtn").setAttribute("data-waybill", waybillNo);
-
-  window._pendingBooking = null;
 }
 
 // ----------------------------------------------------------

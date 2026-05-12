@@ -1,413 +1,848 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mok Transports | Client Portal</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
-<style>
-:root {
-  --navy:   #0d2137;
-  --navy2:  #132d47;
-  --blue:   #1565c0;
-  --sky:    #1e88e5;
-  --accent: #f57c00;
-  --green:  #2e7d32;
-  --bg:     #f0f4f8;
-  --card:   #ffffff;
-  --border: #dce3ec;
-  --text:   #1a2535;
-  --muted:  #607d8b;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mok Transports | Client Portal</title>
 
-/* ===== HEADER ===== */
-header {
-  background: var(--navy);
-  border-bottom: 3px solid var(--accent);
-  padding: 0 32px;
-  height: 62px;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 100;
-}
-.header-left { display: flex; align-items: center; gap: 14px; }
-.header-left img { height: 38px; }
-.header-brand {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 16px; font-weight: 700; color: #fff; letter-spacing: .5px; line-height: 1.2;
-}
-.header-brand span { display: block; font-size: 10px; font-weight: 400; color: #607d8b; letter-spacing: 1.5px; text-transform: uppercase; }
-.header-right { display: flex; align-items: center; gap: 16px; }
-.header-user {
-  text-align: right;
-}
-.header-user-name { font-size: 13px; font-weight: 600; color: #e0e0e0; }
-.header-user-company { font-size: 11px; color: #607d8b; }
-.btn-logout-sm {
-  padding: 7px 16px; background: transparent;
-  border: 1px solid rgba(255,255,255,.15); border-radius: 5px;
-  color: #90a4ae; font-family: 'Barlow Condensed', sans-serif;
-  font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
-  cursor: pointer; transition: all .2s; text-decoration: none;
-  display: inline-flex; align-items: center; gap: 6px;
-}
-.btn-logout-sm:hover { border-color: rgba(245,124,0,.5); color: #ffcc80; background: rgba(245,124,0,.08); }
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap"
+    rel="stylesheet">
 
-/* ===== PAGE ===== */
-.page { max-width: 1100px; margin: 0 auto; padding: 36px 24px 60px; }
+  <style>
+    :root {
+      --navy: #0d2137;
+      --blue: #1565c0;
+      --sky: #1e88e5;
+      --accent: #f57c00;
+      --green: #2e7d32;
+      --red: #c62828;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --border: #dce3ec;
+      --text: #1a2535;
+      --muted: #607d8b;
+    }
 
-.welcome-row {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  margin-bottom: 32px;
-}
-.welcome-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 28px; font-weight: 700; color: var(--navy); letter-spacing: .3px;
-}
-.welcome-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
-.welcome-date { font-size: 12px; color: var(--muted); }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
-/* ===== STAT STRIP ===== */
-.stat-strip {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
-  margin-bottom: 32px;
-}
-.stat-chip {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 8px; padding: 16px 18px;
-  border-top: 3px solid var(--blue);
-  display: flex; flex-direction: column;
-}
-.stat-chip.orange { border-top-color: var(--accent); }
-.stat-chip.green  { border-top-color: var(--green); }
-.stat-chip-label { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-.stat-chip-val { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 700; color: var(--navy); }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh
+    }
 
-/* ===== TILE GRID (like TradeNav) ===== */
-.section-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 12px; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--muted);
-  margin-bottom: 14px;
-}
+    /* HEADER */
+    header {
+      background: var(--navy);
+      border-bottom: 3px solid var(--accent);
+      padding: 0 32px;
+      height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 18px rgba(13, 33, 55, .18);
+    }
 
-.tile-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 36px;
-}
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
 
-.tile {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 10px; padding: 28px 24px;
-  display: flex; align-items: center; justify-content: space-between;
-  cursor: pointer; text-decoration: none; color: var(--text);
-  transition: border-color .2s, box-shadow .2s, transform .15s;
-  position: relative; overflow: hidden;
-  animation: tileIn .4s ease both;
-}
-.tile::before {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
-  background: var(--blue); transform: scaleX(0); transition: transform .2s; transform-origin: left;
-}
-.tile:hover { border-color: var(--blue); box-shadow: 0 6px 20px rgba(21,101,192,.1); transform: translateY(-2px); }
-.tile:hover::before { transform: scaleX(1); }
-.tile.orange::before { background: var(--accent); }
-.tile.orange:hover { border-color: var(--accent); box-shadow: 0 6px 20px rgba(245,124,0,.1); }
-.tile.green::before { background: var(--green); }
-.tile.green:hover { border-color: var(--green); box-shadow: 0 6px 20px rgba(46,125,50,.1); }
+    .header-left img {
+      height: 42px;
+      background: #fff;
+      padding: 4px;
+      border-radius: 6px;
+    }
 
-.tile-text-name {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 18px; font-weight: 700; color: var(--navy); letter-spacing: .3px;
-}
-.tile-text-desc { font-size: 12px; color: var(--muted); margin-top: 3px; }
-.tile-icon {
-  width: 52px; height: 52px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 10px;
-}
-.tile-icon.blue   { background: #e3f2fd; }
-.tile-icon.orange { background: #fff3e0; }
-.tile-icon.green  { background: #e8f5e9; }
-.tile-icon.teal   { background: #e0f2f1; }
-.tile-icon.purple { background: #f3e5f5; }
+    .header-brand {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: .5px;
+      line-height: 1.2;
+    }
 
-@keyframes tileIn {
-  from { opacity:0; transform:translateY(16px); }
-  to   { opacity:1; transform:none; }
-}
-.tile:nth-child(1) { animation-delay:.05s; }
-.tile:nth-child(2) { animation-delay:.1s; }
-.tile:nth-child(3) { animation-delay:.15s; }
-.tile:nth-child(4) { animation-delay:.2s; }
-.tile:nth-child(5) { animation-delay:.25s; }
+    .header-brand span {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: #90a4ae;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
 
-/* ===== RECENT TABLE ===== */
-.panel-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 8px; overflow: hidden;
-}
-.panel-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px; border-bottom: 1px solid var(--border);
-  background: #fafbfc;
-}
-.panel-title { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; color: var(--navy); letter-spacing: .5px; text-transform: uppercase; }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px
+    }
 
-.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.data-table thead th { background: var(--navy); color: #fff; padding: 10px 14px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; text-align: left; }
-.data-table tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
-.data-table tbody tr:hover { background: #f5f8ff; }
-.data-table tbody td { padding: 11px 14px; vertical-align: middle; }
-.data-table tbody tr:last-child { border-bottom: none; }
+    .header-user {
+      text-align: right
+    }
 
-.pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-.pill-booked    { background: #e3f2fd; color: #1565c0; }
-.pill-transit   { background: #fff3e0; color: #e65100; }
-.pill-delivered { background: #e8f5e9; color: #2e7d32; }
+    .header-user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e0e0e0
+    }
 
-.empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+    .header-user-company {
+      font-size: 11px;
+      color: #90a4ae
+    }
 
-/* search bar */
-.search-row { display: flex; gap: 10px; align-items: center; }
-.search-input {
-  height: 34px; padding: 0 12px; border: 1px solid var(--border);
-  border-radius: 5px; font-family: 'Barlow', sans-serif; font-size: 13px;
-  background: #f8fafc; color: var(--text); outline: none; width: 200px;
-}
-.search-input:focus { border-color: var(--sky); }
+    .btn-logout-sm {
+      padding: 7px 16px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 5px;
+      color: #90a4ae;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
 
-@media (max-width: 768px) {
-  .tile-grid { grid-template-columns: repeat(2,1fr); }
-  .stat-strip { grid-template-columns: 1fr 1fr; }
-  header { padding: 0 16px; }
-}
-@media (max-width: 480px) {
-  .tile-grid { grid-template-columns: 1fr; }
-  .stat-strip { grid-template-columns: 1fr; }
-  .welcome-row { flex-direction: column; gap: 4px; }
-}
-</style>
+    .btn-logout-sm:hover {
+      border-color: rgba(245, 124, 0, .5);
+      color: #ffcc80;
+      background: rgba(245, 124, 0, .08);
+    }
+
+    /* PAGE */
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 24px 60px
+    }
+
+    .welcome-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .welcome-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .welcome-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 3px
+    }
+
+    .welcome-date {
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    /* STATS */
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .stat-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      border-top: 4px solid var(--blue);
+      box-shadow: 0 4px 14px rgba(13, 33, 55, .04);
+    }
+
+    .stat-chip.orange {
+      border-top-color: var(--accent)
+    }
+
+    .stat-chip.green {
+      border-top-color: var(--green)
+    }
+
+    .stat-chip-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-chip-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    /* LABELS */
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* TILES */
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 34px;
+    }
+
+    .tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
+      transition: .2s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(13, 33, 55, .04);
+    }
+
+    .tile::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--blue);
+      transform: scaleX(0);
+      transition: .2s;
+      transform-origin: left;
+    }
+
+    .tile:hover {
+      transform: translateY(-2px);
+      border-color: var(--blue);
+      box-shadow: 0 8px 24px rgba(21, 101, 192, .12);
+    }
+
+    .tile:hover::before {
+      transform: scaleX(1)
+    }
+
+    .tile.orange::before {
+      background: var(--accent)
+    }
+
+    .tile.green::before {
+      background: var(--green)
+    }
+
+    .tile-text-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .tile-text-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px
+    }
+
+    .tile-icon {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+
+    .tile-icon.blue {
+      background: #e3f2fd
+    }
+
+    .tile-icon.orange {
+      background: #fff3e0
+    }
+
+    .tile-icon.green {
+      background: #e8f5e9
+    }
+
+    .tile-icon.purple {
+      background: #f3e5f5
+    }
+
+    /* PANEL */
+    .panel-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(13, 33, 55, .05);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #fafbfc;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .panel-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .search-input {
+      height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      width: 230px;
+    }
+
+    .search-input:focus {
+      border-color: var(--sky)
+    }
+
+    .table-scroll {
+      overflow-x: auto
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 920px;
+    }
+
+    .data-table thead th {
+      background: var(--navy);
+      color: #fff;
+      padding: 12px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .data-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+
+    .data-table tbody tr:hover {
+      background: #f5f8ff
+    }
+
+    .data-table tbody td {
+      padding: 13px 14px;
+      vertical-align: middle;
+    }
+
+    .waybill-no {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--blue);
+    }
+
+    .jkj-ref {
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .small-muted {
+      font-size: 11px;
+      color: #78909c;
+      margin-top: 2px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+
+    .status-pending {
+      background: #fff4d6;
+      color: #9a6a00
+    }
+
+    .status-transit {
+      background: #e3f7ec;
+      color: #177245
+    }
+
+    .status-delivered {
+      background: #e8f5e9;
+      color: #2e7d32
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-mini {
+      border: none;
+      border-radius: 5px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+
+    .btn-view {
+      background: var(--blue);
+      color: #fff
+    }
+
+    .btn-pdf {
+      background: var(--red);
+      color: #fff
+    }
+
+    .btn-track {
+      background: #546e7a;
+      color: #fff
+    }
+
+    .empty-state {
+      padding: 48px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0
+      }
+
+      100% {
+        background-position: -200% 0
+      }
+    }
+
+    @media(max-width:768px) {
+      header {
+        padding: 0 16px
+      }
+
+      .tile-grid {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .stat-strip {
+        grid-template-columns: 1fr 1fr
+      }
+    }
+
+    @media(max-width:480px) {
+      .tile-grid {
+        grid-template-columns: 1fr
+      }
+
+      .stat-strip {
+        grid-template-columns: 1fr
+      }
+
+      .welcome-title {
+        font-size: 26px
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ===== HEADER ===== -->
-<header>
-  <div class="header-left">
-    <img src="assets/images/mok-logo.png" alt="Mok Transports">
-    <div class="header-brand">
-      Mok Transports Services (Pty) Ltd
-      <span>Client Portal</span>
+  <header>
+    <div class="header-left">
+      <img src="assets/images/mok-logo.png" alt="Mok Transports">
+      <div class="header-brand">
+        Mok Transports Services (Pty) Ltd
+        <span>Client Portal</span>
+      </div>
     </div>
-  </div>
-  <div class="header-right">
-    <div class="header-user">
-      <div class="header-user-name" id="clientName">—</div>
-      <div class="header-user-company" id="clientCompany">—</div>
-    </div>
-    <button class="btn-logout-sm" onclick="logout()">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Logout
-    </button>
-  </div>
-</header>
 
-<!-- ===== PAGE ===== -->
-<div class="page">
+    <div class="header-right">
+      <div class="header-user">
+        <div class="header-user-name" id="clientName">—</div>
+        <div class="header-user-company" id="clientCompany">—</div>
+      </div>
 
-  <!-- WELCOME -->
-  <div class="welcome-row">
-    <div>
-      <div class="welcome-title">Welcome back, <span id="welcomeName">—</span></div>
-      <div class="welcome-sub">Manage and track your shipments with Mok Transports</div>
+      <button class="btn-logout-sm" onclick="logout()">Logout</button>
     </div>
-    <div class="welcome-date" id="welcomeDate"></div>
-  </div>
+  </header>
 
-  <!-- STAT STRIP -->
-  <div class="stat-strip">
-    <div class="stat-chip">
-      <div class="stat-chip-label">My Shipments</div>
-      <div class="stat-chip-val" id="statMyTotal">0</div>
-    </div>
-    <div class="stat-chip orange">
-      <div class="stat-chip-label">In Transit</div>
-      <div class="stat-chip-val" id="statMyTransit">0</div>
-    </div>
-    <div class="stat-chip green">
-      <div class="stat-chip-label">Delivered</div>
-      <div class="stat-chip-val" id="statMyDelivered">0</div>
-    </div>
-  </div>
+  <div class="page">
 
-  <!-- NAVIGATION TILES -->
-  <div class="section-label">Quick Access</div>
-  <div class="tile-grid">
-
-    <a class="tile" href="clientShipments.html">
+    <div class="welcome-row">
       <div>
-        <div class="tile-text-name">Order Summary</div>
-        <div class="tile-text-desc">View all your shipments</div>
+        <div class="welcome-title">Welcome back, <span id="welcomeName">—</span></div>
+        <div class="welcome-sub">Manage your shipments, waybills and tracking references.</div>
       </div>
-      <div class="tile-icon blue">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-      </div>
-    </a>
+      <div class="welcome-date" id="welcomeDate"></div>
+    </div>
 
-    <a class="tile orange" href="clientShipments.html?filter=transit">
-      <div>
-        <div class="tile-text-name">Shipment Tracking</div>
-        <div class="tile-text-desc">Track active deliveries</div>
+    <div class="stat-strip">
+      <div class="stat-chip">
+        <div class="stat-chip-label">My Shipments</div>
+        <div class="stat-chip-val" id="statMyTotal">—</div>
       </div>
-      <div class="tile-icon orange">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+      <div class="stat-chip orange">
+        <div class="stat-chip-label">In Transit</div>
+        <div class="stat-chip-val" id="statMyTransit">—</div>
       </div>
-    </a>
-
-    <a class="tile green" href="clientShipments.html?filter=delivered">
-      <div>
-        <div class="tile-text-name">Deliveries</div>
-        <div class="tile-text-desc">Completed deliveries</div>
-      </div>
-      <div class="tile-icon green">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="1.8"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-      </div>
-    </a>
-
-    <a class="tile" href="track.html">
-      <div>
-        <div class="tile-text-name">Track a Waybill</div>
-        <div class="tile-text-desc">Enter waybill number</div>
-      </div>
-      <div class="tile-icon teal">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      </div>
-    </a>
-
-    <a class="tile" href="clientShipments.html">
-      <div>
-        <div class="tile-text-name">Product Arrivals</div>
-        <div class="tile-text-desc">Incoming shipments</div>
-      </div>
-      <div class="tile-icon purple">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6a1b9a" stroke-width="1.8"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-      </div>
-    </a>
-
-  </div>
-
-  <!-- RECENT SHIPMENTS -->
-  <div class="section-label">Recent Shipments</div>
-  <div class="panel-card">
-    <div class="panel-header">
-      <div class="panel-title">Your Shipments</div>
-      <div class="search-row">
-        <input class="search-input" type="text" id="searchInput" placeholder="Search waybill / company…" oninput="filterTable()">
-        <a href="clientShipments.html" style="font-size:12px;color:var(--blue);text-decoration:none;font-weight:600;white-space:nowrap;">View All →</a>
+      <div class="stat-chip green">
+        <div class="stat-chip-label">Delivered</div>
+        <div class="stat-chip-val" id="statMyDelivered">—</div>
       </div>
     </div>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Waybill No.</th>
-          <th>From</th>
-          <th>To</th>
-          <th>Service</th>
-          <th>Date</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="clientTable">
-        <tr><td colspan="6"><div class="empty-state">No shipments linked to your account yet.</div></td></tr>
-      </tbody>
-    </table>
+
+    <div class="section-label">Quick Access</div>
+
+    <div class="tile-grid">
+
+      <a class="tile" href="booking.html">
+        <div>
+          <div class="tile-text-name">Create Shipment</div>
+          <div class="tile-text-desc">Book a new shipment</div>
+        </div>
+        <div class="tile-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="1.8">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </div>
+      </a>
+
+      <a class="tile orange" href="clientShipments.html?filter=transit">
+        <div>
+          <div class="tile-text-name">Track Shipments</div>
+          <div class="tile-text-desc">View active deliveries</div>
+        </div>
+        <div class="tile-icon orange">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </div>
+      </a>
+
+      <a class="tile green" href="clientShipments.html">
+        <div>
+          <div class="tile-text-name">My Waybills</div>
+          <div class="tile-text-desc">View, print and download</div>
+        </div>
+        <div class="tile-icon green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+        </div>
+      </a>
+
+    </div>
+
+    <div class="section-label">Recent Shipments</div>
+
+    <div class="panel-card">
+      <div class="panel-header">
+        <div class="panel-title">Your Recent Shipments</div>
+
+        <div class="search-row">
+          <input class="search-input" type="text" id="searchInput" placeholder="Search waybill, JKJ ref, company…"
+            oninput="filterTable()">
+          <a href="clientShipments.html"
+            style="font-size:12px;color:var(--blue);text-decoration:none;font-weight:700;white-space:nowrap;">View All
+            →</a>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Waybill No</th>
+              <th>JKJ Reference</th>
+              <th>Service</th>
+              <th>Route</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="clientTable"></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
-</div>
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
 
-<script>
-// ---- Auth guard ----
-const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
-if (!session || session.role !== 'client') {
-  window.location.href = 'login.html';
-}
-const clientEmail = session ? session.email : '';
-document.getElementById('clientName').textContent    = session ? session.name : '—';
-document.getElementById('clientCompany').textContent = session ? session.company : '—';
-document.getElementById('welcomeName').textContent   = session ? session.name.split(' ')[0] : '—';
+    const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
 
-// Date
-document.getElementById('welcomeDate').textContent = new Date().toLocaleDateString('en-ZA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    if (!session || session.role !== 'client') {
+      window.location.href = 'login.html';
+    }
 
-// ---- Load bookings ----
-let allBookings = [];
+    const clientId = session?.user?.id || session?.id;
 
-function loadBookings() {
-  const bookings = JSON.parse(localStorage.getItem('mokBookings') || '[]');
-  // Filter to this client's shipments by email
-  allBookings = bookings.filter(b =>
-    (b.fromEmail || '').toLowerCase() === clientEmail.toLowerCase() ||
-    (b.toEmail   || '').toLowerCase() === clientEmail.toLowerCase()
-  );
+    document.getElementById('clientName').textContent = session.name || session?.user?.name || '—';
+    document.getElementById('clientCompany').textContent = session.company || session?.user?.company || '—';
+    document.getElementById('welcomeName').textContent = ((session.name || session?.user?.name || '').split(' ')[0]) || '—';
+    document.getElementById('welcomeDate').textContent = new Date().toLocaleDateString('en-ZA', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
 
-  // If no email match, show all (demo mode)
-  if (!allBookings.length) allBookings = bookings;
+    let allWaybills = [];
 
-  const total     = allBookings.length;
-  const delivered = allBookings.filter(b => b.status === 'Delivered').length;
-  const transit   = allBookings.filter(b => !b.status || b.status === 'Booked' || b.status === 'In Transit').length;
+    async function loadStats() {
+      try {
+        const res = await fetch(`${API_BASE}/client/${clientId}/stats`);
+        if (!res.ok) return;
 
-  document.getElementById('statMyTotal').textContent     = total;
-  document.getElementById('statMyDelivered').textContent = delivered;
-  document.getElementById('statMyTransit').textContent   = transit;
+        const data = await res.json();
 
-  renderTable(allBookings.slice().reverse().slice(0, 8));
-}
+        document.getElementById('statMyTotal').textContent = data.total || 0;
+        document.getElementById('statMyTransit').textContent = data.in_transit || 0;
+        document.getElementById('statMyDelivered').textContent = data.delivered || 0;
+      } catch (err) {
+        console.error('Stats fetch error:', err);
+      }
+    }
 
-function renderTable(data) {
-  const tbody = document.getElementById('clientTable');
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No shipments found.</div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = data.map(b => {
-    const sc = b.status === 'Delivered' ? 'pill-delivered' : b.status === 'In Transit' ? 'pill-transit' : 'pill-booked';
-    return `<tr>
-      <td><strong style="font-family:'Barlow Condensed',sans-serif;font-size:14px;color:var(--navy)">${b.waybillNo || '—'}</strong></td>
-      <td>${b.fromCompany || '—'}</td>
-      <td>${b.toCompany || '—'}</td>
-      <td>${b.service || '—'}</td>
-      <td>${b.shipmentDate || b.createdAt?.slice(0,10) || '—'}</td>
-      <td><span class="pill ${sc}">${b.status || 'Booked'}</span></td>
-    </tr>`;
-  }).join('');
-}
+    async function loadWaybills(search = '') {
+      renderSkeleton();
 
-function filterTable() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const filtered = allBookings.filter(b =>
-    (b.waybillNo || '').toLowerCase().includes(q) ||
-    (b.fromCompany || '').toLowerCase().includes(q) ||
-    (b.toCompany || '').toLowerCase().includes(q)
-  );
-  renderTable(filtered.slice().reverse().slice(0, 8));
-}
+      try {
+        const params = new URLSearchParams({ search });
+        const res = await fetch(`${API_BASE}/client/${clientId}/waybills?${params}`);
 
-loadBookings();
+        if (!res.ok) throw new Error('Server error');
 
-function logout() {
-  localStorage.removeItem('mokSession');
+        allWaybills = await res.json();
+        renderTable(allWaybills.slice(0, 8));
 
-  // OPTIONAL: Reset role to default (client or office)
-  localStorage.removeItem('mokLoginRole'); 
+      } catch (err) {
+        console.error('Waybill fetch error:', err);
+        document.getElementById('clientTable').innerHTML = `
+      <tr>
+        <td colspan="7">
+          <div class="empty-state">Could not load shipments. Please try again.</div>
+        </td>
+      </tr>
+    `;
+      }
+    }
 
-  window.location.href = 'login.html';
-}
-</script>
+    function renderSkeleton() {
+      document.getElementById('clientTable').innerHTML = [1, 2, 3].map(() => `
+    <tr>
+      ${[1, 2, 3, 4, 5, 6, 7].map(() => `<td><div class="skeleton" style="height:14px;width:80%">&nbsp;</div></td>`).join('')}
+    </tr>
+  `).join('');
+    }
+
+    function getStatusBadge(w) {
+      const status = String(w.status || w.waybill_status || '').toLowerCase();
+
+      if (status === 'delivered') {
+        return `<span class="status-badge status-delivered">Delivered</span>`;
+      }
+
+      if (w.sent_to_jkj || w.jkj_reference || status === 'sent_to_jkj' || status === 'in_transit') {
+        return `<span class="status-badge status-transit">In Transit</span>`;
+      }
+
+      return `<span class="status-badge status-pending">Pending Dispatch</span>`;
+    }
+
+    function formatService(service) {
+      const map = {
+        SAMEDAY: 'SameDay Express Air',
+        ONX: 'Overnight Express',
+        NDD: 'NextDay Express',
+        ECO: 'Economy Service'
+      };
+
+      return map[service] || service || '—';
+    }
+
+    function formatDate(value) {
+      if (!value) return '—';
+
+      return new Date(value).toLocaleDateString('en-ZA', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit'
+      });
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('clientTable');
+
+      if (!Array.isArray(data) || !data.length) {
+        tbody.innerHTML = `
+      <tr>
+        <td colspan="7">
+          <div class="empty-state">
+            No shipments found. 
+            <a href="booking.html" style="color:var(--blue);font-weight:700;text-decoration:none;">Create your first shipment →</a>
+          </div>
+        </td>
+      </tr>
+    `;
+        return;
+      }
+
+      tbody.innerHTML = data.map(w => `
+    <tr>
+      <td>
+        <div class="waybill-no">${w.waybill_no || '—'}</div>
+        <div class="small-muted">Mok reference</div>
+      </td>
+
+      <td>
+        <div class="jkj-ref">${w.jkj_reference || 'Awaiting JKJ'}</div>
+        <div class="small-muted">Tracking reference</div>
+      </td>
+
+      <td>${formatService(w.service)}</td>
+
+      <td>
+        <div>${w.consignor_name || '—'}</div>
+        <div class="small-muted">to ${w.consignee_name || '—'}</div>
+      </td>
+
+      <td>${formatDate(w.booking_date || w.created_at)}</td>
+
+      <td>${getStatusBadge(w)}</td>
+
+      <td>
+        <div class="actions">
+          <button class="btn-mini btn-view" onclick="viewWaybill('${w.waybill_no}')">View</button>
+          <button class="btn-mini btn-pdf" onclick="downloadWaybill('${w.waybill_no}')">PDF</button>
+          <button class="btn-mini btn-track" onclick="trackShipment('${w.jkj_reference || w.waybill_no}')">Track</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+    }
+
+    function filterTable() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+
+      const filtered = allWaybills.filter(w =>
+        (w.waybill_no || '').toLowerCase().includes(q) ||
+        (w.jkj_reference || '').toLowerCase().includes(q) ||
+        (w.consignor_name || '').toLowerCase().includes(q) ||
+        (w.consignee_name || '').toLowerCase().includes(q) ||
+        (w.service || '').toLowerCase().includes(q)
+      );
+
+      renderTable(filtered.slice(0, 8));
+    }
+
+    function viewWaybill(waybillNo) {
+      if (!waybillNo || waybillNo === 'undefined') return;
+      window.location.href = `localWaybill.html?waybill=${encodeURIComponent(waybillNo)}&mode=view`;
+    }
+
+    function downloadWaybill(waybillNo) {
+      if (!waybillNo || waybillNo === 'undefined') return;
+      window.location.href = `localWaybill.html?waybill=${encodeURIComponent(waybillNo)}&download=true`;
+    }
+
+    function trackShipment(ref) {
+      alert(`Tracking module will be connected next. Reference: ${ref || '—'}`);
+    }
+
+    function logout() {
+      localStorage.removeItem('mokSession');
+      localStorage.removeItem('mokLoginRole');
+      window.location.href = 'login.html';
+    }
+
+    loadStats();
+    loadWaybills();
+  </script>
+
 </body>
+
 </html>
-
-

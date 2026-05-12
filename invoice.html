@@ -125,7 +125,7 @@
 
     .btn-red {
       background: var(--red);
-      color: #fff;
+      color: #ec0c0c;
     }
 
     .btn-grey {
@@ -138,9 +138,10 @@
       color: #fff;
     }
 
-    .cell-input[type="date"] {
-      min-width: 110px;
+    .inv-table td {
+      overflow: hidden;
     }
+
 
     /* ===== PAGE WRAP ===== */
     .page-wrap {
@@ -983,6 +984,10 @@
     </div>
   </div>
 
+  <button class="btn-act btn-green" id="saveInvoiceBtn" onclick="saveInvoiceToDatabase()">
+    Save Invoice
+  </button>
+
   <script>
     // ===================================================================
     // CONSTANTS
@@ -1174,6 +1179,50 @@
       addLine();
     });
 
+    async function saveInvoiceToDatabase() {
+      try {
+        const payload = {
+          invoice_no: document.getElementById('invoiceNumber').value,
+          invoice_date: document.getElementById('invoiceDate').value,
+          waybill_no: document.getElementById('waybillRefNo').textContent.trim(),
+          subtotal: parseFloat(document.getElementById('tExcl').textContent || 0),
+          vat_total: parseFloat(document.getElementById('tVatAmt').textContent || 0),
+          total: parseFloat(document.getElementById('tTotal').textContent || 0),
+          status: 'unpaid'
+        };
+
+        if (!payload.invoice_no || !payload.invoice_date) {
+          alert('Please make sure invoice number and invoice date are filled in.');
+          return;
+        }
+
+        const res = await fetch('http://localhost:5000/api/invoices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error('Invoice save failed');
+        }
+
+        const savedInvoice = await res.json();
+        console.log('✅ Invoice saved:', savedInvoice);
+
+        const btn = document.getElementById('saveInvoiceBtn');
+        if (btn) {
+          btn.textContent = 'Saved';
+          btn.disabled = true;
+          btn.style.opacity = '0.7';
+        }
+
+        alert('✅ Invoice saved successfully.');
+      } catch (err) {
+        console.error('❌ Invoice save error:', err);
+        alert('❌ Failed to save invoice. Check backend terminal.');
+      }
+    }
+
     // ===================================================================
     // SEND
     // ===================================================================
@@ -1285,5 +1334,4 @@
 </body>
 
 </html>
-
 

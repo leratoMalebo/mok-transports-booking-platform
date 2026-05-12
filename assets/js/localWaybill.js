@@ -1,9 +1,16 @@
+const API_BASE = "http://localhost:5000";
+
+function getParam(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
+
 function generateLocalWaybillNumber() {
   const current = parseInt(localStorage.getItem("mokWaybillCounter") || "0", 10);
   const next = current + 1;
   localStorage.setItem("mokWaybillCounter", String(next));
   return `MOK${String(next).padStart(6, "0")}`;
 }
+
 
 function savePDF() {
   const element = document.getElementById("waybillContent");
@@ -17,10 +24,17 @@ function savePDF() {
     .from(element)
     .save();
 }
-
 window.addEventListener("DOMContentLoaded", () => {
+  const waybillParam = getParam("waybill");
+
+  if (waybillParam) {
+    loadWaybillFromDatabase(waybillParam);
+    return;
+  }
+
   const stored = localStorage.getItem("localWaybill");
-  if (!stored) {
+
+  if (!stored || stored === "null") {
     document.getElementById("waybillNumber").innerText = generateLocalWaybillNumber();
     renderBarcode(document.getElementById("waybillNumber").innerText);
     return;
@@ -45,8 +59,9 @@ window.addEventListener("DOMContentLoaded", () => {
   if (priceEl) priceEl.innerText = data.price ? `R ${data.price}` : "—";
 
   const zoneEl = document.getElementById("waybillZone");
-  if (zoneEl) zoneEl.innerText = data.zoneLabel || "—";
-
+  if (zoneEl) {
+    zoneEl.innerText = data.zone_label || data.zoneLabel || "—";
+  }
   // Barcode
   renderBarcode(wb);
 
@@ -113,11 +128,86 @@ function generateInvoice() {
   window.location.href = "invoice.html";
 }
 
+// Navigate back to the correct dashboard based on session role
+function goToDashboard() {
+  const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+  if (session && (session.role === 'staff' || session.role === 'admin' || session.role === 'office')) {
+    window.location.href = 'dashboard.html';
+  } else {
+    window.location.href = 'clientDashboard.html';
+  }
+}
+
+// Email the waybill — opens default mail client
+function emailWaybill() {
+  const wb = document.getElementById('waybillNumber').innerText || 'Waybill';
+  const to = document.getElementById('shipTo').innerText || '';
+  // Try to extract email from shipTo block
+  const match = to.match(/[\w.-]+@[\w.-]+\.\w+/);
+  const email = match ? match[0] : '';
+  const sub = encodeURIComponent(`Waybill ${wb} – Mok Transports Services (Pty) Ltd`);
+  const body = encodeURIComponent(
+    `Dear Client,\n\nPlease find your waybill ${wb} attached.\n\nFor queries please contact us:\nTel: 011 839 8496\nEmail: info@moktransports.com\n\nThank you for using Mok Transports Services.`
+  );
+  window.location.href = `mailto:${email}?subject=${sub}&body=${body}`;
+}
+
 // helper
 function extractNumber(text) {
   if (!text) return 0;
   return parseFloat(text.replace(/[^\d.]/g, "")) || 0;
 }
+
+async function loadWaybillFromDatabase(waybillNo) {
+  try {
+    const res = await fetch(`${API_BASE}/api/waybills/${waybillNo}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Waybill not found");
+    }
+
+    document.getElementById("waybillNumber").innerText = data.waybill_no || "—";
+
+    document.getElementById("shipFrom").innerHTML = `
+      <strong>${data.consignor_name || "—"}</strong><br>
+      ${data.consignor_address || "—"}<br>
+      ${data.consignor_contact || ""}
+    `;
+
+    document.getElementById("shipTo").innerHTML = `
+      <strong>${data.consignee_name || "—"}</strong><br>
+      ${data.consignee_address || "—"}<br>
+      ${data.consignee_contact || ""}
+    `;
+
+    document.getElementById("pickupDate").innerText =
+      data.booking_date ? data.booking_date.split("T")[0] : "—";
+
+    document.getElementById("deliveryType").innerText = data.service || "—";
+    document.getElementById("pieces").innerText = data.pieces || "1";
+    document.getElementById("weight").innerText = data.weight || "—";
+    document.getElementById("volumetricWeight").innerText = data.volumetric_weight || "—";
+    document.getElementById("description").innerText = data.description || "General Cargo";
+
+    const zoneEl = document.getElementById("waybillZone");
+    if (zoneEl) {
+      zoneEl.innerText = data.zone_label || data.zoneLabel || "—";
+    }
+
+    renderBarcode(data.waybill_no);
+
+    if (getParam("download") === "true") {
+      setTimeout(() => savePDF(), 800);
+    }
+
+  } catch (err) {
+    console.error("Load saved waybill error:", err);
+    alert("Could not load saved waybill from database.");
+  }
+}
+
+
 
 
 

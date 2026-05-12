@@ -1,468 +1,537 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mok Transports | Login</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700;800&display=swap"
-    rel="stylesheet">
-  <style>
-    :root {
-      --navy: #0d2137;
-      --blue: #1565c0;
-      --sky: #1e88e5;
-      --accent: #f57c00;
-      --light: #e8f0fe;
-      --border: #dce3ec;
-      --muted: #607d8b;
-      --white: #ffffff;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mok Transports | Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #0d2137;
+  --blue:   #1565c0;
+  --sky:    #1e88e5;
+  --accent: #f57c00;
+  --border: #dce3ec;
+  --muted:  #607d8b;
+  --white:  #ffffff;
+  --green:  #2e7d32;
+  --red:    #c62828;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Barlow', sans-serif; min-height: 100vh; display: flex; flex-direction: column; background: var(--navy); overflow-x: hidden; }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+.bg-layer {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 90%, rgba(21,101,192,.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 10%, rgba(245,124,0,.18) 0%, transparent 55%),
+    linear-gradient(160deg, #0d2137 0%, #0a1a2e 100%);
+}
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(30,136,229,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30,136,229,.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
 
-    body {
-      font-family: 'Barlow', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: var(--navy);
-      overflow: hidden;
-    }
+.page { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
 
-    /* ---- animated background ---- */
-    .bg-layer {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 10% 90%, rgba(21, 101, 192, .35) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 80% at 90% 10%, rgba(245, 124, 0, .18) 0%, transparent 55%),
-        linear-gradient(160deg, #0d2137 0%, #0a1a2e 100%);
-    }
+.topbar { display: flex; align-items: center; justify-content: center; padding: 28px 40px 0; gap: 14px; }
+.topbar img { height: 48px; }
+.topbar-brand { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; color: var(--white); letter-spacing: .5px; line-height: 1.2; }
+.topbar-brand span { display: block; font-size: 11px; font-weight: 400; color: #90a4ae; letter-spacing: 2px; text-transform: uppercase; }
 
-    .bg-grid {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background-image:
-        linear-gradient(rgba(30, 136, 229, .06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(30, 136, 229, .06) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
+.main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 20px 48px; }
 
-    /* ---- page layout ---- */
-    .page {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+/* CARD */
+.card { width: 100%; max-width: 480px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; backdrop-filter: blur(16px); overflow: hidden; animation: slideUp .5s ease both; }
+@keyframes slideUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
 
-    /* ---- top bar ---- */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 28px 40px 0;
-      gap: 14px;
-    }
+/* ROLE TOGGLE */
+.role-toggle { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,.08); }
+.role-btn { padding: 15px 10px; background: transparent; border: none; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #78909c; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.role-btn.active { color: var(--white); background: rgba(21,101,192,.25); border-bottom: 2px solid var(--accent); }
+.role-btn:hover:not(.active) { color: #b0bec5; background: rgba(255,255,255,.04); }
 
-    .topbar img {
-      height: 48px;
-    }
+/* CLIENT SUB-TABS */
+.client-tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,.06); }
+.client-tab { padding: 11px; background: transparent; border: none; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 500; color: #607d8b; cursor: pointer; transition: all .2s; border-bottom: 2px solid transparent; }
+.client-tab.active { color: var(--white); border-bottom-color: var(--sky); }
+.client-tab:hover:not(.active) { color: #90a4ae; }
 
-    .topbar-brand {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: .5px;
-      line-height: 1.2;
-    }
+/* FORM */
+.form-body { padding: 28px 32px 32px; }
+.form-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; color: var(--white); margin-bottom: 3px; }
+.form-subtitle { font-size: 12px; color: #78909c; margin-bottom: 22px; }
 
-    .topbar-brand span {
-      display: block;
-      font-size: 11px;
-      font-weight: 400;
-      color: #90a4ae;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #90a4ae; margin-bottom: 6px; }
+.field input { width: 100%; height: 44px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 6px; color: var(--white); font-family: 'Barlow', sans-serif; font-size: 14px; padding: 0 14px; transition: border-color .2s, background .2s; outline: none; }
+.field input:focus { border-color: var(--sky); background: rgba(30,136,229,.08); }
+.field input::placeholder { color: #455a64; }
 
-    /* ---- main wrapper ---- */
-    .main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 20px 48px;
-    }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-    /* ---- card ---- */
-    .card {
-      width: 100%;
-      max-width: 460px;
-      background: rgba(255, 255, 255, .04);
-      border: 1px solid rgba(255, 255, 255, .1);
-      border-radius: 12px;
-      backdrop-filter: blur(16px);
-      overflow: hidden;
-      animation: slideUp .5s ease both;
-    }
+/* Password strength */
+.pw-strength { margin-top: 5px; display: flex; gap: 4px; }
+.pw-bar { flex: 1; height: 3px; background: rgba(255,255,255,.1); border-radius: 2px; transition: background .2s; }
+.pw-bar.weak   { background: #ef5350; }
+.pw-bar.medium { background: var(--accent); }
+.pw-bar.strong { background: #66bb6a; }
+.pw-hint { font-size: 10px; color: #607d8b; margin-top: 4px; }
 
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(24px);
-      }
+/* Submit btn */
+.btn-login { width: 100%; height: 46px; margin-top: 6px; border: none; border-radius: 6px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; background: linear-gradient(135deg, var(--blue) 0%, var(--sky) 100%); color: var(--white); transition: filter .2s, transform .1s; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-login::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--accent) 0%, #ff9800 100%); opacity: 0; transition: opacity .3s; }
+.btn-login:hover::after { opacity: 1; }
+.btn-login span { position: relative; z-index: 1; }
+.btn-login:active { transform: scale(.98); }
+.btn-login:disabled { opacity: .6; cursor: not-allowed; }
+.btn-login .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; position: relative; z-index: 1; display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+/* Messages */
+.msg { border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; display: none; }
+.msg.show { display: block; }
+.msg.error   { background: rgba(198,40,40,.2); border: 1px solid rgba(198,40,40,.4); color: #ef9a9a; }
+.msg.success { background: rgba(46,125,50,.2); border: 1px solid rgba(46,125,50,.4); color: #a5d6a7; }
 
-    /* ---- role toggle ---- */
-    .role-toggle {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      border-bottom: 1px solid rgba(255, 255, 255, .08);
-    }
+/* Switch link */
+.switch-link { text-align: center; margin-top: 16px; font-size: 12px; color: #607d8b; }
+.switch-link a { color: var(--sky); cursor: pointer; text-decoration: none; font-weight: 600; }
+.switch-link a:hover { color: var(--accent); }
 
-    .role-btn {
-      padding: 16px 10px;
-      background: transparent;
-      border: none;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: #78909c;
-      cursor: pointer;
-      transition: all .2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
+.panel { display: none; }
+.panel.active { display: block; }
 
-    .role-btn .icon {
-      font-size: 18px;
-    }
+footer { position: relative; z-index: 1; text-align: center; padding: 16px; font-size: 11px; color: #37474f; }
 
-    .role-btn.active {
-      color: var(--white);
-      background: rgba(21, 101, 192, .25);
-      border-bottom: 2px solid var(--accent);
-    }
-
-    .role-btn:hover:not(.active) {
-      color: #b0bec5;
-      background: rgba(255, 255, 255, .04);
-    }
-
-    /* ---- form body ---- */
-    .form-body {
-      padding: 32px 36px 36px;
-    }
-
-    .form-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--white);
-      margin-bottom: 4px;
-      letter-spacing: .5px;
-    }
-
-    .form-subtitle {
-      font-size: 13px;
-      color: #78909c;
-      margin-bottom: 28px;
-    }
-
-    .field {
-      margin-bottom: 20px;
-    }
-
-    .field label {
-      display: block;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      color: #90a4ae;
-      margin-bottom: 7px;
-    }
-
-    .field input {
-      width: 100%;
-      height: 46px;
-      background: rgba(255, 255, 255, .06);
-      border: 1px solid rgba(255, 255, 255, .12);
-      border-radius: 6px;
-      color: var(--white);
-      font-family: 'Barlow', sans-serif;
-      font-size: 14px;
-      padding: 0 14px;
-      transition: border-color .2s, background .2s;
-      outline: none;
-    }
-
-    .field input:focus {
-      border-color: var(--sky);
-      background: rgba(30, 136, 229, .08);
-    }
-
-    .field input::placeholder {
-      color: #455a64;
-    }
-
-    .btn-login {
-      width: 100%;
-      height: 48px;
-      margin-top: 8px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      background: linear-gradient(135deg, var(--blue) 0%, var(--sky) 100%);
-      color: var(--white);
-      transition: filter .2s, transform .1s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-login::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, var(--accent) 0%, #ff9800 100%);
-      opacity: 0;
-      transition: opacity .3s;
-    }
-
-    .btn-login:hover::after {
-      opacity: 1;
-    }
-
-    .btn-login span {
-      position: relative;
-      z-index: 1;
-    }
-
-    .btn-login:active {
-      transform: scale(.98);
-    }
-
-    .error-msg {
-      background: rgba(198, 40, 40, .2);
-      border: 1px solid rgba(198, 40, 40, .4);
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 13px;
-      color: #ef9a9a;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .error-msg.show {
-      display: block;
-    }
-
-    /* ---- footer ---- */
-    footer {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding: 16px;
-      font-size: 11px;
-      color: #37474f;
-    }
-
-    /* ---- role panel switching ---- */
-    .panel {
-      display: none;
-    }
-
-    .panel.active {
-      display: block;
-    }
-
-    @media (max-width: 480px) {
-      .form-body {
-        padding: 24px 20px 28px;
-      }
-    }
-  </style>
+@media (max-width: 480px) {
+  .form-body { padding: 22px 18px 26px; }
+  .field-row { grid-template-columns: 1fr; }
+}
+</style>
 </head>
-
 <body>
 
-  <div class="bg-layer"></div>
-  <div class="bg-grid"></div>
+<div class="bg-layer"></div>
+<div class="bg-grid"></div>
 
-  <div class="page">
+<div class="page">
 
-    <!-- TOP BAR -->
-    <div class="topbar">
-      <img src="assets/images/mok-logo.png" alt="Mok Transports">
-      <div class="topbar-brand">
-        Mok Transports Services (Pty) Ltd
-        <span>Logistics &amp; Freight Solutions</span>
-      </div>
+  <div class="topbar">
+    <img src="assets/images/mok-logo.png" alt="Mok Transports">
+    <div class="topbar-brand">
+      Mok Transports Services (Pty) Ltd
+      <span>Logistics &amp; Freight Solutions</span>
     </div>
+  </div>
 
-    <!-- MAIN -->
-    <div class="main">
-      <div class="card">
+  <div class="main">
+    <div class="card">
 
-        <!-- ROLE TOGGLE -->
-        <div class="role-toggle">
-          <button class="role-btn active" id="btnOffice" onclick="switchRole('office')">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
-              height="18">
-              <rect x="2" y="7" width="20" height="14" rx="2" />
-              <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
-            </svg>
-            Office Staff
-          </button>
-          <button class="role-btn" id="btnClient" onclick="switchRole('client')">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
-              height="18">
-              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            Client Portal
-          </button>
-        </div>
+      <!-- ROLE TOGGLE -->
+      <div class="role-toggle">
+        <button class="role-btn active" id="btnOffice" onclick="switchRole('office')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <rect x="2" y="7" width="20" height="14" rx="2"/>
+            <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+          </svg>
+          Office Staff
+        </button>
+        <button class="role-btn" id="btnClient" onclick="switchRole('client')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Client Portal
+        </button>
+      </div>
 
-        <!-- OFFICE PANEL -->
-        <div class="panel active" id="panelOffice">
-          <div class="form-body">
-            <div class="form-title">Staff Login</div>
-            <div class="form-subtitle">Mok Transports internal operations portal</div>
-            <div class="error-msg" id="officeError">Incorrect username or password.</div>
-            <div class="field">
-              <label>Username</label>
-              <input type="text" id="officeUser" placeholder="Enter your username" autocomplete="username">
-            </div>
-            <div class="field">
-              <label>Password</label>
-              <input type="password" id="officePass" placeholder="Enter your password" autocomplete="current-password"
-                onkeydown="if(event.key==='Enter') loginOffice()">
-            </div>
-            <button class="btn-login" onclick="loginOffice()"><span>Sign In to Office</span></button>
+      <!-- ===== OFFICE PANEL ===== -->
+      <div class="panel active" id="panelOffice">
+        <div class="form-body">
+          <div class="form-title">Staff Login</div>
+          <div class="form-subtitle">Mok Transports internal operations portal</div>
+          <div class="msg error" id="officeError"></div>
+          <div class="field">
+            <label>Email Address</label>
+            <input type="email" id="officeUser" placeholder="your@moktransports.com" autocomplete="username">
           </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="officePass" placeholder="Enter your password"
+              autocomplete="current-password"
+              onkeydown="if(event.key==='Enter') loginOffice()">
+          </div>
+          <button class="btn-login" id="btnOfficeLogin" onclick="loginOffice()">
+            <div class="spinner" id="officeSpinner"></div>
+            <span id="officeBtnText">Sign In to Office</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== CLIENT PANEL ===== -->
+      <div class="panel" id="panelClient">
+
+        <div class="client-tabs">
+          <button class="client-tab active" id="tabLogin"    onclick="switchClientTab('login')">Sign In</button>
+          <button class="client-tab"        id="tabRegister" onclick="switchClientTab('register')">Create Account</button>
         </div>
 
-        <!-- CLIENT PANEL -->
-        <div class="panel" id="panelClient">
+        <!-- CLIENT LOGIN -->
+        <div class="panel active" id="subLogin">
           <div class="form-body">
             <div class="form-title">Client Login</div>
             <div class="form-subtitle">Track and manage your shipments</div>
-            <div class="error-msg" id="clientError">Incorrect email or password.</div>
+            <div class="msg error"   id="loginError"></div>
+            <div class="msg success" id="loginSuccess"></div>
             <div class="field">
               <label>Email Address</label>
               <input type="email" id="clientEmail" placeholder="your@email.com" autocomplete="email">
             </div>
             <div class="field">
               <label>Password</label>
-              <input type="password" id="clientPass" placeholder="Enter your password" autocomplete="current-password"
+              <input type="password" id="clientPass" placeholder="Enter your password"
+                autocomplete="current-password"
                 onkeydown="if(event.key==='Enter') loginClient()">
             </div>
-            <button class="btn-login" onclick="loginClient()"><span>Sign In to Portal</span></button>
+            <button class="btn-login" id="btnLogin" onclick="loginClient()">
+              <div class="spinner" id="loginSpinner"></div>
+              <span id="loginBtnText">Sign In to Portal</span>
+            </button>
+            <div class="switch-link">
+              Don't have an account? <a onclick="switchClientTab('register')">Create one →</a>
+            </div>
           </div>
         </div>
 
-      </div>
-    </div>
+        <!-- CLIENT REGISTER -->
+        <div class="panel" id="subRegister">
+          <div class="form-body">
+            <div class="form-title">Create Account</div>
+            <div class="form-subtitle">Register to access the Mok Transports client portal</div>
+            <div class="msg error"   id="registerError"></div>
+            <div class="msg success" id="registerSuccess"></div>
 
-    <footer>© 2026 Mok Transports Services (Pty) Ltd &nbsp;·&nbsp; All rights reserved</footer>
+            <div class="field-row">
+              <div class="field">
+                <label>Full Name *</label>
+                <input type="text" id="regName" placeholder="John Smith" autocomplete="name">
+              </div>
+              <div class="field">
+                <label>Company Name</label>
+                <input type="text" id="regCompany" placeholder="ABC (Pty) Ltd">
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Email Address *</label>
+              <input type="email" id="regEmail" placeholder="john@company.com" autocomplete="email">
+            </div>
+
+            <div class="field">
+              <label>Phone Number</label>
+              <input type="tel" id="regPhone" placeholder="+27 82 000 0000" autocomplete="tel">
+            </div>
+
+            <div class="field">
+              <label>Password *
+                <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#455a64">
+                  (min. 6 characters)
+                </span>
+              </label>
+              <input type="password" id="regPass" placeholder="Create a strong password"
+                autocomplete="new-password" oninput="checkStrength()">
+              <div class="pw-strength">
+                <div class="pw-bar" id="bar1"></div>
+                <div class="pw-bar" id="bar2"></div>
+                <div class="pw-bar" id="bar3"></div>
+                <div class="pw-bar" id="bar4"></div>
+              </div>
+              <div class="pw-hint" id="pwHint">Enter a password</div>
+            </div>
+
+            <div class="field">
+              <label>Confirm Password *</label>
+              <input type="password" id="regPassConfirm" placeholder="Repeat your password"
+                autocomplete="new-password"
+                onkeydown="if(event.key==='Enter') registerClient()">
+            </div>
+
+            <button class="btn-login" id="btnRegister" onclick="registerClient()">
+              <div class="spinner" id="registerSpinner"></div>
+              <span id="registerBtnText">Create My Account</span>
+            </button>
+            <div class="switch-link">
+              Already have an account? <a onclick="switchClientTab('login')">Sign in →</a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panelClient -->
+
+    </div><!-- /card -->
   </div>
 
-  <script>
-    // ---- Role switching ----
-    // Auto focus correct field on role switch
-    function switchRole(role) {
-      localStorage.setItem('mokLoginRole', role);
+  <footer>© 2026 Mok Transports Services (Pty) Ltd &nbsp;·&nbsp; All rights reserved</footer>
+</div>
 
-      document.getElementById('btnOffice').classList.toggle('active', role === 'office');
-      document.getElementById('btnClient').classList.toggle('active', role === 'client');
-      document.getElementById('panelOffice').classList.toggle('active', role === 'office');
-      document.getElementById('panelClient').classList.toggle('active', role === 'client');
+<script>
+// ================================================================
+// CONFIG — update this to your server URL when you deploy
+// ================================================================
+const API_BASE = 'http://localhost:5000/api';
 
-      setTimeout(() => {
-        if (role === 'office') {
-          document.getElementById('officeUser').focus();
-        } else {
-          document.getElementById('clientEmail').focus();
-        }
-      }, 100);
-    }
-    // ---- Office users (extend as needed) ----
-    const OFFICE_USERS = [
-      { username: 'it@moktransports.com', password: 'Malebo2009', name: 'Admin', role: 'admin' },
-      { username: 'mavis@moktransports.com', password: 'Karabo2009', name: 'Mavis Selomane', role: 'staff' },
-      { username: 'neo@moktransports.com', password: 'Karabo2009', name: 'Neo Lumkwana', role: 'staff' },
-      { username: 'accounts@moktransports.com', password: 'Karabo2009', name: 'Lebohang Tsimatsi', role: 'staff' },
-      { username: 'ryan@moktransports.com', password: 'Karabo2009', name: 'Ryan Mokgethi', role: 'staff' }
+// ================================================================
+// HELPERS
+// ================================================================
+function showMsg(id, text, type = 'error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = `msg ${type} show`;
+}
 
-
-    ];
-
-    // ---- Client users (extend as needed) ----
-    const CLIENT_USERS = [
-      { email: 'client@moktransports.com', password: 'Mok2026', name: 'Client', company: 'Company Name' }
-    ];
-
-    function loginOffice() {
-      const u = document.getElementById('officeUser').value.trim().toLowerCase();
-      const p = document.getElementById('officePass').value;
-      const user = OFFICE_USERS.find(x => x.username === u && x.password === p);
-      if (user) {
-        localStorage.setItem('mokSession', JSON.stringify({ role: 'office', name: user.name, staffRole: user.role }));
-        document.getElementById('officeError').classList.remove('show');
-        window.location.href = 'dashboard.html';
-      } else {
-        document.getElementById('officeError').classList.add('show');
-      }
-    }
-
-    function loginClient() {
-      const e = document.getElementById('clientEmail').value.trim().toLowerCase();
-      const p = document.getElementById('clientPass').value;
-      const user = CLIENT_USERS.find(x => x.email === e && x.password === p);
-      if (user) {
-        localStorage.setItem('mokSession', JSON.stringify({ role: 'client', name: user.name, company: user.company, email: user.email }));
-        document.getElementById('clientError').classList.remove('show');
-        window.location.href = 'clientDashboard.html';
-      } else {
-        document.getElementById('clientError').classList.add('show');
-      }
-    }
-
-
-    // Restore last selected role
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedRole = localStorage.getItem('mokLoginRole') || 'office';
-      switchRole(savedRole);
+function clearMessages() {
+  ['officeError','loginError','loginSuccess','registerError','registerSuccess']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.className = 'msg'; el.textContent = ''; }
     });
-  </script>
+}
+
+function setLoading(btnId, spinnerId, textId, loading, label) {
+  document.getElementById(btnId).disabled          = loading;
+  document.getElementById(spinnerId).style.display = loading ? 'block' : 'none';
+  document.getElementById(textId).textContent      = loading ? 'Please wait…' : label;
+}
+
+// ================================================================
+// ROLE SWITCHING
+// ================================================================
+function switchRole(role) {
+  localStorage.setItem('mokLoginRole', role);
+  document.getElementById('btnOffice').classList.toggle('active', role === 'office');
+  document.getElementById('btnClient').classList.toggle('active', role === 'client');
+  document.getElementById('panelOffice').classList.toggle('active', role === 'office');
+  document.getElementById('panelClient').classList.toggle('active', role === 'client');
+  clearMessages();
+  setTimeout(() => {
+    if (role === 'office') document.getElementById('officeUser').focus();
+    else document.getElementById('clientEmail').focus();
+  }, 100);
+}
+
+function switchClientTab(tab) {
+  document.getElementById('tabLogin').classList.toggle('active',    tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+  document.getElementById('subLogin').classList.toggle('active',    tab === 'login');
+  document.getElementById('subRegister').classList.toggle('active', tab === 'register');
+  clearMessages();
+  setTimeout(() => {
+    if (tab === 'login') document.getElementById('clientEmail').focus();
+    else document.getElementById('regName').focus();
+  }, 80);
+}
+
+// ================================================================
+// PASSWORD STRENGTH METER
+// ================================================================
+function checkStrength() {
+  const pw   = document.getElementById('regPass').value;
+  const bars = ['bar1','bar2','bar3','bar4'].map(id => document.getElementById(id));
+  const hint = document.getElementById('pwHint');
+  bars.forEach(b => b.className = 'pw-bar');
+  if (!pw) { hint.textContent = 'Enter a password'; return; }
+
+  let score = 0;
+  if (pw.length >= 6)  score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw) && /[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+  const cls    = score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong';
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  for (let i = 0; i < score; i++) bars[i].classList.add(cls);
+  hint.textContent = labels[score] || '';
+}
+
+// ================================================================
+// SHARED LOGIN FUNCTION — used by both office and client panels
+// Hits /api/auth/login, reads role, redirects accordingly:
+//   admin / staff  → dashboard.html
+//   client         → clientDashboard.html
+// ================================================================
+async function doLogin(email, password, errorMsgId, btnId, spinnerId, textId, btnLabel) {
+  clearMessages();
+
+  if (!email || !password) {
+    showMsg(errorMsgId, 'Please enter your email and password.', 'error');
+    return;
+  }
+
+  setLoading(btnId, spinnerId, textId, true, btnLabel);
+
+  try {
+    const res  = await fetch(`${API_BASE}/auth/login`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showMsg(errorMsgId, data.error || 'Login failed. Please try again.', 'error');
+      // Clear password field on failure
+      document.getElementById(btnId === 'btnOfficeLogin' ? 'officePass' : 'clientPass').value = '';
+      return;
+    }
+
+    const user = data.user;
+
+    // Build session object
+    const session = {
+      id:        user.id,
+      name:      user.name,
+      email:     user.email,
+      company:   user.company || '',
+      phone:     user.phone   || '',
+      role:      user.role,           // 'client' | 'staff' | 'admin'
+      // Map DB role to legacy 'office' role used by dashboard auth guard
+      staffRole: user.role            // used by dashboard.html sidebarRole display
+    };
+
+    localStorage.setItem('mokSession', JSON.stringify(session));
+
+    // Route by role
+    if (user.role === 'admin' || user.role === 'staff') {
+      window.location.href = 'dashboard.html';
+    } else if (user.role === 'client') {
+      showMsg(errorMsgId === 'officeError' ? 'officeError' : 'loginSuccess',
+        `Welcome back, ${user.name}! Redirecting…`, 'success');
+      setTimeout(() => { window.location.href = 'clientDashboard.html'; }, 800);
+    } else {
+      showMsg(errorMsgId, 'Unknown role. Please contact Mok Transports.', 'error');
+    }
+
+  } catch (err) {
+    showMsg(errorMsgId, 'Could not connect to server. Please check your connection.', 'error');
+    console.error('Login error:', err);
+  } finally {
+    setLoading(btnId, spinnerId, textId, false, btnLabel);
+  }
+}
+
+// ================================================================
+// OFFICE LOGIN — calls shared doLogin
+// ================================================================
+function loginOffice() {
+  doLogin(
+    document.getElementById('officeUser').value.trim(),
+    document.getElementById('officePass').value,
+    'officeError',
+    'btnOfficeLogin', 'officeSpinner', 'officeBtnText',
+    'Sign In to Office'
+  );
+}
+
+// ================================================================
+// CLIENT LOGIN — calls shared doLogin
+// ================================================================
+function loginClient() {
+  doLogin(
+    document.getElementById('clientEmail').value.trim(),
+    document.getElementById('clientPass').value,
+    'loginError',
+    'btnLogin', 'loginSpinner', 'loginBtnText',
+    'Sign In to Portal'
+  );
+}
+
+// ================================================================
+// CLIENT REGISTER
+// ================================================================
+async function registerClient() {
+  const name        = document.getElementById('regName').value.trim();
+  const company     = document.getElementById('regCompany').value.trim();
+  const email       = document.getElementById('regEmail').value.trim();
+  const phone       = document.getElementById('regPhone').value.trim();
+  const password    = document.getElementById('regPass').value;
+  const passwordCfm = document.getElementById('regPassConfirm').value;
+
+  clearMessages();
+
+  if (!name || !email || !password || !passwordCfm) {
+    showMsg('registerError', 'Please fill in all required fields.', 'error'); return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showMsg('registerError', 'Please enter a valid email address.', 'error'); return;
+  }
+  if (password.length < 6) {
+    showMsg('registerError', 'Password must be at least 6 characters.', 'error'); return;
+  }
+  if (password !== passwordCfm) {
+    showMsg('registerError', 'Passwords do not match.', 'error'); return;
+  }
+
+  setLoading('btnRegister', 'registerSpinner', 'registerBtnText', true, 'Create My Account');
+
+  try {
+    const res  = await fetch(`${API_BASE}/auth/register`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, email, password, company, phone })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showMsg('registerError', data.error || 'Registration failed. Please try again.', 'error');
+      return;
+    }
+
+    showMsg('registerSuccess',
+      '✓ Account created! You can now sign in with your email and password.',
+      'success'
+    );
+
+    // Pre-fill email on login tab, switch after 2s
+    ['regName','regCompany','regEmail','regPhone','regPass','regPassConfirm']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('clientEmail').value = email;
+
+    setTimeout(() => switchClientTab('login'), 2000);
+
+  } catch (err) {
+    showMsg('registerError', 'Could not connect to server. Please try again.', 'error');
+    console.error('Register error:', err);
+  } finally {
+    setLoading('btnRegister', 'registerSpinner', 'registerBtnText', false, 'Create My Account');
+  }
+}
+
+// ================================================================
+// INIT
+// ================================================================
+window.addEventListener('DOMContentLoaded', () => {
+  // Restore last selected role
+  const savedRole = localStorage.getItem('mokLoginRole') || 'office';
+  switchRole(savedRole);
+
+  // If already logged in skip the login page entirely
+  const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+  if (!session) return;
+
+  if (session.role === 'admin' || session.role === 'staff') {
+    window.location.href = 'dashboard.html';
+  } else if (session.role === 'client') {
+    window.location.href = 'clientDashboard.html';
+  }
+});
+</script>
 </body>
-
 </html>
-
 
