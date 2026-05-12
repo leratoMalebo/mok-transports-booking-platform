@@ -8,7 +8,7 @@ const ALLOWED_ORIGINS = [
   'https://mok-transports-booking-platform.vercel.app'
 ];
 
-// Standardized CORS setup
+// Use the standard cors middleware for all routes
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
@@ -22,27 +22,28 @@ app.use(cors({
   credentials: true
 }));
 
-// Use the standard '*' for preflight to avoid PathToRegexp errors
-app.options('*', cors());
+// FIX: Express 5 compatibility for the wildcard preflight
+app.options('(.*)', cors());
 
 app.use(express.json());
 
-// Health check to verify the engine is running
+// Health check to verify the engine is alive
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'Mok Transports API live', 
-    timestamp: new Date().toISOString() 
+    message: 'Mok Transports API live',
+    timestamp: new Date().toISOString()
   });
 });
 
-// Routing to the mok-backend folder based on your screenshots
-// Using exact file names: Auth.js and Clients.js
-app.use('/api/auth',     require('../mok-backend/routes/Auth'));
-app.use('/api/client',   require('../mok-backend/routes/Clients'));
-app.use('/api/bookings', require('../mok-backend/routes/bookings'));
-app.use('/api/waybills', require('../mok-backend/routes/waybills'));
-app.use('/api/invoices', require('../mok-backend/routes/invoices'));
+// IMPORTANT: Using the exact paths to your mok-backend folder
+// Filenames match your screenshots: Auth.js and Clients.js
+app.use('/api/auth',     require('../mok-backend/routes/Auth'));     
+app.use('/api/client',   require('../mok-backend/routes/Clients'));  
+app.use('/api/bookings', require('../mok-backend/routes/bookings')); 
+app.use('/api/waybills', require('../mok-backend/routes/waybills')); 
+app.use('/api/invoices', require('../mok-backend/routes/invoices')); 
 
 module.exports = app;
+
 
