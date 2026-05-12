@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: '../mok-backend/.env' });
 const express = require('express');
 const cors    = require('cors');
 const app     = express();
@@ -48,11 +48,13 @@ app.use(express.json());
 // already strips it before the request reaches this Express app.
 // e.g. POST /api/auth/login → Express sees → POST /auth/login
 // ----------------------------------------------------------------
-app.use('/auth',     require('../routes/auth'));
-app.use('/client',   require('../routes/clients'));
-app.use('/bookings', require('../routes/bookings'));
-app.use('/waybills', require('../routes/waybills'));
-app.use('/invoices', require('../routes/invoices'));
+app.use('/auth',     require('../mok-backend/routes/Auth'));
+app.use('/client',   require('../mok-backend/routes/Clients'));
+app.use('/bookings', require('../mok-backend/routes/bookings'));
+app.use('/waybills', require('../mok-backend/routes/waybills'));
+app.use('/invoices', require('../mok-backend/routes/invoices'));
+
+
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Mok Transports API live' });

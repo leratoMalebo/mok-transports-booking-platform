@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/mok-backend/api/index.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/",
@@ -15,5 +15,4 @@
     }
   ]
 }
-
 
