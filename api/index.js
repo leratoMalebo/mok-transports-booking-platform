@@ -36,11 +36,12 @@ app.options('*', (req, res) => {
 app.use(express.json());
 
 // IMPORTANT: You must use app.use() to connect the routes
-app.use('/api/auth',     require('../routes/Auth'));
-app.use('/api/client',   require('../routes/Clients'));
-app.use('/api/bookings', require('../routes/bookings'));
-app.use('/api/waybills', require('../routes/waybills'));
-app.use('/api/invoices', require('../routes/invoices'));
+// GO INTO THE mok-backend FOLDER TO FIND YOUR ROUTES
+app.use('/api/auth',     require('../mok-backend/routes/Auth'));     
+app.use('/api/client',   require('../mok-backend/routes/Clients'));  
+app.use('/api/bookings', require('../mok-backend/routes/bookings')); 
+app.use('/api/waybills', require('../mok-backend/routes/waybills')); 
+app.use('/api/invoices', require('../mok-backend/routes/invoices'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Mok Transports API live' });
