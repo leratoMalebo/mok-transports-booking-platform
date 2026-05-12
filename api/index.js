@@ -48,11 +48,11 @@ app.use(express.json());
 // already strips it before the request reaches this Express app.
 // e.g. POST /api/auth/login → Express sees → POST /auth/login
 // ----------------------------------------------------------------
-app.use('/auth',     require('../mok-backend/routes/Auth'));
-app.use('/client',   require('../mok-backend/routes/Clients'));
-app.use('/bookings', require('../mok-backend/routes/bookings'));
-app.use('/waybills', require('../mok-backend/routes/waybills'));
-app.use('/invoices', require('../mok-backend/routes/invoices'));
+require('../routes/Auth')
+require('../routes/Clients')
+require('../routes/bookings')
+require('../routes/waybills')
+require('../routes/invoices')
 
 
 
@@ -61,4 +61,8 @@ app.get('/health', (req, res) => {
 });
 
 module.exports = app;
+
+
+
+
 
