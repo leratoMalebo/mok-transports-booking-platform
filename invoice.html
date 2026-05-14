@@ -1110,7 +1110,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       // Auth guard
       const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
-      if (!session || session.role !== 'office') { window.location.href = 'login.html'; return; }
+      if (!session || !['staff','admin'].includes(session.role)) { window.location.href = 'login.html'; return; }
 
       // Set invoice number & dates
       document.getElementById('invoiceNumber').value = generateInvoiceNumber();
@@ -1196,7 +1196,7 @@
           return;
         }
 
-        const res = await fetch('https://bookings.moktransports.com/api', {
+        const res = await fetch('https://bookings.moktransports.com/api/invoices', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -1242,7 +1242,7 @@
     // ===================================================================
     function prepForPDF() {
       document.getElementById('actionBar').style.display = 'none';
-      document.getElementById('addRowBtn').style.display = 'none';
+      const addRowBtn = document.getElementById('addRowBtn'); if (addRowBtn) addRowBtn.style.display = 'none';
       document.querySelectorAll('.btn-del-row').forEach(b => b.style.display = 'none');
 
       // Swap textarea → static div for clean rendering
@@ -1262,7 +1262,7 @@
 
     function restoreFromPDF() {
       document.getElementById('actionBar').style.display = 'flex';
-      document.getElementById('addRowBtn').style.display = 'flex';
+      if (addRowBtn) addRowBtn.style.display = 'flex';
       document.querySelectorAll('.btn-del-row').forEach(b => b.style.display = 'flex');
 
       const ta = document.getElementById('billTo');
@@ -1334,6 +1334,5 @@
 </body>
 
 </html>
-
 
 
