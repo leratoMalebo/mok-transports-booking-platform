@@ -892,7 +892,16 @@
             <td>
               <div class="actions">
                 <a class="btn-mini btn-view" href="localWaybill.html?waybill=${encodeURIComponent(w.waybill_no)}&mode=view">View</a>
-                <a class="btn-mini btn-invoice" href="invoice.html">Invoice</a>
+                <button class="btn-mini btn-invoice" onclick="openInvoice(this)"
+                  data-waybill="${w.waybill_no || ''}"
+                  data-service="${w.service || ''}"
+                  data-price="${w.price || 0}"
+                  data-from="${(w.consignor_name || '').replace(/"/g, '&quot;')}"
+                  data-fromaddr="${(w.consignor_address || '').replace(/"/g, '&quot;')}"
+                  data-to="${(w.consignee_name || '').replace(/"/g, '&quot;')}"
+                  data-toaddr="${(w.consignee_address || '').replace(/"/g, '&quot;')}"
+                  data-toemail="${(w.consignee_contact || '').replace(/"/g, '&quot;')}"
+                  data-date="${w.created_at || ''}">Invoice</button>
               </div>
             </td>
           </tr>
@@ -925,6 +934,22 @@
       localStorage.removeItem("mokSession");
       localStorage.removeItem("mokLoginRole");
       window.location.href = "login.html";
+    }
+
+    function openInvoice(btn) {
+      const payload = {
+        waybillNo:   btn.dataset.waybill,
+        service:     btn.dataset.service,
+        price:       parseFloat(btn.dataset.price) || 0,
+        fromTown:    btn.dataset.from,
+        fromAddress: btn.dataset.fromaddr,
+        toCompany:   btn.dataset.to,
+        toAddress:   btn.dataset.toaddr,
+        toEmail:     btn.dataset.toemail,
+        date:        btn.dataset.date
+      };
+      localStorage.setItem('invoiceFromBooking', JSON.stringify(payload));
+      window.location.href = 'invoice.html';
     }
 
     loadDashboard();
