@@ -937,13 +937,24 @@
     }
 
     function openInvoice(btn) {
+      // Map short service codes to full invoice service names
+      const serviceMap = {
+        SAMEDAY:  'SameDay Express Air',
+        ONX:      'Overnight Express (ONX)',
+        NDD:      'NextDay Express',
+        ECO:      'Economy Service (ECO)',
+        ECOSPEC:  'Economy Service Special',
+        INTL:     'International'
+      };
+      const rawService = (btn.dataset.service || '').toUpperCase();
+      const service = serviceMap[rawService] || btn.dataset.service || '';
+
       const payload = {
         waybillNo:   btn.dataset.waybill,
-        service:     btn.dataset.service,
+        service:     service,
         price:       parseFloat(btn.dataset.price) || 0,
         fromTown:    btn.dataset.from,
-        fromAddress: btn.dataset.fromaddr,
-        toCompany:   btn.dataset.to,
+        toTown:      btn.dataset.to,
         toAddress:   btn.dataset.toaddr,
         toEmail:     btn.dataset.toemail,
         date:        btn.dataset.date
