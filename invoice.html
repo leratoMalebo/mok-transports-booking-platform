@@ -119,13 +119,13 @@
     }
 
     .btn-orange {
-      background: var(--accent);
+      background: #f57c00;
       color: #fff;
     }
 
     .btn-red {
       background: var(--red);
-      color: #ec0c0c;
+      color: #fff;
     }
 
     .btn-grey {
@@ -1044,7 +1044,7 @@
       <div class="receiver-arrow">↓</div>
       <div class="receiver-to"><input class="cell-input" value="${prefill.toTown || ''}" placeholder="Delivery" style="text-align:left;color:var(--muted)"></div>
     </td>
-    <td><input class="cell-input" type="date" id="dt-${id}" value="${prefill.date || ''}" style="font-size:11px"></td>
+    <td><input class="cell-input" type="text" id="dt-${id}" value="${prefill.date ? new Date(prefill.date).toLocaleDateString('en-ZA') : ''}" placeholder="DD/MM/YYYY" style="font-size:11px"></td>
     <td><input class="cell-input" id="basic-${id}" type="number" step="0.01" min="0" value="${basic}" placeholder="0.00" oninput="recalcRow(${id})" style="font-weight:600;color:var(--blue)"></td>
     <td class="cell-computed" id="freight-${id}">${fmt(FREIGHT)}</td>
     <td class="cell-computed" id="fuel-${id}">${basic ? fmt(basic * FUEL_PCT) : '0.00'}</td>
@@ -1242,7 +1242,7 @@
     // ===================================================================
     function prepForPDF() {
       document.getElementById('actionBar').style.display = 'none';
-      const addRowBtn = document.getElementById('addRowBtn'); if (addRowBtn) addRowBtn.style.display = 'none';
+      document.getElementById('addRowBtn').style.display = 'none';
       document.querySelectorAll('.btn-del-row').forEach(b => b.style.display = 'none');
 
       // Swap textarea → static div for clean rendering
@@ -1262,7 +1262,7 @@
 
     function restoreFromPDF() {
       document.getElementById('actionBar').style.display = 'flex';
-      if (addRowBtn) addRowBtn.style.display = 'flex';
+      document.getElementById('addRowBtn').style.display = 'flex';
       document.querySelectorAll('.btn-del-row').forEach(b => b.style.display = 'flex');
 
       const ta = document.getElementById('billTo');
@@ -1334,5 +1334,3 @@
 </body>
 
 </html>
-
-
