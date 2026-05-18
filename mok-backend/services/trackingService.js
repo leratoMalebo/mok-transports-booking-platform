@@ -40,11 +40,13 @@ async function trackShipment(trackingNo) {
 
         const crypto = require("crypto");
 
+        // =====================================================
+        // GET SALT
+        // =====================================================
+
         const saltResponse = await axios.post(
-            "http://tracking.pperfect.com/pptrackservice/v10/Json/",
+            "http://tracking.pperfect.com/pptrackservice/v10/Json/Auth/getSalt",
             {
-                class: "Auth",
-                method: "getSalt",
                 username: process.env.JKJ_EMAIL,
                 PPcust: process.env.JKJ_ACCOUNT_NO
             }
@@ -52,28 +54,28 @@ async function trackShipment(trackingNo) {
 
         console.log("TRACKING SALT RESPONSE:", saltResponse.data);
 
-        const salt =
-            saltResponse.data.results[0].salt;
+        if (saltResponse.data.errorcode !== 0 || !saltResponse.data.results?.[0]?.salt) {
+            throw new Error(saltResponse.data.errormessage || "Could not get tracking salt");
+        }
+
+        const salt = saltResponse.data.results[0].salt;
 
         // =====================================================
         // ENCRYPT PASSWORD
         // =====================================================
 
-        const encryptedPassword =
-            crypto
-                .createHash("md5")
-                .update(process.env.JKJ_PASSWORD + salt)
-                .digest("hex");
+        const encryptedPassword = crypto
+            .createHash("md5")
+            .update(process.env.JKJ_PASSWORD + salt)
+            .digest("hex");
 
         // =====================================================
         // GET TOKEN
         // =====================================================
 
         const tokenResponse = await axios.post(
-            "http://tracking.pperfect.com/pptrackservice/v10/Json/",
+            "http://tracking.pperfect.com/pptrackservice/v10/Json/Auth/getToken",
             {
-                class: "Auth",
-                method: "getToken",
                 username: process.env.JKJ_EMAIL,
                 password: encryptedPassword,
                 PPcust: process.env.JKJ_ACCOUNT_NO
@@ -82,8 +84,11 @@ async function trackShipment(trackingNo) {
 
         console.log("TRACKING TOKEN RESPONSE:", tokenResponse.data);
 
-        const token =
-            tokenResponse.data.results[0].token_id;
+        if (tokenResponse.data.errorcode !== 0 || !tokenResponse.data.results?.[0]?.token_id) {
+            throw new Error(tokenResponse.data.errormessage || "Could not get tracking token");
+        }
+
+        const token = tokenResponse.data.results[0].token_id;
 
         // =====================================================
         // GET TRACKING EVENTS
@@ -92,8 +97,6 @@ async function trackShipment(trackingNo) {
         const trackingResponse = await axios.post(
             process.env.JKJ_TRACKING_URL,
             {
-                class: "Waybill",
-                method: "getEvents",
                 token,
                 waybillno: trackingNo
             }
