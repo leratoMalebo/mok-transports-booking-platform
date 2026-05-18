@@ -41,8 +41,10 @@ async function trackShipment(trackingNo) {
         const crypto = require("crypto");
 
         const saltResponse = await axios.post(
-            "http://tracking.pperfect.com/pptrackservice/v10/Json/Auth/getSalt",
+            "http://tracking.pperfect.com/pptrackservice/v10/Json/",
             {
+                class: "Auth",
+                method: "getSalt",
                 username: process.env.JKJ_EMAIL,
                 PPcust: process.env.JKJ_ACCOUNT_NO
             }
@@ -68,8 +70,10 @@ async function trackShipment(trackingNo) {
         // =====================================================
 
         const tokenResponse = await axios.post(
-            "http://tracking.pperfect.com/pptrackservice/v10/Json/Auth/getToken",
+            "http://tracking.pperfect.com/pptrackservice/v10/Json/",
             {
+                class: "Auth",
+                method: "getToken",
                 username: process.env.JKJ_EMAIL,
                 password: encryptedPassword,
                 PPcust: process.env.JKJ_ACCOUNT_NO
@@ -84,10 +88,11 @@ async function trackShipment(trackingNo) {
         // =====================================================
         // GET TRACKING EVENTS
         // =====================================================
-
         const trackingResponse = await axios.post(
             process.env.JKJ_TRACKING_URL,
             {
+                class: "Waybill",
+                method: "getEvents",
                 token,
                 waybillno: shipment.jkj_reference
             }
