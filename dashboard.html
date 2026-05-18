@@ -555,6 +555,71 @@
         align-items: flex-start;
       }
     }
+
+    /* ── INVOICE MODAL ─────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(13,33,55,.55); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 12px;
+      width: 92%; max-width: 820px; max-height: 90vh;
+      overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .modal-header {
+      background: var(--navy); color: #fff; padding: 18px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-radius: 12px 12px 0 0;
+    }
+    .modal-title { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:800; letter-spacing:.5px }
+    .modal-close { background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1 }
+    .modal-body { padding: 22px 24px }
+    .modal-section-label {
+      font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:800;
+      color:var(--muted); text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px;
+    }
+    .client-select {
+      width:100%; height:44px; border:1px solid var(--border); border-radius:6px;
+      padding:0 14px; font-family:'Barlow',sans-serif; font-size:14px; margin-bottom:20px;
+      outline:none;
+    }
+    .client-select:focus { border-color:var(--blue) }
+    .waybill-list { border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:20px }
+    .waybill-list-header {
+      background:#f5f8ff; padding:10px 14px; font-family:'Barlow Condensed',sans-serif;
+      font-size:11px; font-weight:800; color:var(--navy); text-transform:uppercase;
+      letter-spacing:.8px; display:grid;
+      grid-template-columns:32px 1fr 1fr 1fr 90px; gap:8px; border-bottom:1px solid var(--border);
+    }
+    .waybill-row {
+      display:grid; grid-template-columns:32px 1fr 1fr 1fr 90px;
+      gap:8px; padding:11px 14px; border-bottom:1px solid var(--border);
+      align-items:center; font-size:13px; cursor:pointer;
+    }
+    .waybill-row:last-child { border-bottom:none }
+    .waybill-row:hover { background:#f9fbff }
+    .waybill-row.selected { background:#e3f2fd }
+    .waybill-no-label { font-family:'Barlow Condensed',sans-serif; font-weight:800; color:var(--navy); font-size:14px }
+    .modal-footer {
+      padding:16px 24px; border-top:1px solid var(--border);
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      background:#fafbfc; border-radius:0 0 12px 12px;
+    }
+    .modal-selected-count { font-size:13px; color:var(--muted) }
+    .modal-selected-count strong { color:var(--navy) }
+    .empty-modal { padding:32px; text-align:center; color:var(--muted); font-size:13px }
+    .loading-modal { padding:24px; text-align:center; color:var(--blue); font-size:13px }
+    .btn-modal-cancel { height:38px; padding:0 18px; background:#eceff1; border:none; border-radius:5px;
+      cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:1px }
+    .btn-modal-confirm { height:38px; padding:0 22px; background:var(--green); color:#fff; border:none;
+      border-radius:5px; cursor:pointer; font-family:'Barlow Condensed',sans-serif;
+      font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase }
+    .btn-modal-confirm:disabled { background:#b0bec5; cursor:not-allowed }
+    .select-all-row { padding:8px 14px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted);
+      background:#fafbfc; cursor:pointer }
   </style>
 </head>
 
@@ -735,16 +800,16 @@
             <div class="arrow">›</div>
           </a>
 
-          <a class="action-tile" href="invoice.html">
+          <div class="action-tile" onclick="openInvoiceModal()" style="cursor:pointer">
             <div class="action-icon purple">
               <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6a1b9a" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M9 13h6M9 17h6M9 9h2"/></svg>
             </div>
             <div>
               <div class="action-label">Create Invoice</div>
-              <div class="action-desc">Generate a new invoice for accounts</div>
+              <div class="action-desc">Group waybills and invoice a client</div>
             </div>
             <div class="arrow">›</div>
-          </a>
+          </div>
 
           <a class="action-tile" href="track.html">
             <div class="action-icon teal">
@@ -936,36 +1001,222 @@
       window.location.href = "login.html";
     }
 
-    function openInvoice(btn) {
-      // Map short service codes to full invoice service names
-      const serviceMap = {
-        SAMEDAY:  'SameDay Express Air',
-        ONX:      'Overnight Express (ONX)',
-        NDD:      'NextDay Express',
-        ECO:      'Economy Service (ECO)',
-        ECOSPEC:  'Economy Service Special',
-        INTL:     'International'
-      };
-      const rawService = (btn.dataset.service || '').toUpperCase();
-      const service = serviceMap[rawService] || btn.dataset.service || '';
+    // ── GROUPED INVOICE MODAL LOGIC ───────────────
+    let modalWaybills = []; // all waybills for selected client
+    let selectedWaybillIds = new Set();
+    let selectedClientData = null;
 
-      const payload = {
-        waybillNo:   btn.dataset.waybill,
-        service:     service,
-        price:       parseFloat(btn.dataset.price) || 0,
-        fromTown:    btn.dataset.from,
-        toTown:      btn.dataset.to,
-        toAddress:   btn.dataset.toaddr,
-        toEmail:     btn.dataset.toemail,
-        date:        btn.dataset.date
+    async function openInvoiceModal() {
+      document.getElementById('invoiceModal').classList.add('open');
+      document.getElementById('modalClientSelect').innerHTML = '<option value="">Loading clients…</option>';
+      document.getElementById('modalWaybillList').innerHTML = '<div class="loading-modal">Loading clients…</div>';
+      document.getElementById('modalConfirmBtn').disabled = true;
+      document.getElementById('modalCount').textContent = 'No waybills selected';
+      selectedWaybillIds = new Set();
+      selectedClientData = null;
+
+      try {
+        const res  = await fetch(`${API_BASE}/clients-with-waybills`);
+        const data = await res.json();
+
+        if (!data.length) {
+          document.getElementById('modalClientSelect').innerHTML =
+            '<option value="">No clients with uninvoiced waybills</option>';
+          document.getElementById('modalWaybillList').innerHTML =
+            '<div class="empty-modal">All waybills have been invoiced.</div>';
+          return;
+        }
+
+        document.getElementById('modalClientSelect').innerHTML =
+          '<option value="">— Select a client —</option>' +
+          data.map(c => `<option value="${c.user_id}"
+            data-name="${c.client_name}"
+            data-company="${c.client_company || ''}"
+            data-email="${c.client_email || ''}"
+            data-count="${c.uninvoiced_count}">
+            ${c.client_name}${c.client_company ? ' — ' + c.client_company : ''}
+            (${c.uninvoiced_count} uninvoiced)
+          </option>`).join('');
+      } catch(e) {
+        document.getElementById('modalClientSelect').innerHTML =
+          '<option value="">Failed to load clients</option>';
+      }
+    }
+
+    function closeInvoiceModal() {
+      document.getElementById('invoiceModal').classList.remove('open');
+    }
+
+    async function loadClientWaybills() {
+      const sel    = document.getElementById('modalClientSelect');
+      const option = sel.options[sel.selectedIndex];
+      const userId = sel.value;
+      selectedWaybillIds = new Set();
+      updateModalCount();
+
+      if (!userId) {
+        document.getElementById('modalWaybillList').innerHTML =
+          '<div class="empty-modal">Select a client to see their uninvoiced waybills.</div>';
+        document.getElementById('modalConfirmBtn').disabled = true;
+        return;
+      }
+
+      selectedClientData = {
+        id:      userId,
+        name:    option.dataset.name,
+        company: option.dataset.company,
+        email:   option.dataset.email
       };
-      localStorage.setItem('invoiceFromBooking', JSON.stringify(payload));
+
+      document.getElementById('modalWaybillList').innerHTML =
+        '<div class="loading-modal">Loading waybills…</div>';
+
+      try {
+        const res  = await fetch(`${API_BASE}/uninvoiced/${userId}`);
+        modalWaybills = await res.json();
+
+        if (!modalWaybills.length) {
+          document.getElementById('modalWaybillList').innerHTML =
+            '<div class="empty-modal">No uninvoiced waybills for this client.</div>';
+          return;
+        }
+
+        renderModalWaybills();
+      } catch(e) {
+        document.getElementById('modalWaybillList').innerHTML =
+          '<div class="empty-modal">Failed to load waybills.</div>';
+      }
+    }
+
+    function renderModalWaybills() {
+      const container = document.getElementById('modalWaybillList');
+      container.innerHTML = `
+        <div class="waybill-list-header">
+          <span></span>
+          <span>Waybill No.</span>
+          <span>Service / Route</span>
+          <span>Date</span>
+          <span style="text-align:right">Amount</span>
+        </div>
+        <div class="select-all-row" onclick="toggleSelectAll()">
+          <input type="checkbox" id="selectAllChk"> <span>Select / Deselect All</span>
+        </div>
+        ${modalWaybills.map(w => `
+          <div class="waybill-row ${selectedWaybillIds.has(w.id) ? 'selected' : ''}"
+               onclick="toggleWaybill(${w.id}, this)">
+            <input type="checkbox" ${selectedWaybillIds.has(w.id) ? 'checked' : ''}
+              onclick="event.stopPropagation(); toggleWaybill(${w.id}, this.closest('.waybill-row'))">
+            <span class="waybill-no-label">${w.waybill_no}</span>
+            <span>${w.service || '—'}<br><small style="color:#607d8b">${w.consignee_name || '—'}</small></span>
+            <span>${w.created_at ? new Date(w.created_at).toLocaleDateString('en-ZA') : '—'}</span>
+            <span style="text-align:right;font-weight:700">R ${Number(w.price||0).toFixed(2)}</span>
+          </div>`).join('')}`;
+    }
+
+    function toggleWaybill(id, row) {
+      const chk = row.querySelector('input[type=checkbox]');
+      if (selectedWaybillIds.has(id)) {
+        selectedWaybillIds.delete(id);
+        row.classList.remove('selected');
+        if (chk) chk.checked = false;
+      } else {
+        selectedWaybillIds.add(id);
+        row.classList.add('selected');
+        if (chk) chk.checked = true;
+      }
+      updateModalCount();
+    }
+
+    function toggleSelectAll() {
+      const allSelected = selectedWaybillIds.size === modalWaybills.length;
+      if (allSelected) {
+        selectedWaybillIds = new Set();
+      } else {
+        selectedWaybillIds = new Set(modalWaybills.map(w => w.id));
+      }
+      document.getElementById('selectAllChk').checked = !allSelected;
+      renderModalWaybills();
+      updateModalCount();
+    }
+
+    function updateModalCount() {
+      const n   = selectedWaybillIds.size;
+      const btn = document.getElementById('modalConfirmBtn');
+      const total = [...selectedWaybillIds].reduce((s, id) => {
+        const w = modalWaybills.find(x => x.id === id);
+        return s + Number(w?.price || 0);
+      }, 0);
+
+      document.getElementById('modalCount').innerHTML = n === 0
+        ? 'No waybills selected'
+        : `<strong>${n}</strong> waybill(s) selected &nbsp;|&nbsp; Subtotal: <strong>R ${total.toFixed(2)}</strong>`;
+      btn.disabled = n === 0;
+    }
+
+    function proceedToInvoice() {
+      if (!selectedWaybillIds.size || !selectedClientData) return;
+      const selected = modalWaybills.filter(w => selectedWaybillIds.has(w.id));
+      localStorage.setItem('groupedInvoiceData', JSON.stringify({
+        client:   selectedClientData,
+        waybills: selected
+      }));
+      closeInvoiceModal();
+      window.location.href = 'invoice.html?mode=grouped';
+    }
+
+    // Legacy single-waybill invoice (keep for waybill table row button)
+    function openInvoice(btn) {
+      const serviceMap = {
+        SAMEDAY:'SameDay Express Air', ONX:'Overnight Express (ONX)',
+        NDD:'NextDay Express', ECO:'Economy Service (ECO)',
+        ECOSPEC:'Economy Service Special', INTL:'International'
+      };
+      const service = serviceMap[(btn.dataset.service||'').toUpperCase()] || btn.dataset.service || '';
+      localStorage.setItem('invoiceFromBooking', JSON.stringify({
+        waybillNo: btn.dataset.waybill, service,
+        price:     parseFloat(btn.dataset.price)||0,
+        fromTown:  btn.dataset.from, toTown: btn.dataset.to,
+        toAddress: btn.dataset.toaddr, toEmail: btn.dataset.toemail,
+        date:      btn.dataset.date
+      }));
       window.location.href = 'invoice.html';
     }
 
     loadDashboard();
   </script>
 
+
+  <!-- ── GROUPED INVOICE MODAL ──────────────────── -->
+  <div class="modal-overlay" id="invoiceModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">📄 Create Client Invoice</div>
+        <button class="modal-close" onclick="closeInvoiceModal()">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <div class="modal-section-label">1. Select Client</div>
+        <select class="client-select" id="modalClientSelect" onchange="loadClientWaybills()">
+          <option value="">— Loading clients… —</option>
+        </select>
+
+        <div class="modal-section-label">2. Select Waybills to Invoice</div>
+        <div class="waybill-list" id="modalWaybillList">
+          <div class="empty-modal">Select a client to see their uninvoiced waybills.</div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <div class="modal-selected-count" id="modalCount">No waybills selected</div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-modal-cancel" onclick="closeInvoiceModal()">Cancel</button>
+          <button class="btn-modal-confirm" id="modalConfirmBtn" disabled onclick="proceedToInvoice()">
+            Generate Invoice →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
 

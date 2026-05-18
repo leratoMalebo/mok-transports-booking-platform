@@ -1119,6 +1119,45 @@
       const due = new Date(today); due.setDate(due.getDate() + 30);
       document.getElementById('dueDate').value = due.toISOString().slice(0, 10);
 
+      // ---- FROM GROUPED INVOICE MODAL ----
+      const groupedRaw = localStorage.getItem('groupedInvoiceData');
+      if (groupedRaw) {
+        const g = JSON.parse(groupedRaw);
+        localStorage.removeItem('groupedInvoiceData');
+
+        const client   = g.client   || {};
+        const waybills = g.waybills || [];
+
+        // Store client info for save
+        window._groupedClientId   = client.id   || null;
+        window._groupedClientName = client.name || client.company || null;
+        window._groupedWaybillIds = waybills.map(w => w.id);
+
+        // Bill To
+        document.getElementById('billTo').value = [
+          client.company || client.name,
+          client.email
+        ].filter(Boolean).join('\n');
+
+        // Waybill ref bar — show all waybill numbers
+        const waybillNos = waybills.map(w => w.waybill_no).join(', ');
+        document.getElementById('waybillRefBar').style.display = 'flex';
+        document.getElementById('waybillRefNo').textContent = waybillNos;
+
+        // Add one line per waybill
+        waybills.forEach(w => {
+          addLine({
+            service: w.service || '',
+            waybill: w.waybill_no || '',
+            fromTown: w.consignor_name || '',
+            toTown:   w.consignee_name || '',
+            date:     w.created_at ? w.created_at.split('T')[0] : today.toISOString().split('T')[0],
+            basic:    parseFloat(w.price || 0)
+          });
+        });
+        return;
+      }
+
       // ---- FROM BOOKING (dashboard Invoice button) ----
       const bookingRaw = localStorage.getItem('invoiceFromBooking');
       if (bookingRaw) {
@@ -1181,22 +1220,37 @@
 
     async function saveInvoiceToDatabase() {
       try {
-        const payload = {
-          invoice_no: document.getElementById('invoiceNumber').value,
-          invoice_date: document.getElementById('invoiceDate').value,
-          waybill_no: document.getElementById('waybillRefNo').textContent.trim(),
-          subtotal: parseFloat(document.getElementById('tExcl').textContent || 0),
-          vat_total: parseFloat(document.getElementById('tVatAmt').textContent || 0),
-          total: parseFloat(document.getElementById('tTotal').textContent || 0),
-          status: 'unpaid'
-        };
+        const invoice_no   = document.getElementById('invoiceNumber').value;
+        const invoice_date = document.getElementById('invoiceDate').value;
+        const subtotal     = parseFloat(document.getElementById('tExcl').textContent  || 0);
+        const vat_total    = parseFloat(document.getElementById('tVatAmt').textContent || 0);
+        const total        = parseFloat(document.getElementById('tTotal').textContent  || 0);
 
-        if (!payload.invoice_no || !payload.invoice_date) {
+        if (!invoice_no || !invoice_date) {
           alert('Please make sure invoice number and invoice date are filled in.');
           return;
         }
 
-        const res = await fetch('https://bookings.moktransports.com/api/invoices', {
+        // Grouped invoice (multi-waybill)
+        const isGrouped = window._groupedWaybillIds && window._groupedWaybillIds.length > 0;
+
+        const payload = isGrouped ? {
+          invoice_no, invoice_date, subtotal, vat_total, total,
+          status:      'unpaid',
+          client_id:   window._groupedClientId   || null,
+          client_name: window._groupedClientName || null,
+          waybill_ids: window._groupedWaybillIds
+        } : {
+          invoice_no, invoice_date, subtotal, vat_total, total,
+          status:    'unpaid',
+          waybill_no: document.getElementById('waybillRefNo').textContent.trim()
+        };
+
+        const endpoint = isGrouped
+          ? 'https://bookings.moktransports.com/api/invoices/grouped'
+          : 'https://bookings.moktransports.com/api/invoices';
+
+        const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
