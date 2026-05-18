@@ -88,18 +88,21 @@ async function trackShipment(trackingNo) {
         // =====================================================
         // GET TRACKING EVENTS
         // =====================================================
+
         const trackingResponse = await axios.post(
             process.env.JKJ_TRACKING_URL,
             {
                 class: "Waybill",
                 method: "getEvents",
                 token,
-                waybillno: shipment.jkj_reference
+                waybillno: trackingNo
             }
         );
 
-        console.log("TRACKING EVENTS RESPONSE:", trackingResponse.data);
-
+        console.log(
+            "TRACKING EVENTS RESPONSE:",
+            trackingResponse.data
+        );
         const trackingData = trackingResponse.data;
 
         // =====================================================
