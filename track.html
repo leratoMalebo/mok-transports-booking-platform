@@ -5,140 +5,176 @@ Mok Transports Shipment Tracking
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mok Transports | Track Shipment</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mok Transports | Track Shipment</title>
 
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
-  <style>
-    body{
-      background:#f4f6f9;
-      font-family: Arial, sans-serif;
-    }
+    <style>
+        body {
+            background: #f4f6f9;
+            font-family: Arial, sans-serif;
+        }
 
-    .topbar{
-      background:#001f3f;
-      padding:20px;
-    }
+        .topbar {
+            background: #001f3f;
+            padding: 20px;
+        }
 
-    .logo-title{
-      display:flex;
-      align-items:center;
-      color:white;
-      font-weight:bold;
-      font-size:24px;
-    }
+        .logo-title {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+        }
 
-    .logo-title img{
-      width:70px;
-      margin-right:15px;
-    }
+        .logo-title img {
+            width: 70px;
+            margin-right: 15px;
+        }
 
-    .tracking-card{
-      margin-top:40px;
-      border-radius:12px;
-      padding:30px;
-      background:white;
-    }
+        .tracking-card {
+            margin-top: 40px;
+            border-radius: 12px;
+            padding: 30px;
+            background: white;
+        }
 
-    .status-box{
-      padding:15px;
-      border-radius:10px;
-      color:white;
-      font-weight:bold;
-      text-align:center;
-      margin-top:20px;
-    }
+        .status-box {
+            padding: 18px;
+            border-radius: 14px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 25px;
+            font-size: 20px;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
 
-    .timeline{
-      margin-top:30px;
-    }
+        .timeline-item {
+            position: relative;
+            border-left: 4px solid #0d47a1;
+            padding-left: 25px;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
 
-    .timeline-item{
-      border-left:4px solid #0d47a1;
-      padding-left:20px;
-      margin-bottom:20px;
-    }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            background: #0d47a1;
+            border-radius: 50%;
+        }
 
-    .timeline-item h6{
-      font-weight:bold;
-      color:#0d47a1;
-    }
-  </style>
+        .timeline-item h6 {
+            font-weight: bold;
+            color: #0d47a1;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="topbar">
-  <div class="container">
-    <div class="logo-title">
-      <img src="assets/images/logo.png">
-      Mok Transports Shipment Tracking
-    </div>
-  </div>
-</div>
-
-<div class="container">
-
-  <div class="tracking-card z-depth-2">
-
-    <h4>Track Shipment</h4>
-
-    <div class="row">
-
-      <div class="input-field col s12 m8">
-        <input type="text" id="trackingInput">
-        <label for="trackingInput">
-          Enter Waybill No or JKJ Reference
-        </label>
-      </div>
-
-      <div class="col s12 m4">
-        <button class="btn blue darken-3"
-          style="margin-top:20px; width:100%;"
-          onclick="trackShipment()">
-          TRACK SHIPMENT
-        </button>
-      </div>
-
+    <div class="topbar">
+        <div class="container">
+            <div class="logo-title">
+                <img src="assets/images/mok-logo.png">
+                Mok Transports Shipment Tracking
+            </div>
+        </div>
     </div>
 
-    <div id="trackingResult" style="display:none;">
+    <div class="container">
 
-      <div class="row">
+        <div class="tracking-card z-depth-2">
 
-        <div class="col s12 m6">
-          <h6><strong>Waybill:</strong></h6>
-          <p id="waybillNo"></p>
+            <h4>Track Shipment</h4>
+
+            <div class="row">
+
+                <div class="input-field col s12 m8">
+                    <input type="text" id="trackingInput">
+                    <label for="trackingInput">
+                        Enter Waybill No or JKJ Reference
+                    </label>
+                </div>
+
+                <div class="col s12 m4">
+                    <button class="btn blue darken-3" style="margin-top:20px; width:100%;" onclick="trackShipment()">
+                        TRACK SHIPMENT
+                    </button>
+                </div>
+
+            </div>
+
+            <div id="trackingResult" style="display:none;">
+
+                <div class="row">
+
+                    <div class="col s12 m6">
+                        <h6><strong>Waybill:</strong></h6>
+                        <p id="waybillNo"></p>
+                    </div>
+
+                    <div class="col s12 m6">
+                        <h6><strong>JKJ Reference:</strong></h6>
+                        <p id="jkjRef"></p>
+                    </div>
+
+                </div>
+
+                <div id="statusBox" class="status-box">
+                    <div class="row" style="margin-top:30px;">
+
+                        <div class="col s12 m4">
+                            <div class="card-panel center">
+                                <h6>Current Location</h6>
+                                <h5 id="currentLocation">Johannesburg Hub</h5>
+                            </div>
+                        </div>
+
+                        <div class="col s12 m4">
+                            <div class="card-panel center">
+                                <h6>Last Updated</h6>
+                                <h5 id="lastUpdated">--</h5>
+                            </div>
+                        </div>
+
+                        <div class="col s12 m4">
+                            <div class="card-panel center">
+                                <h6>Service Type</h6>
+                                <h5 id="serviceType">--</h5>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="timeline" id="timeline">
+
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="col s12 m6">
-          <h6><strong>JKJ Reference:</strong></h6>
-          <p id="jkjRef"></p>
-        </div>
-
-      </div>
-
-      <div id="statusBox" class="status-box">
-        IN TRANSIT
-      </div>
-
-      <div class="timeline" id="timeline">
-
-      </div>
-
     </div>
 
-  </div>
-
-</div>
-
-<script src="tracking.js"></script>
+    <script src="tracking.js"></script>
 
 </body>
+
 </html>
 
 

@@ -1,67 +1,146 @@
 // =========================================================
 // tracking.js
-// Frontend Shipment Tracking Logic
+// Mok Transports Shipment Tracking
 // =========================================================
 
-async function trackShipment() {
+const API_BASE = window.location.origin;
 
-  const trackingNo = document.getElementById("trackingInput").value;
+async function trackShipment() {
+  const input = document.getElementById("trackingInput");
+  const trackingNo = input.value.trim();
 
   if (!trackingNo) {
-    alert("Please enter tracking number");
+    alert("Please enter a waybill number or JKJ reference.");
     return;
   }
 
-  try {
+  const resultBox = document.getElementById("trackingResult");
+  const timelineDiv = document.getElementById("timeline");
 
+  resultBox.style.display = "none";
+  timelineDiv.innerHTML = "";
+
+  try {
     const response = await fetch(
-      `/api/tracking/${trackingNo}`
+      `${API_BASE}/api/tracking/${encodeURIComponent(trackingNo)}`
     );
 
     const data = await response.json();
 
     if (!data.success) {
-      alert(data.message);
+      alert(data.message || "Shipment not found.");
       return;
     }
 
-    const shipment = data.shipment;
+    const shipment = data.shipment || {};
 
-    document.getElementById("trackingResult").style.display = "block";
+    resultBox.style.display = "block";
 
     document.getElementById("waybillNo").innerText =
-      shipment.waybill_no;
+      shipment.waybill_no || "—";
 
     document.getElementById("jkjRef").innerText =
-      shipment.jkj_reference || "N/A";
+      shipment.jkj_reference || "Awaiting JKJ Reference";
 
     document.getElementById("statusBox").innerText =
-      shipment.current_status;
+      shipment.current_status || "Shipment Created";
 
-    const timelineDiv = document.getElementById("timeline");
+    const currentLocation = document.getElementById("currentLocation");
+    if (currentLocation) {
+      currentLocation.innerText =
+        shipment.tracking_location || "Mok Transports Hub";
+    }
 
-    timelineDiv.innerHTML = "";
+    const lastUpdated = document.getElementById("lastUpdated");
+    if (lastUpdated) {
+      lastUpdated.innerText =
+        formatDate(shipment.tracking_updated_at || shipment.updated_at || shipment.created_at);
+    }
 
-    shipment.events.forEach(event => {
+    const serviceType = document.getElementById("serviceType");
+    if (serviceType) {
+      serviceType.innerText =
+        shipment.service || "Express";
+    }
 
-      timelineDiv.innerHTML += `
-        <div class="timeline-item">
-          <h6>${event.status}</h6>
-          <p>${event.location}</p>
-          <small>${event.date}</small>
-        </div>
-      `;
+    const events = Array.isArray(shipment.events) && shipment.events.length
+      ? shipment.events
+      : buildFallbackEvents(shipment);
 
-    });
+    timelineDiv.innerHTML = events.map(event => `
+      <div class="timeline-item">
+        <h6>${event.status || "Shipment Updated"}</h6>
+        <p>${event.location || "Mok Transports Hub"}</p>
+        <small>${formatDate(event.date || event.created_at || event.updated_at)}</small>
+      </div>
+    `).join("");
 
   } catch (error) {
+    console.error("Tracking error:", error);
+    alert("Tracking failed. Please try again.");
+  }
+}
 
-    console.error(error);
+function buildFallbackEvents(shipment) {
+  const status = shipment.current_status || shipment.status || "Shipment Created";
+  const location = shipment.tracking_location || "Mok Transports Hub";
+  const date = shipment.tracking_updated_at || shipment.updated_at || shipment.created_at || new Date();
 
-    alert("Tracking failed");
+  const events = [
+    {
+      status: "Shipment Created",
+      location: "Mok Transports Booking System",
+      date: shipment.created_at || date
+    }
+  ];
 
+  if (shipment.jkj_reference) {
+    events.push({
+      status: "Waybill Sent to JKJ",
+      location: "Mok Transports Operations",
+      date
+    });
   }
 
+  if (status && status !== "Shipment Created" && status !== "created") {
+    events.push({
+      status,
+      location,
+      date
+    });
+  }
+
+  return events;
 }
+
+function formatDate(value) {
+  if (!value) return "Recently";
+
+  const date = new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("en-ZA", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("trackingInput");
+
+  if (input) {
+    input.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        trackShipment();
+      }
+    });
+  }
+});
 
 
