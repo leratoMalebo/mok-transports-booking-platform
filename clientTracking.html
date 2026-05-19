@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mok Transports | Track Shipment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:   #0a1628;
+      --navy2:  #0f2040;
+      --blue:   #1461d6;
+      --sky:    #2e8fff;
+      --teal:   #00c9b8;
+      --gold:   #f5a623;
+      --red:    #e63757;
+      --green:  #00c48c;
+      --card:   #111e35;
+      --card2:  #162240;
+      --border: rgba(255,255,255,.07);
+      --text:   #e8edf5;
+      --muted:  #6b82a8;
+      --glow:   0 0 40px rgba(20,97,214,.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── ANIMATED GRID BACKGROUND ───────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(20,97,214,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20,97,214,.06) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      top: -30%; left: 50%; transform: translateX(-50%);
+      width: 900px; height: 600px;
+      background: radial-gradient(ellipse at center, rgba(20,97,214,.18) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── TOPBAR ──────────────────────────────────────── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,22,40,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 68px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .brand img {
+      height: 38px; background: #fff;
+      padding: 4px 6px; border-radius: 6px;
+    }
+    .brand-text { line-height: 1.1 }
+    .brand-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px; letter-spacing: 1.5px; color: #fff;
+    }
+    .brand-sub {
+      font-size: 10px; color: var(--muted);
+      letter-spacing: 2.5px; text-transform: uppercase;
+    }
+    .nav {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-link {
+      display: inline-flex; align-items: center; gap: 7px;
+      height: 36px; padding: 0 14px; border-radius: 6px;
+      text-decoration: none; font-size: 12px; font-weight: 600;
+      letter-spacing: .5px; text-transform: uppercase;
+      color: var(--muted); transition: all .2s;
+      border: 1px solid transparent;
+    }
+    .nav-link:hover { color: #fff; background: var(--card2); border-color: var(--border) }
+    .nav-link.accent {
+      background: var(--blue); color: #fff;
+      border-color: transparent;
+    }
+    .nav-link.accent:hover { background: #1a6de8 }
+    .nav-link svg { flex-shrink: 0 }
+
+    /* ── HERO ────────────────────────────────────────── */
+    .hero {
+      position: relative; z-index: 1;
+      padding: 80px 32px 60px;
+      max-width: 800px; margin: 0 auto; text-align: center;
+    }
+    .hero-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
+      text-transform: uppercase; color: var(--teal);
+      background: rgba(0,201,184,.1); border: 1px solid rgba(0,201,184,.25);
+      padding: 5px 14px; border-radius: 30px; margin-bottom: 24px;
+    }
+    .hero-label::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--teal); animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1) }
+      50%      { opacity:.4; transform:scale(1.4) }
+    }
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(54px, 9vw, 96px);
+      letter-spacing: 4px; line-height: .9;
+      color: #fff;
+      background: linear-gradient(135deg, #fff 40%, var(--sky));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+    }
+    .hero-sub {
+      font-size: 16px; color: var(--muted);
+      max-width: 480px; margin: 0 auto 44px; line-height: 1.7;
+    }
+
+    /* ── SEARCH BOX ──────────────────────────────────── */
+    .search-wrap {
+      position: relative; max-width: 620px; margin: 0 auto;
+    }
+    .search-inner {
+      display: flex; gap: 0;
+      background: var(--card2);
+      border: 1px solid rgba(46,143,255,.3);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: var(--glow);
+      transition: box-shadow .3s;
+    }
+    .search-inner:focus-within {
+      box-shadow: 0 0 0 3px rgba(46,143,255,.25), var(--glow);
+    }
+    .search-icon {
+      display: flex; align-items: center; padding: 0 18px;
+      color: var(--muted);
+    }
+    #trackingInput {
+      flex: 1; background: transparent; border: none; outline: none;
+      font-family: 'DM Mono', monospace; font-size: 16px;
+      color: #fff; padding: 18px 0;
+      letter-spacing: 1px;
+    }
+    #trackingInput::placeholder { color: rgba(107,130,168,.5) }
+    .search-btn {
+      display: flex; align-items: center; gap: 9px;
+      background: var(--blue); color: #fff; border: none;
+      padding: 0 28px; cursor: pointer;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px; letter-spacing: 2px;
+      transition: background .2s;
+    }
+    .search-btn:hover { background: #1a6de8 }
+    .search-hint {
+      margin-top: 12px; font-size: 12px; color: var(--muted);
+      display: flex; align-items: center; gap: 6px; justify-content: center;
+    }
+
+    /* ── RESULT AREA ─────────────────────────────────── */
+    #trackingResult {
+      display: none; position: relative; z-index: 1;
+      max-width: 900px; margin: 0 auto; padding: 0 32px 80px;
+      animation: fadeUp .5s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px) }
+      to   { opacity:1; transform:translateY(0) }
+    }
+
+    /* STATUS BANNER */
+    .status-banner {
+      border-radius: 14px; padding: 24px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; margin-bottom: 24px;
+      border: 1px solid var(--border);
+      background: var(--card);
+    }
+    .status-left { display: flex; align-items: center; gap: 16px }
+    .status-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .status-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+    }
+    #statusBox {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px; letter-spacing: 2px;
+    }
+    .status-right { text-align: right }
+    .status-waybill {
+      font-family: 'DM Mono', monospace; font-size: 20px;
+      font-weight: 500; color: #fff;
+    }
+    .status-date { font-size: 12px; color: var(--muted); margin-top: 3px }
+
+    /* META GRID */
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .meta-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .meta-card-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+    }
+    .meta-card-value {
+      font-family: 'DM Mono', monospace; font-size: 15px;
+      color: #fff; font-weight: 500;
+    }
+
+    /* TIMELINE */
+    .timeline-wrap {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px 28px;
+    }
+    .timeline-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px; letter-spacing: 2px; color: var(--muted);
+      margin-bottom: 24px; text-transform: uppercase;
+    }
+    #timeline { position: relative }
+    #timeline::before {
+      content: ''; position: absolute;
+      left: 19px; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(to bottom, var(--blue), transparent);
+    }
+    .timeline-item {
+      display: flex; gap: 20px; margin-bottom: 24px;
+      animation: fadeUp .4s ease both;
+    }
+    .timeline-item:last-child { margin-bottom: 0 }
+    .tl-dot {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; position: relative; z-index: 1;
+    }
+    .tl-dot.active { background: var(--blue); box-shadow: 0 0 20px rgba(20,97,214,.5) }
+    .tl-dot.done   { background: var(--card2); border: 1px solid var(--border) }
+    .tl-body { padding-top: 6px }
+    .tl-step {
+      font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 3px;
+    }
+    .tl-desc { font-size: 14px; color: #fff }
+    .tl-time { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: 'DM Mono', monospace }
+
+    /* ERROR / EMPTY */
+    .result-empty {
+      text-align: center; padding: 48px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    }
+    .result-empty-icon { font-size: 40px; margin-bottom: 12px }
+    .result-empty-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--red) }
+    .result-empty-sub { font-size: 14px; color: var(--muted); margin-top: 6px }
+
+    /* LOADING SPINNER */
+    .loader {
+      display: none; text-align: center; padding: 48px;
+    }
+    .loader.active { display: block }
+    .spinner {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      animation: spin .8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg) } }
+    .loader-text { font-size: 13px; color: var(--muted); letter-spacing: 1px }
+
+    /* STATUS COLOR HELPERS */
+    .s-booked    { color: var(--sky)   }
+    .s-transit   { color: var(--gold)  }
+    .s-delivered { color: var(--green) }
+    .s-issue     { color: var(--red)   }
+
+    .icon-booked    { background: rgba(46,143,255,.15)  }
+    .icon-transit   { background: rgba(245,166,35,.15)  }
+    .icon-delivered { background: rgba(0,196,140,.15)   }
+    .icon-issue     { background: rgba(230,55,87,.15)   }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 0 16px }
+      .hero   { padding: 48px 16px 40px }
+      .meta-grid { grid-template-columns: 1fr 1fr }
+      #trackingResult { padding: 0 16px 60px }
+      .nav-link span { display: none }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/images/mok-logo.png" alt="Mok Transports">
+      <div class="brand-text">
+        <div class="brand-name">Mok Transports</div>
+        <div class="brand-sub">Logistics &amp; Freight</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a class="nav-link" href="clientDashboard.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-link" href="clientShipments.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+        <span>Waybills</span>
+      </a>
+      <a class="nav-link accent" href="booking.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>New Booking</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-label">Real-time tracking</div>
+    <h1 class="hero-title">Track<br>Shipment</h1>
+    <p class="hero-sub">Enter your Mok Transports waybill number or JKJ Express reference to get live status updates.</p>
+
+    <div class="search-wrap">
+      <div class="search-inner">
+        <div class="search-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <input
+          type="text"
+          id="trackingInput"
+          placeholder="e.g. MOK000001 or GPCMOK000001"
+          onkeydown="if(event.key==='Enter') trackShipment()"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="search-btn" onclick="trackShipment()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          TRACK
+        </button>
+      </div>
+      <div class="search-hint">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Supports Mok waybill numbers and JKJ Express reference numbers
+      </div>
+    </div>
+  </section>
+
+  <!-- LOADER -->
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text">LOCATING SHIPMENT…</div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="trackingResult">
+
+    <!-- STATUS BANNER -->
+    <div class="status-banner" id="statusBanner">
+      <div class="status-left">
+        <div class="status-icon" id="statusIcon">📦</div>
+        <div>
+          <div class="status-label">Current Status</div>
+          <div id="statusBox">—</div>
+        </div>
+      </div>
+      <div class="status-right">
+        <div class="status-waybill" id="waybillNo">—</div>
+        <div class="status-date">JKJ Ref: <span id="jkjRef">—</span></div>
+      </div>
+    </div>
+
+    <!-- META CARDS -->
+    <div class="meta-grid">
+      <div class="meta-card">
+        <div class="meta-card-label">Service Type</div>
+        <div class="meta-card-value" id="serviceType">—</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-card-label">Current Location</div>
+        <div class="meta-card-value" id="currentLocation">—</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-card-label">Last Updated</div>
+        <div class="meta-card-value" id="lastUpdated">—</div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline-wrap">
+      <div class="timeline-title">Shipment Journey</div>
+      <div id="timeline"></div>
+    </div>
+
+  </div>
+
+  <script src="./assets/js/tracking.js"></script>
+
+  <script>
+    // UI helpers for the redesigned page
+    // These wrap the original tracking.js output into the new UI elements
+
+    const statusConfig = {
+      booked:      { emoji:'📦', cls:'s-booked',    iconCls:'icon-booked',    label:'BOOKED' },
+      sent_to_jkj: { emoji:'🚚', cls:'s-transit',   iconCls:'icon-transit',   label:'DISPATCHED TO JKJ' },
+      in_transit:  { emoji:'✈️', cls:'s-transit',   iconCls:'icon-transit',   label:'IN TRANSIT' },
+      delivered:   { emoji:'✅', cls:'s-delivered',  iconCls:'icon-delivered', label:'DELIVERED' },
+      default:     { emoji:'📍', cls:'s-booked',    iconCls:'icon-booked',    label:'IN PROGRESS' }
+    };
+
+    // Override renderTrackingResult if tracking.js defines it
+    window.renderStatus = function(status, waybill, jkjRef, service, location, updated) {
+      const cfg = statusConfig[status?.toLowerCase()] || statusConfig.default;
+      document.getElementById('statusBox').textContent   = cfg.label;
+      document.getElementById('statusBox').className     = cfg.cls;
+      document.getElementById('statusIcon').textContent  = cfg.emoji;
+      document.getElementById('statusIcon').className    = 'status-icon ' + cfg.iconCls;
+      document.getElementById('waybillNo').textContent   = waybill  || '—';
+      document.getElementById('jkjRef').textContent      = jkjRef   || '—';
+      document.getElementById('serviceType').textContent = service  || '—';
+      document.getElementById('currentLocation').textContent = location || 'Johannesburg Hub';
+      document.getElementById('lastUpdated').textContent = updated  || new Date().toLocaleDateString('en-ZA');
+      document.getElementById('loader').classList.remove('active');
+      document.getElementById('trackingResult').style.display = 'block';
+    };
+
+    window.showLoader = function() {
+      document.getElementById('loader').classList.add('active');
+      document.getElementById('trackingResult').style.display = 'none';
+    };
+
+    window.showTrackingError = function(msg) {
+      document.getElementById('loader').classList.remove('active');
+      document.getElementById('trackingResult').style.display = 'block';
+      document.getElementById('trackingResult').innerHTML = `
+        <div class="result-empty">
+          <div class="result-empty-icon">🔍</div>
+          <div class="result-empty-title">Shipment Not Found</div>
+          <div class="result-empty-sub">${msg || 'No shipment found for that reference number. Please check and try again.'}</div>
+        </div>`;
+    };
+  </script>
+
+</body>
+</html>
+
+
+
+
