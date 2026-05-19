@@ -1,0 +1,464 @@
+<!-- =========================================================
+statements.html
+Mok Transports Client Statements
+========================================================= -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Mok Transports | Client Statements</title>
+
+  <!-- Materialize -->
+  <link rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+  rel="stylesheet">
+
+  <style>
+
+    body{
+      background:#f4f7fb;
+      font-family:Arial,sans-serif;
+    }
+
+    .topbar{
+      background:#001f4d;
+      padding:20px 40px;
+      color:white;
+    }
+
+    .topbar h4{
+      margin:0;
+      font-weight:700;
+    }
+
+    .page-wrapper{
+      padding:30px;
+    }
+
+    .filter-card{
+      background:white;
+      padding:25px;
+      border-radius:16px;
+      margin-bottom:30px;
+      box-shadow:0 5px 18px rgba(0,0,0,0.08);
+    }
+
+    .summary-card{
+      border-radius:18px;
+      padding:25px;
+      color:white;
+      box-shadow:0 6px 20px rgba(0,0,0,0.12);
+    }
+
+    .summary-card h6{
+      margin:0;
+      font-size:16px;
+      opacity:0.9;
+    }
+
+    .summary-card h3{
+      margin-top:10px;
+      font-weight:700;
+    }
+
+    .blue-card{
+      background:linear-gradient(135deg,#1565c0,#0d47a1);
+    }
+
+    .green-card{
+      background:linear-gradient(135deg,#2e7d32,#1b5e20);
+    }
+
+    .red-card{
+      background:linear-gradient(135deg,#e53935,#b71c1c);
+    }
+
+    .statement-table{
+      background:white;
+      border-radius:18px;
+      padding:20px;
+      box-shadow:0 6px 20px rgba(0,0,0,0.08);
+      overflow-x:auto;
+    }
+
+    table thead{
+      background:#001f4d;
+      color:white;
+    }
+
+    table tbody tr:hover{
+      background:#f5f9ff;
+    }
+
+    .status-badge{
+      padding:6px 12px;
+      border-radius:20px;
+      color:white;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .paid{
+      background:#2e7d32;
+    }
+
+    .unpaid{
+      background:#d32f2f;
+    }
+
+    .toolbar{
+      margin-top:20px;
+      display:flex;
+      gap:15px;
+      flex-wrap:wrap;
+    }
+
+    .client-header{
+      margin-top:20px;
+      margin-bottom:25px;
+    }
+
+    .client-header h5{
+      font-weight:700;
+      color:#001f4d;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <!-- ===================================================== -->
+  <!-- TOPBAR -->
+  <!-- ===================================================== -->
+
+  <div class="topbar">
+    <h4>Mok Transports Client Statements</h4>
+  </div>
+
+  <div class="page-wrapper">
+
+    <!-- =================================================== -->
+    <!-- FILTERS -->
+    <!-- =================================================== -->
+
+    <div class="filter-card">
+
+      <div class="row">
+
+        <div class="input-field col s12 m4">
+          <input type="number" id="clientIdInput">
+          <label>Enter Client ID</label>
+        </div>
+
+        <div class="input-field col s12 m3">
+          <input type="date" id="dateFrom">
+          <label class="active">From Date</label>
+        </div>
+
+        <div class="input-field col s12 m3">
+          <input type="date" id="dateTo">
+          <label class="active">To Date</label>
+        </div>
+
+        <div class="col s12 m2">
+          <button
+            class="btn blue darken-4"
+            style="margin-top:20px;width:100%;"
+            onclick="loadStatement()">
+
+            GENERATE
+
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- =================================================== -->
+    <!-- CLIENT INFO -->
+    <!-- =================================================== -->
+
+    <div class="client-header" id="clientHeader"
+    style="display:none;">
+
+      <h5 id="clientName">Client Name</h5>
+
+      <p id="statementDate"></p>
+
+    </div>
+
+    <!-- =================================================== -->
+    <!-- SUMMARY CARDS -->
+    <!-- =================================================== -->
+
+    <div class="row">
+
+      <div class="col s12 m4">
+        <div class="summary-card blue-card">
+
+          <h6>Total Invoiced</h6>
+
+          <h3 id="totalInvoiced">R0.00</h3>
+
+        </div>
+      </div>
+
+      <div class="col s12 m4">
+        <div class="summary-card green-card">
+
+          <h6>Total Paid</h6>
+
+          <h3 id="totalPaid">R0.00</h3>
+
+        </div>
+      </div>
+
+      <div class="col s12 m4">
+        <div class="summary-card red-card">
+
+          <h6>Outstanding Balance</h6>
+
+          <h3 id="outstandingBalance">R0.00</h3>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =================================================== -->
+    <!-- TABLE -->
+    <!-- =================================================== -->
+
+    <div class="statement-table">
+
+      <table class="striped responsive-table">
+
+        <thead>
+          <tr>
+            <th>Invoice No</th>
+            <th>Date</th>
+            <th>Subtotal</th>
+            <th>VAT</th>
+            <th>Total</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody id="statementTableBody">
+
+        </tbody>
+
+      </table>
+
+      <!-- =============================================== -->
+      <!-- TOOLBAR -->
+      <!-- =============================================== -->
+
+      <div class="toolbar">
+
+        <button
+          class="btn green"
+          onclick="window.print()">
+
+          <i class="material-icons left">print</i>
+          PRINT
+
+        </button>
+
+        <button
+          class="btn blue darken-3"
+          onclick="downloadPDF()">
+
+          <i class="material-icons left">picture_as_pdf</i>
+          EXPORT PDF
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- SCRIPTS -->
+  <!-- ===================================================== -->
+
+  <script>
+
+    const API_BASE =
+    "https://bookings.moktransports.com";
+
+    async function loadStatement() {
+
+      try {
+
+        const clientId =
+        document.getElementById(
+          "clientIdInput"
+        ).value;
+
+        if (!clientId) {
+          alert("Enter client ID");
+          return;
+        }
+
+        const response = await fetch(
+          `${API_BASE}/api/statements/client/${clientId}`
+        );
+
+        const data = await response.json();
+
+        if (!data.success) {
+          alert(data.message);
+          return;
+        }
+
+        document.getElementById(
+          "clientHeader"
+        ).style.display = "block";
+
+        document.getElementById(
+          "clientName"
+        ).innerText =
+        data.client.name;
+
+        document.getElementById(
+          "statementDate"
+        ).innerText =
+        `Generated ${new Date().toLocaleString()}`;
+
+        // ===============================================
+        // SUMMARY
+        // ===============================================
+
+        document.getElementById(
+          "totalInvoiced"
+        ).innerText =
+        formatCurrency(
+          data.summary.totalInvoiced
+        );
+
+        document.getElementById(
+          "totalPaid"
+        ).innerText =
+        formatCurrency(
+          data.summary.totalPaid
+        );
+
+        document.getElementById(
+          "outstandingBalance"
+        ).innerText =
+        formatCurrency(
+          data.summary.outstandingBalance
+        );
+
+        // ===============================================
+        // TABLE
+        // ===============================================
+
+        const tbody =
+        document.getElementById(
+          "statementTableBody"
+        );
+
+        tbody.innerHTML = "";
+
+        data.invoices.forEach(inv => {
+
+          tbody.innerHTML += `
+            <tr>
+
+              <td>${inv.invoice_no}</td>
+
+              <td>
+                ${formatDate(inv.invoice_date)}
+              </td>
+
+              <td>
+                ${formatCurrency(inv.subtotal)}
+              </td>
+
+              <td>
+                ${formatCurrency(inv.vat_total)}
+              </td>
+
+              <td>
+                ${formatCurrency(inv.total)}
+              </td>
+
+              <td>
+                <span class="
+                  status-badge
+                  ${inv.status === 'paid'
+                    ? 'paid'
+                    : 'unpaid'}
+                ">
+                  ${inv.status}
+                </span>
+              </td>
+
+            </tr>
+          `;
+
+        });
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert("Failed to generate statement");
+
+      }
+
+    }
+
+    // ===================================================
+    // HELPERS
+    // ===================================================
+
+    function formatCurrency(value) {
+
+      return new Intl.NumberFormat(
+        'en-ZA',
+        {
+          style:'currency',
+          currency:'ZAR'
+        }
+      ).format(value || 0);
+
+    }
+
+    function formatDate(date) {
+
+      if (!date) return '-';
+
+      return new Date(date)
+      .toLocaleDateString('en-ZA');
+
+    }
+
+    // ===================================================
+    // PDF EXPORT
+    // ===================================================
+
+    function downloadPDF() {
+
+      window.print();
+
+    }
+
+  </script>
+
+</body>
+</html>
+
