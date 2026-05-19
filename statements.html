@@ -5,377 +5,529 @@ Mok Transports Client Statements
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Mok Transports | Client Statements</title>
+    <title>Mok Transports | Client Statements</title>
 
-  <!-- Materialize -->
-  <link rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Materialize -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-  rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-  <style>
+    <style>
+        body {
+            background: #eef3f9;
+            font-family: Arial, sans-serif;
+        }
 
-    body{
-      background:#f4f7fb;
-      font-family:Arial,sans-serif;
-    }
 
-    .topbar{
-      background:#001f4d;
-      padding:20px 40px;
-      color:white;
-    }
 
-    .topbar h4{
-      margin:0;
-      font-weight:700;
-    }
+        .topbar h4 {
+            margin: 0;
+            font-weight: 700;
+        }
 
-    .page-wrapper{
-      padding:30px;
-    }
+        .page-wrapper {
+            padding: 30px;
+        }
 
-    .filter-card{
-      background:white;
-      padding:25px;
-      border-radius:16px;
-      margin-bottom:30px;
-      box-shadow:0 5px 18px rgba(0,0,0,0.08);
-    }
+        .filter-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+        }
 
-    .summary-card{
-      border-radius:18px;
-      padding:25px;
-      color:white;
-      box-shadow:0 6px 20px rgba(0,0,0,0.12);
-    }
+        .summary-card {
+            border-radius: 18px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
 
-    .summary-card h6{
-      margin:0;
-      font-size:16px;
-      opacity:0.9;
-    }
+        .summary-card h6 {
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
 
-    .summary-card h3{
-      margin-top:10px;
-      font-weight:700;
-    }
+        .summary-card h3 {
+            margin-top: 15px;
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
 
-    .blue-card{
-      background:linear-gradient(135deg,#1565c0,#0d47a1);
-    }
+        .blue-card {
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+        }
 
-    .green-card{
-      background:linear-gradient(135deg,#2e7d32,#1b5e20);
-    }
+        .green-card {
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+        }
 
-    .red-card{
-      background:linear-gradient(135deg,#e53935,#b71c1c);
-    }
+        .red-card {
+            background: linear-gradient(135deg, #e53935, #b71c1c);
+        }
 
-    .statement-table{
-      background:white;
-      border-radius:18px;
-      padding:20px;
-      box-shadow:0 6px 20px rgba(0,0,0,0.08);
-      overflow-x:auto;
-    }
+        .statement-table {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            overflow-x: auto;
+        }
 
-    table thead{
-      background:#001f4d;
-      color:white;
-    }
+        table thead {
+            background: #001f4d;
+            color: white;
+        }
 
-    table tbody tr:hover{
-      background:#f5f9ff;
-    }
+        table tbody tr:hover {
+            background: #f5f9ff;
+        }
 
-    .status-badge{
-      padding:6px 12px;
-      border-radius:20px;
-      color:white;
-      font-size:12px;
-      font-weight:700;
-    }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
 
-    .paid{
-      background:#2e7d32;
-    }
+        .paid {
+            background: #2e7d32;
+        }
 
-    .unpaid{
-      background:#d32f2f;
-    }
+        .unpaid {
+            background: #d32f2f;
+        }
 
-    .toolbar{
-      margin-top:20px;
-      display:flex;
-      gap:15px;
-      flex-wrap:wrap;
-    }
+        .toolbar {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
 
-    .client-header{
-      margin-top:20px;
-      margin-bottom:25px;
-    }
+        .client-header {
+            margin-top: 20px;
+            margin-bottom: 25px;
+        }
 
-    .client-header h5{
-      font-weight:700;
-      color:#001f4d;
-    }
+        .client-header h5 {
+            font-weight: 700;
+            color: #001f4d;
+        }
 
-  </style>
+
+        .topbar {
+            background:
+                linear-gradient(135deg,
+                    #001f4d,
+                    #003b8e);
+
+            padding: 25px 40px;
+
+            color: white;
+
+            box-shadow:
+                0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .topbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .brand-logo {
+            width: 90px;
+            height: auto;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .portal-subtitle {
+            margin-top: 5px;
+            opacity: 0.8;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .statement-meta {
+            text-align: right;
+        }
+
+        .statement-id {
+            margin-top: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .filter-card {
+            border-top:
+                5px solid #f7941d;
+        }
+
+        .statement-table {
+            border-top:
+                5px solid #001f4d;
+        }
+
+        .summary-card {
+            transition: 0.3s;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .btn {
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        table thead {
+            background:
+                linear-gradient(135deg,
+                    #001f4d,
+                    #003b8e);
+        }
+
+        table tbody tr {
+            transition: 0.2s;
+        }
+
+        table tbody tr:hover {
+            transform: scale(1.002);
+        }
+    </style>
 
 </head>
 
 <body>
 
-  <!-- ===================================================== -->
-  <!-- TOPBAR -->
-  <!-- ===================================================== -->
+    <!-- ===================================================== -->
+    <!-- TOPBAR -->
+    <!-- ===================================================== -->
 
-  <div class="topbar">
-    <h4>Mok Transports Client Statements</h4>
-  </div>
+    <div class="topbar">
 
-  <div class="page-wrapper">
+        <div class="topbar-content">
 
-    <!-- =================================================== -->
-    <!-- FILTERS -->
-    <!-- =================================================== -->
+            <div class="brand-section">
 
-    <div class="filter-card">
+                <img src="assets/images/mok-logo.png" class="brand-logo">
 
-      <div class="row">
+                <div>
 
-        <div class="input-field col s12 m4">
-          <input type="number" id="clientIdInput">
-          <label>Enter Client ID</label>
+                    <h4>Mok Transports Statements</h4>
+
+                    <p class="portal-subtitle">
+                        Financial Management Portal
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="statement-meta">
+
+                <div id="currentDate"></div>
+
+                <div class="statement-id">
+                    STATEMENT PORTAL
+                </div>
+
+            </div>
+
         </div>
-
-        <div class="input-field col s12 m3">
-          <input type="date" id="dateFrom">
-          <label class="active">From Date</label>
-        </div>
-
-        <div class="input-field col s12 m3">
-          <input type="date" id="dateTo">
-          <label class="active">To Date</label>
-        </div>
-
-        <div class="col s12 m2">
-          <button
-            class="btn blue darken-4"
-            style="margin-top:20px;width:100%;"
-            onclick="loadStatement()">
-
-            GENERATE
-
-          </button>
-        </div>
-
-      </div>
 
     </div>
 
-    <!-- =================================================== -->
-    <!-- CLIENT INFO -->
-    <!-- =================================================== -->
+    <div class="page-wrapper">
 
-    <div class="client-header" id="clientHeader"
-    style="display:none;">
+        <!-- =================================================== -->
+        <!-- FILTERS -->
+        <!-- =================================================== -->
 
-      <h5 id="clientName">Client Name</h5>
+        <div class="filter-card">
 
-      <p id="statementDate"></p>
+            <div class="row">
+
+                <div class="input-field col s12 m4">
+                    <input type="number" id="clientIdInput">
+                    <label>Enter Client ID</label>
+                </div>
+
+                <div class="input-field col s12 m3">
+                    <input type="date" id="dateFrom">
+                    <label class="active">From Date</label>
+                </div>
+
+                <div class="input-field col s12 m3">
+                    <input type="date" id="dateTo">
+                    <label class="active">To Date</label>
+                </div>
+
+                <div class="col s12 m2">
+                    <button class="btn blue darken-4" style="margin-top:20px;width:100%;" onclick="loadStatement()">
+
+                        GENERATE
+
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- =================================================== -->
+        <!-- CLIENT INFO -->
+        <!-- =================================================== -->
+
+        <div class="client-header" id="clientHeader" style="display:none;">
+
+            <h5 id="clientName">Client Name</h5>
+
+            <p id="statementDate"></p>
+
+        </div>
+
+        <!-- =================================================== -->
+        <!-- SUMMARY CARDS -->
+        <!-- =================================================== -->
+
+        <div class="row">
+
+            <div class="col s12 m4">
+                <div class="summary-card blue-card">
+
+                    <h6>Total Invoiced</h6>
+
+                    <h3 id="totalInvoiced">R0.00</h3>
+
+                </div>
+            </div>
+
+            <div class="col s12 m4">
+                <div class="summary-card green-card">
+
+                    <h6>Total Paid</h6>
+
+                    <h3 id="totalPaid">R0.00</h3>
+
+                </div>
+            </div>
+
+            <div class="col s12 m4">
+                <div class="summary-card red-card">
+
+                    <h6>Outstanding Balance</h6>
+
+                    <h3 id="outstandingBalance">R0.00</h3>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card-panel blue lighten-5">
+
+            <div style="
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:15px;
+  ">
+
+                <div>
+                    <strong>Company:</strong>
+                    Mok Transports Services (Pty) Ltd
+                </div>
+
+                <div>
+                    <strong>Email:</strong>
+                    accounts@moktransports.com
+                </div>
+
+                <div>
+                    <strong>Status:</strong>
+                    Active Financial Account
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- =================================================== -->
+        <!-- TABLE -->
+        <!-- =================================================== -->
+
+        <div class="statement-table">
+
+            <table class="striped responsive-table">
+
+                <thead>
+                    <tr>
+                        <th>Invoice No</th>
+                        <th>Date</th>
+                        <th>Subtotal</th>
+                        <th>VAT</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody id="statementTableBody">
+
+                </tbody>
+
+            </table>
+
+            <!-- =============================================== -->
+            <!-- TOOLBAR -->
+            <!-- =============================================== -->
+
+            <div class="toolbar">
+
+                <button class="btn green" onclick="window.print()">
+
+                    <i class="material-icons left">print</i>
+                    PRINT
+
+                </button>
+
+                <button class="btn blue darken-3" onclick="downloadPDF()">
+
+                    <i class="material-icons left">picture_as_pdf</i>
+                    EXPORT PDF
+
+                </button>
+
+            </div>
+
+        </div>
 
     </div>
 
-    <!-- =================================================== -->
-    <!-- SUMMARY CARDS -->
-    <!-- =================================================== -->
+    <!-- ===================================================== -->
+    <!-- SCRIPTS -->
+    <!-- ===================================================== -->
 
-    <div class="row">
+    <script>
 
-      <div class="col s12 m4">
-        <div class="summary-card blue-card">
+        const API_BASE =
+            "https://bookings.moktransports.com";
 
-          <h6>Total Invoiced</h6>
+        async function loadStatement() {
 
-          <h3 id="totalInvoiced">R0.00</h3>
+            try {
 
-        </div>
-      </div>
+                const clientId =
+                    document.getElementById(
+                        "clientIdInput"
+                    ).value;
 
-      <div class="col s12 m4">
-        <div class="summary-card green-card">
+                if (!clientId) {
+                    alert("Enter client ID");
+                    return;
+                }
 
-          <h6>Total Paid</h6>
+                const response = await fetch(
+                    `${API_BASE}/api/statements/client/${clientId}`
+                );
 
-          <h3 id="totalPaid">R0.00</h3>
+                const data = await response.json();
 
-        </div>
-      </div>
+                if (!data.success) {
+                    alert(data.message);
+                    return;
+                }
 
-      <div class="col s12 m4">
-        <div class="summary-card red-card">
+                document.getElementById(
+                    "clientHeader"
+                ).style.display = "block";
 
-          <h6>Outstanding Balance</h6>
+                document.getElementById(
+                    "clientName"
+                ).innerText =
+                    data.client.name;
 
-          <h3 id="outstandingBalance">R0.00</h3>
+                document.getElementById(
+                    "statementDate"
+                ).innerText =
+                    `Generated ${new Date().toLocaleString()}`;
 
-        </div>
-      </div>
+                // ===============================================
+                // SUMMARY
+                // ===============================================
 
-    </div>
+                document.getElementById(
+                    "totalInvoiced"
+                ).innerText =
+                    formatCurrency(
+                        data.summary.totalInvoiced
+                    );
 
-    <!-- =================================================== -->
-    <!-- TABLE -->
-    <!-- =================================================== -->
+                document.getElementById(
+                    "totalPaid"
+                ).innerText =
+                    formatCurrency(
+                        data.summary.totalPaid
+                    );
 
-    <div class="statement-table">
+                document.getElementById(
+                    "outstandingBalance"
+                ).innerText =
+                    formatCurrency(
+                        data.summary.outstandingBalance
+                    );
 
-      <table class="striped responsive-table">
+                document.getElementById(
+                    "currentDate"
+                ).innerText =
+                    new Date().toLocaleDateString(
+                        "en-ZA",
+                        {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        }
+                    );
 
-        <thead>
-          <tr>
-            <th>Invoice No</th>
-            <th>Date</th>
-            <th>Subtotal</th>
-            <th>VAT</th>
-            <th>Total</th>
-            <th>Status</th>
-          </tr>
-        </thead>
+                // ===============================================
+                // TABLE
+                // ===============================================
 
-        <tbody id="statementTableBody">
+                const tbody =
+                    document.getElementById(
+                        "statementTableBody"
+                    );
 
-        </tbody>
+                tbody.innerHTML = "";
 
-      </table>
+                data.invoices.forEach(inv => {
 
-      <!-- =============================================== -->
-      <!-- TOOLBAR -->
-      <!-- =============================================== -->
-
-      <div class="toolbar">
-
-        <button
-          class="btn green"
-          onclick="window.print()">
-
-          <i class="material-icons left">print</i>
-          PRINT
-
-        </button>
-
-        <button
-          class="btn blue darken-3"
-          onclick="downloadPDF()">
-
-          <i class="material-icons left">picture_as_pdf</i>
-          EXPORT PDF
-
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- ===================================================== -->
-  <!-- SCRIPTS -->
-  <!-- ===================================================== -->
-
-  <script>
-
-    const API_BASE =
-    "https://bookings.moktransports.com";
-
-    async function loadStatement() {
-
-      try {
-
-        const clientId =
-        document.getElementById(
-          "clientIdInput"
-        ).value;
-
-        if (!clientId) {
-          alert("Enter client ID");
-          return;
-        }
-
-        const response = await fetch(
-          `${API_BASE}/api/statements/client/${clientId}`
-        );
-
-        const data = await response.json();
-
-        if (!data.success) {
-          alert(data.message);
-          return;
-        }
-
-        document.getElementById(
-          "clientHeader"
-        ).style.display = "block";
-
-        document.getElementById(
-          "clientName"
-        ).innerText =
-        data.client.name;
-
-        document.getElementById(
-          "statementDate"
-        ).innerText =
-        `Generated ${new Date().toLocaleString()}`;
-
-        // ===============================================
-        // SUMMARY
-        // ===============================================
-
-        document.getElementById(
-          "totalInvoiced"
-        ).innerText =
-        formatCurrency(
-          data.summary.totalInvoiced
-        );
-
-        document.getElementById(
-          "totalPaid"
-        ).innerText =
-        formatCurrency(
-          data.summary.totalPaid
-        );
-
-        document.getElementById(
-          "outstandingBalance"
-        ).innerText =
-        formatCurrency(
-          data.summary.outstandingBalance
-        );
-
-        // ===============================================
-        // TABLE
-        // ===============================================
-
-        const tbody =
-        document.getElementById(
-          "statementTableBody"
-        );
-
-        tbody.innerHTML = "";
-
-        data.invoices.forEach(inv => {
-
-          tbody.innerHTML += `
+                    tbody.innerHTML += `
             <tr>
 
               <td>${inv.invoice_no}</td>
@@ -400,8 +552,8 @@ Mok Transports Client Statements
                 <span class="
                   status-badge
                   ${inv.status === 'paid'
-                    ? 'paid'
-                    : 'unpaid'}
+                            ? 'paid'
+                            : 'unpaid'}
                 ">
                   ${inv.status}
                 </span>
@@ -410,55 +562,74 @@ Mok Transports Client Statements
             </tr>
           `;
 
-        });
+                });
 
-      } catch (error) {
+            } catch (error) {
 
-        console.error(error);
+                console.error(error);
 
-        alert("Failed to generate statement");
+                alert("Failed to generate statement");
 
-      }
+            }
 
-    }
-
-    // ===================================================
-    // HELPERS
-    // ===================================================
-
-    function formatCurrency(value) {
-
-      return new Intl.NumberFormat(
-        'en-ZA',
-        {
-          style:'currency',
-          currency:'ZAR'
         }
-      ).format(value || 0);
 
-    }
 
-    function formatDate(date) {
+        if (data.invoices.length === 0) {
 
-      if (!date) return '-';
+            tbody.innerHTML = `
+    <tr>
+      <td colspan="6"
+      style="
+        text-align:center;
+        padding:40px;
+        color:#777;
+      ">
+        No invoices found for this client
+      </td>
+    </tr>
+  `;
+        }
 
-      return new Date(date)
-      .toLocaleDateString('en-ZA');
+        // ===================================================
+        // HELPERS
+        // ===================================================
 
-    }
+        function formatCurrency(value) {
 
-    // ===================================================
-    // PDF EXPORT
-    // ===================================================
+            return new Intl.NumberFormat(
+                'en-ZA',
+                {
+                    style: 'currency',
+                    currency: 'ZAR'
+                }
+            ).format(value || 0);
 
-    function downloadPDF() {
+        }
 
-      window.print();
+        function formatDate(date) {
 
-    }
+            if (!date) return '-';
 
-  </script>
+            return new Date(date)
+                .toLocaleDateString('en-ZA');
+
+        }
+
+        // ===================================================
+        // PDF EXPORT
+        // ===================================================
+
+        function downloadPDF() {
+
+            window.print();
+
+        }
+
+    </script>
 
 </body>
+
 </html>
+
 
