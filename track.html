@@ -38,13 +38,6 @@ Mok Transports Shipment Tracking
             margin-right: 15px;
         }
 
-        .tracking-card {
-            margin-top: 40px;
-            border-radius: 12px;
-            padding: 30px;
-            background: white;
-        }
-
         .status-box {
             padding: 18px;
             border-radius: 14px;
@@ -81,6 +74,75 @@ Mok Transports Shipment Tracking
             font-weight: bold;
             color: #0d47a1;
         }
+
+        .tracking-card {
+            background: #fff;
+            max-width: 1100px;
+            margin: 50px auto;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .tracking-card h2 {
+            font-size: 42px;
+            color: #001f4d;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .tracking-subtitle {
+            color: #666;
+            margin-bottom: 35px;
+            font-size: 17px;
+        }
+
+        .tracking-form {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tracking-form input {
+            flex: 1;
+            min-width: 300px;
+            height: 60px;
+            border: 2px solid #dcdcdc;
+            border-radius: 12px;
+            padding: 0 20px;
+            font-size: 18px;
+            outline: none;
+            transition: 0.3s ease;
+        }
+
+        .tracking-form input:focus {
+            border-color: #0056d6;
+            box-shadow: 0 0 0 4px rgba(0, 86, 214, 0.1);
+        }
+
+        .tracking-form button {
+            background: #0056d6;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0 35px;
+            height: 60px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .tracking-form button:hover {
+            background: #003f9e;
+            transform: translateY(-2px);
+        }
+
+        .tracking-note {
+            margin-top: 20px;
+            color: #777;
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -95,86 +157,86 @@ Mok Transports Shipment Tracking
         </div>
     </div>
 
-    <div class="container">
+    <div class="tracking-card">
 
-        <div class="tracking-card z-depth-2">
+        <h2>Track Shipment</h2>
 
-            <h4>Track Shipment</h4>
+        <p class="tracking-subtitle">
+            Enter your Mok Transports Waybill Number or JKJ Reference Number
+        </p>
 
-            <div class="row">
+        <div class="tracking-form">
 
-                <div class="input-field col s12 m8">
-                    <input type="text" id="trackingInput">
-                    <label for="trackingInput">
-                        Enter Waybill No or JKJ Reference
-                    </label>
-                </div>
+            <input type="text" id="trackingInput" placeholder="Enter Waybill No. or JKJ Reference" />
 
-                <div class="col s12 m4">
-                    <button class="btn blue darken-3" style="margin-top:20px; width:100%;" onclick="trackShipment()">
-                        TRACK SHIPMENT
-                    </button>
-                </div>
+            <button onclick="trackShipment()">
+                TRACK SHIPMENT
+            </button>
 
-            </div>
-
-            <div id="trackingResult" style="display:none;">
-
-                <div class="row">
-
-                    <div class="col s12 m6">
-                        <h6><strong>Waybill:</strong></h6>
-                        <p id="waybillNo"></p>
-                    </div>
-
-                    <div class="col s12 m6">
-                        <h6><strong>JKJ Reference:</strong></h6>
-                        <p id="jkjRef"></p>
-                    </div>
-
-                </div>
-
-                <div id="statusBox" class="status-box">
-                    <div class="row" style="margin-top:30px;">
-
-                        <div class="col s12 m4">
-                            <div class="card-panel center">
-                                <h6>Current Location</h6>
-                                <h5 id="currentLocation">Johannesburg Hub</h5>
-                            </div>
-                        </div>
-
-                        <div class="col s12 m4">
-                            <div class="card-panel center">
-                                <h6>Last Updated</h6>
-                                <h5 id="lastUpdated">--</h5>
-                            </div>
-                        </div>
-
-                        <div class="col s12 m4">
-                            <div class="card-panel center">
-                                <h6>Service Type</h6>
-                                <h5 id="serviceType">--</h5>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="timeline" id="timeline">
-
-                </div>
-
-            </div>
+            <p class="tracking-note">
+                Track your shipment in real-time using your Mok Transports or JKJ reference number.
+            </p>
 
         </div>
 
     </div>
 
-    <script src="tracking.js"></script>
+    <div id="trackingResult" style="display:none;">
+
+        <div class="row">
+
+            <div class="col s12 m6">
+                <h6><strong>Waybill:</strong></h6>
+                <p id="waybillNo"></p>
+            </div>
+
+            <div class="col s12 m6">
+                <h6><strong>JKJ Reference:</strong></h6>
+                <p id="jkjRef"></p>
+            </div>
+
+        </div>
+
+        <div id="statusBox" class="status-box">
+            <div class="row" style="margin-top:30px;">
+
+                <div class="col s12 m4">
+                    <div class="card-panel center">
+                        <h6>Current Location</h6>
+                        <h5 id="currentLocation">Johannesburg Hub</h5>
+                    </div>
+                </div>
+
+                <div class="col s12 m4">
+                    <div class="card-panel center">
+                        <h6>Last Updated</h6>
+                        <h5 id="lastUpdated">--</h5>
+                    </div>
+                </div>
+
+                <div class="col s12 m4">
+                    <div class="card-panel center">
+                        <h6>Service Type</h6>
+                        <h5 id="serviceType">--</h5>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="timeline" id="timeline">
+
+        </div>
+
+    </div>
+
+    </div>
+
+    </div>
+
+    <script src="./assets/js/tracking.js"></script>
 
 </body>
 
 </html>
-
 
