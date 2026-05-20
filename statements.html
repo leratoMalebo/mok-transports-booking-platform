@@ -479,7 +479,10 @@ Mok Transports Client Statements
                 document.getElementById(
                     "clientName"
                 ).innerText =
-                    data.client.name;
+                    data.client.name ||
+                    data.client.full_name ||
+                    data.client.company_name ||
+                    "Client Statement";
 
                 document.getElementById(
                     "statementDate"
@@ -681,5 +684,6 @@ Mok Transports Client Statements
 </body>
 
 </html>
+
 
 
