@@ -272,9 +272,21 @@ Mok Transports Client Statements
 
             <div class="row">
 
-                <select id="clientSelect" class="browser-default">
-                    <option value="">Select Client</option>
-                </select>
+                <div class="input-field col s12 m4">
+
+                    <label class="active">
+                        Select Client
+                    </label>
+
+                    <select id="clientSelect" class="browser-default">
+
+                        <option value="">
+                            Select Client
+                        </option>
+
+                    </select>
+
+                </div>
 
                 <div class="input-field col s12 m3">
                     <input type="date" id="dateFrom">
@@ -433,8 +445,7 @@ Mok Transports Client Statements
 
     <script>
 
-        const API_BASE =
-            "https://bookings.moktransports.com";
+        const API_BASE = "https://bookings.moktransports.com/api";
 
         async function loadStatement() {
 
@@ -442,16 +453,16 @@ Mok Transports Client Statements
 
                 const clientId =
                     document.getElementById(
-                        "clientIdInput"
+                        "clientSelect"
                     ).value;
 
                 if (!clientId) {
-                    alert("Enter client ID");
+                    alert("Please select a client");
                     return;
                 }
 
                 const response = await fetch(
-                    `${API_BASE}/api/statements/client/${clientId}`
+                    `${API_BASE}/statements/client/${clientId}`
                 );
 
                 const data = await response.json();
@@ -524,6 +535,24 @@ Mok Transports Client Statements
 
                 tbody.innerHTML = "";
 
+                if (data.invoices.length === 0) {
+
+                    tbody.innerHTML = `
+    <tr>
+      <td colspan="6"
+      style="
+        text-align:center;
+        padding:40px;
+        color:#777;
+      ">
+        No invoices found for this client
+      </td>
+    </tr>
+  `;
+
+                    return;
+                }
+
                 data.invoices.forEach(inv => {
 
                     tbody.innerHTML += `
@@ -574,25 +603,39 @@ Mok Transports Client Statements
         }
 
 
-        if (data.invoices.length === 0) {
 
-            tbody.innerHTML = `
-    <tr>
-      <td colspan="6"
-      style="
-        text-align:center;
-        padding:40px;
-        color:#777;
-      ">
-        No invoices found for this client
-      </td>
-    </tr>
-  `;
+        async function loadClients() {
+            try {
+
+                const response = await fetch(`${API_BASE}/clients`);
+
+                const clients = await response.json();
+
+                const select = document.getElementById("clientSelect");
+
+                select.innerHTML = `
+            <option value="">Select Client</option>
+        `;
+
+                clients.forEach(client => {
+
+                    select.innerHTML += `
+                <option value="${client.id}">
+                    ${client.name || client.full_name || client.company_name}
+                </option>
+            `;
+                });
+
+            } catch (error) {
+
+                console.error("Failed to load clients:", error);
+            }
         }
 
         // ===================================================
         // HELPERS
         // ===================================================
+
 
         function formatCurrency(value) {
 
@@ -624,6 +667,14 @@ Mok Transports Client Statements
             window.print();
 
         }
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+
+            loadClients();
+
+        });
+
 
     </script>
 
