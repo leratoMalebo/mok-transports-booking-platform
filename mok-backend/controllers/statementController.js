@@ -11,12 +11,12 @@ exports.getAllClients = async (req, res) => {
     const result = await pool.query(`
     SELECT
         id,
-        full_name,
-        company_name,
+        name,
+        company,
         email
     FROM users
     WHERE role = 'client'
-    ORDER BY full_name ASC
+    ORDER BY name ASC
 `);
 
     res.json(result.rows);
@@ -137,6 +137,9 @@ exports.getClientStatement = async (req, res) => {
   }
 
 };
+
+
+
 
 
 
