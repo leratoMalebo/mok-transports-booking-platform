@@ -27,15 +27,18 @@ app.use(express.json());
 // Routes — WITH /api prefix because Vercel does NOT strip it
 // ----------------------------------------------------------------
 app.use('/api/auth', require('../mok-backend/routes/Auth'));
-app.use('/api/client', require('../mok-backend/routes/Clients'));
+app.use('/api/client', require('../mok-backend/routes/clientPortal'));
 app.use('/api/bookings', require('../mok-backend/routes/bookings'));
 app.use('/api/waybills', require('../mok-backend/routes/waybills'));
 app.use('/api/invoices', require('../mok-backend/routes/invoices'));
 app.use("/api/statements",require("../mok-backend/routes/statements"));
+app.use('/api/clients',require('../mok-backend/routes/client'));
 app.use('/api/tracking', require('../mok-backend/routes/tracking'));
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Mok Transports API live' });
 });
 
 module.exports = app;
+
+
 

@@ -4,6 +4,37 @@ const pool = require("../db");
 // GET CLIENT STATEMENT
 // =======================================================
 
+exports.getAllClients = async (req, res) => {
+
+  try {
+
+    const result = await pool.query(`
+            SELECT
+                id,
+                full_name,
+                company_name,
+                email
+            FROM clients
+            ORDER BY full_name ASC
+        `);
+
+    res.json(result.rows);
+
+  } catch (error) {
+
+    console.error(
+      "GET CLIENTS ERROR:",
+      error.message
+    );
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
 exports.getClientStatement = async (req, res) => {
 
   try {
@@ -105,4 +136,6 @@ exports.getClientStatement = async (req, res) => {
   }
 
 };
+
+
 
