@@ -137,7 +137,16 @@ exports.submitWaybillToJKJ = async (waybill) => {
     console.log("✅ JKJ SUBMIT WAYBILL RESPONSE:", result);
 
     if (Number(result.errorcode) !== 0) {
-      throw new Error(result.errormessage || "JKJ rejected the waybill");
+
+      console.error(
+        "❌ FULL JKJ RESPONSE:",
+        JSON.stringify(result, null, 2)
+      );
+
+      throw new Error(
+        result.errormessage ||
+        "JKJ rejected the waybill"
+      );
     }
 
     return result;
@@ -147,6 +156,8 @@ exports.submitWaybillToJKJ = async (waybill) => {
     throw err;
   }
 };
+
+
 
 
 
