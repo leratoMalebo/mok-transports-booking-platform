@@ -4,7 +4,8 @@ const crypto = require("crypto");
 const JKJ_BASE_URL = process.env.JKJ_BASE_URL;
 const JKJ_EMAIL = process.env.JKJ_EMAIL;
 const JKJ_PASSWORD = process.env.JKJ_PASSWORD;
-const JKJ_ACCOUNT_NO = process.env.JKJ_ACCOUNT_NO || "MOK001";
+const JKJ_ACCOUNT_NO = process.env.JKJ_ACCOUNT_NO || "MOK007";
+const JKJ_PPCUST_ID = process.env.JKJ_PPCUST_ID;
 
 function mapServiceToJKJ(service) {
   const s = String(service || "").toUpperCase();
@@ -33,7 +34,16 @@ function makeUrl(className, method, params, token = "") {
 
 async function makeCall(className, method, params, token = "") {
   const url = makeUrl(className, method, params, token);
-  const response = await axios.get(url);
+
+  const headers = {
+    "Content-Type": "application/json"
+  };
+
+  if (process.env.JKJ_AUTH_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.JKJ_AUTH_TOKEN}`;
+  }
+
+  const response = await axios.get(url, { headers });
   return response.data;
 }
 
