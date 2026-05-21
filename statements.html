@@ -99,9 +99,28 @@
     .sum-card:last-child{border-right:none}
     .sum-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
       letter-spacing:.8px;margin-bottom:8px}
-    .sum-amount{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800}
+    .sum-amount{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800}
     .sum-count{font-size:11px;color:var(--muted);margin-top:4px}
     .sum-blue{color:var(--blue)} .sum-green{color:var(--green)} .sum-red{color:var(--red)}
+
+    /* AGING ANALYSIS */
+    .aging-wrap{padding:0 24px 20px}
+    .aging-table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+    .aging-table th{background:var(--navy);color:#fff;padding:10px 16px;
+      font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;
+      letter-spacing:.8px;text-transform:uppercase;text-align:right}
+    .aging-table th:first-child{text-align:left}
+    .aging-table td{padding:11px 16px;border-top:1px solid var(--border);
+      font-size:13px;text-align:right;font-weight:600}
+    .aging-table td:first-child{text-align:left;color:var(--muted);font-weight:500}
+    .aging-table tr.total-row td{background:#f5f8ff;font-family:'Barlow Condensed',sans-serif;
+      font-size:15px;font-weight:800;color:var(--navy);border-top:2px solid var(--navy)}
+    .aging-table tr.total-row td:first-child{color:var(--navy)}
+    .aging-overdue{color:var(--red)}
+    .aging-current{color:var(--green)}
+    .aging-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;
+      color:var(--navy);text-transform:uppercase;letter-spacing:.8px;
+      margin-bottom:10px;padding:16px 24px 0}
 
     /* TABLE */
     .doc-table-wrap{overflow-x:auto}
@@ -327,6 +346,42 @@
       <!-- OUTSTANDING BANNER -->
       <div class="outstanding-wrap" id="outstandingWrap"></div>
 
+      <!-- AGING ANALYSIS -->
+      <div id="agingWrap" style="display:none">
+        <div class="aging-title">Aging Analysis</div>
+        <div class="aging-wrap">
+          <table class="aging-table">
+            <thead>
+              <tr>
+                <th>Age Bracket</th>
+                <th>Current (0–30 Days)</th>
+                <th>31–60 Days</th>
+                <th>61–90 Days</th>
+                <th>90+ Days</th>
+                <th>Total Due</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Unpaid Invoices</td>
+                <td class="aging-current" id="age0to30">R 0.00</td>
+                <td id="age31to60">R 0.00</td>
+                <td id="age61to90">R 0.00</td>
+                <td class="aging-overdue" id="age90plus">R 0.00</td>
+                <td id="ageTotalDue">R 0.00</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td>Total Outstanding</td>
+                <td colspan="4"></td>
+                <td id="agingGrandTotal">R 0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
       <!-- BOTTOM -->
       <div class="doc-bottom">
         <div class="doc-banking">
@@ -475,6 +530,7 @@
 
       renderTable(data.invoices);
       renderOutstanding(data.summary.outstandingBalance);
+      renderAging(data.invoices);
 
     } catch(e) {
       console.error(e);
@@ -516,6 +572,43 @@
         <div class="ob-sub">Payment due within 30 days of invoice date</div></div>
         <div class="ob-amount">${money(amount)}</div></div>`;
     }
+  }
+
+  function renderAging(invoices) {
+    // Only show aging for unpaid invoices
+    const unpaid = invoices.filter(i => (i.status||'').toLowerCase() !== 'paid');
+    if (!unpaid.length) {
+      document.getElementById('agingWrap').style.display = 'none';
+      return;
+    }
+
+    const now = new Date();
+    let a0=0, a31=0, a61=0, a90=0;
+
+    unpaid.forEach(inv => {
+      const invDate = new Date(inv.invoice_date || inv.created_at);
+      const days    = Math.floor((now - invDate) / (1000*60*60*24));
+      const amt     = Number(inv.total || 0);
+      if      (days <= 30)  a0  += amt;
+      else if (days <= 60)  a31 += amt;
+      else if (days <= 90)  a61 += amt;
+      else                  a90 += amt;
+    });
+
+    const total = a0 + a31 + a61 + a90;
+
+    document.getElementById('age0to30').textContent    = money(a0);
+    document.getElementById('age31to60').textContent   = money(a31);
+    document.getElementById('age61to90').textContent   = money(a61);
+    document.getElementById('age90plus').textContent   = money(a90);
+    document.getElementById('ageTotalDue').textContent = money(total);
+    document.getElementById('agingGrandTotal').textContent = money(total);
+
+    // Colour overdue columns
+    document.getElementById('age31to60').className = a31 > 0 ? 'aging-overdue' : '';
+    document.getElementById('age61to90').className = a61 > 0 ? 'aging-overdue' : '';
+
+    document.getElementById('agingWrap').style.display = 'block';
   }
 
   async function markAllPaid() {
