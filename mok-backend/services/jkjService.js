@@ -86,7 +86,8 @@ function todayDDMMYYYY() {
 
 exports.submitWaybillToJKJ = async (waybill) => {
   try {
-    const token = await getSecureToken();
+    //const token = await getSecureToken();
+    const token = process.env.JKJ_AUTH_TOKEN;
 
     const actualWeight = Number(waybill.weight || 1);
 
@@ -146,6 +147,9 @@ exports.submitWaybillToJKJ = async (waybill) => {
     throw err;
   }
 };
+
+
+
 
 
 
