@@ -112,10 +112,18 @@ async function getSecureToken() {
 
   const salt = saltResponse.results[0].salt;
 
-  // Step 2: Hash password with salt (MD5 of password + salt)
+  // Step 2: Hash password correctly for PPerfect API
+  // PPerfect standard: MD5( MD5(plaintext_password) + salt )
+  // Step 2a — hash the plain password first
+  const md5Password = crypto
+    .createHash('md5')
+    .update(JKJ_PASSWORD)
+    .digest('hex');
+
+  // Step 2b — hash that result concatenated with the salt
   const hashedPassword = crypto
     .createHash('md5')
-    .update(JKJ_PASSWORD + salt)
+    .update(md5Password + salt)
     .digest('hex');
 
   // Step 3: Get token
