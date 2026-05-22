@@ -10,39 +10,39 @@
 //   JKJ_PPCUST_ID  = 2601.3364.2809
 // =============================================================
 
-const axios  = require('axios');
+const axios = require('axios');
 const crypto = require('crypto');
 
 // ── ENV ────────────────────────────────────────────────────────
-const JKJ_BASE_URL   = process.env.JKJ_BASE_URL   || 'https://jkjweb45760.pperfect.com/ppwebservice/Json/';
-const JKJ_EMAIL      = process.env.JKJ_EMAIL       || 'mks@integ';
-const JKJ_PASSWORD   = process.env.JKJ_PASSWORD    || 'R9vwnsC8nTAA4yEP';
-const JKJ_ACCOUNT_NO = process.env.JKJ_ACCOUNT_NO  || 'MOK007';
-const JKJ_PPCUST_ID  = process.env.JKJ_PPCUST_ID   || '2601.3364.2809';
+const JKJ_BASE_URL = process.env.JKJ_BASE_URL || 'https://jkjweb45760.pperfect.com/ppwebservice/Json/';
+const JKJ_EMAIL = process.env.JKJ_EMAIL || 'mks@integ';
+const JKJ_PASSWORD = process.env.JKJ_PASSWORD || 'R9vwnsC8nTAA4yEP';
+const JKJ_ACCOUNT_NO = process.env.JKJ_ACCOUNT_NO || 'MOK007';
+const JKJ_PPCUST_ID = process.env.JKJ_PPCUST_ID || '2601.3364.2809';
 
 // ── TOKEN CACHE — reuse token for up to 20 minutes ───────────
-let _cachedToken     = null;
-let _tokenExpiry     = 0;
-const TOKEN_TTL_MS   = 20 * 60 * 1000; // 20 minutes
+let _cachedToken = null;
+let _tokenExpiry = 0;
+const TOKEN_TTL_MS = 20 * 60 * 1000; // 20 minutes
 
 // ── SERVICE CODE MAP ──────────────────────────────────────────
 function mapServiceToJKJ(service) {
   const s = String(service || '').toUpperCase().trim();
   const MAP = {
-    'SAMEDAY':              'SDX',
-    'SAME_DAY':             'SDX',
-    'SAME DAY':             'SDX',
-    'SAMEDAY EXPRESS AIR':  'SDX',
-    'ONX':                  'ONX',
-    'OVERNIGHT EXPRESS':    'ONX',
+    'SAMEDAY': 'SDX',
+    'SAME_DAY': 'SDX',
+    'SAME DAY': 'SDX',
+    'SAMEDAY EXPRESS AIR': 'SDX',
+    'ONX': 'ONX',
+    'OVERNIGHT EXPRESS': 'ONX',
     'OVERNIGHT EXPRESS (ONX)': 'ONX',
-    'NDD':                  'NDX',
-    'NEXTDAY EXPRESS':      'NDX',
-    'NEXTDAY':              'NDX',
-    'ECO':                  'ECO',
-    'ECONOMY SERVICE (ECO)':'ECO',
-    'ECONOMY SERVICE':      'ECO',
-    'ECONOMY':              'ECO',
+    'NDD': 'NDX',
+    'NEXTDAY EXPRESS': 'NDX',
+    'NEXTDAY': 'NDX',
+    'ECO': 'ECO',
+    'ECONOMY SERVICE (ECO)': 'ECO',
+    'ECONOMY SERVICE': 'ECO',
+    'ECONOMY': 'ECO',
   };
   return MAP[s] || 'ECO'; // default to ECO if unrecognised
 }
@@ -50,8 +50,8 @@ function mapServiceToJKJ(service) {
 // ── DATE HELPER ───────────────────────────────────────────────
 function todayDDMMYYYY() {
   const d = new Date();
-  const dd   = String(d.getDate()).padStart(2, '0');
-  const mm   = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
   const yyyy = d.getFullYear();
   return `${dd}.${mm}.${yyyy}`;
 }
@@ -63,16 +63,16 @@ async function makeCall(className, method, params, token = '') {
   const url = JKJ_BASE_URL;
 
   const queryParams = {
-    params:   JSON.stringify(params),
-    method:   method,
-    class:    className,
+    params: JSON.stringify(params),
+    method: method,
+    class: className,
     token_id: token
   };
 
   console.log(`[JKJ] Calling ${className}.${method}`);
 
   const response = await axios.get(url, {
-    params:  queryParams,
+    params: queryParams,
     timeout: 30000, // 30s timeout
     headers: { 'Content-Type': 'application/json' }
   });
@@ -115,20 +115,14 @@ async function getSecureToken() {
   // Step 2: Hash password correctly for PPerfect API
   // PPerfect standard: MD5( MD5(plaintext_password) + salt )
   // Step 2a — hash the plain password first
-  const md5Password = crypto
-    .createHash('md5')
-    .update(JKJ_PASSWORD)
-    .digest('hex');
-
-  // Step 2b — hash that result concatenated with the salt
   const hashedPassword = crypto
     .createHash('md5')
-    .update(md5Password + salt)
+    .update(JKJ_PASSWORD + salt)
     .digest('hex');
 
   // Step 3: Get token
   const tokenResponse = await makeCall('Auth', 'getSecureToken', {
-    email:    JKJ_EMAIL,
+    email: JKJ_EMAIL,
     password: hashedPassword
   });
   console.log('[JKJ] Token response:', JSON.stringify(tokenResponse));
@@ -142,8 +136,8 @@ async function getSecureToken() {
   const token = tokenResponse.results[0].token_id;
 
   // Cache the token
-  _cachedToken  = token;
-  _tokenExpiry  = Date.now() + TOKEN_TTL_MS;
+  _cachedToken = token;
+  _tokenExpiry = Date.now() + TOKEN_TTL_MS;
 
   console.log('[JKJ] New token obtained and cached');
   return token;
@@ -169,50 +163,50 @@ exports.submitWaybillToJKJ = async (waybill) => {
   }
 
   const actualWeight = Math.max(Number(waybill.weight || 1), 0.5);
-  const pieces       = Number(waybill.pieces || 1);
+  const pieces = Number(waybill.pieces || 1);
 
   const params = {
     details: {
-      waybill:        waybill.waybill_no,
-      accnum:         JKJ_ACCOUNT_NO,
-      service:        mapServiceToJKJ(waybill.service),
-      waydate:        todayDDMMYYYY(),
+      waybill: waybill.waybill_no,
+      accnum: JKJ_ACCOUNT_NO,
+      service: mapServiceToJKJ(waybill.service),
+      waydate: todayDDMMYYYY(),
 
       // Consignor (sender)
-      origpers:       (waybill.consignor_name    || 'Mok Transports').substring(0, 40),
-      origperadd1:    (waybill.consignor_address || '12 Jupiter Road, Crown Mines').substring(0, 40),
-      origtown:       (waybill.consignor_town    || 'Johannesburg').substring(0, 30),
+      origpers: (waybill.consignor_name || 'Mok Transports').substring(0, 40),
+      origperadd1: (waybill.consignor_address || '12 Jupiter Road, Crown Mines').substring(0, 40),
+      origtown: (waybill.consignor_town || 'Johannesburg').substring(0, 30),
       origpercontact: (waybill.consignor_contact || '0118396496').replace(/\D/g, '').substring(0, 15),
 
       // Consignee (receiver)
-      destpers:       (waybill.consignee_name    || 'Receiver').substring(0, 40),
-      destperadd1:    (waybill.consignee_address || 'Receiver Address').substring(0, 40),
-      desttown:       (waybill.consignee_town    || waybill.consignee_address || 'Johannesburg').substring(0, 30),
+      destpers: (waybill.consignee_name || 'Receiver').substring(0, 40),
+      destperadd1: (waybill.consignee_address || 'Receiver Address').substring(0, 40),
+      desttown: (waybill.consignee_town || waybill.consignee_address || 'Johannesburg').substring(0, 30),
       destpercontact: (waybill.consignee_contact || '0000000000').replace(/\D/g, '').substring(0, 15),
 
-      reference:      waybill.waybill_no,
+      reference: waybill.waybill_no,
 
       // PPCUST ID — required for Mok Transports account
-      ppcust:         JKJ_PPCUST_ID
+      ppcust: JKJ_PPCUST_ID
     },
 
     contents: [
       {
-        item:        1,
-        pieces:      pieces,
+        item: 1,
+        pieces: pieces,
         description: (waybill.description || 'General Cargo').substring(0, 40),
-        dim1:        Number(waybill.length  || 1),
-        dim2:        Number(waybill.width   || 1),
-        dim3:        Number(waybill.height  || 1),
-        actmass:     actualWeight
+        dim1: Number(waybill.length || 1),
+        dim2: Number(waybill.width || 1),
+        dim3: Number(waybill.height || 1),
+        actmass: actualWeight
       }
     ],
 
     tracks: [
       {
-        item:     1,
+        item: 1,
         parcelno: 1,
-        trackno:  `${waybill.waybill_no}0001`
+        trackno: `${waybill.waybill_no}0001`
       }
     ]
   };
@@ -255,7 +249,7 @@ exports.trackWaybillFromJKJ = async (waybillNo) => {
 
     const result = await makeCall('Waybill', 'getTracking', {
       waybill: waybillNo,
-      accnum:  JKJ_ACCOUNT_NO
+      accnum: JKJ_ACCOUNT_NO
     }, token);
 
     console.log('[JKJ] Track result:', JSON.stringify(result));
@@ -276,5 +270,8 @@ exports.trackWaybillFromJKJ = async (waybillNo) => {
     throw err;
   }
 };
+
+
+
 
 
