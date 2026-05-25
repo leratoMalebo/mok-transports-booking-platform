@@ -1,187 +1,110 @@
-// =========================================================
-// services/trackingService.js
-// JKJ Shipment Tracking Integration
-// =========================================================
+// =============================================================
+// mok-backend/services/trackingService.js
+// JKJ Shipment Tracking — PPerfect Tracking API
+//
+// ENV VARS (set in Vercel dashboard):
+//   JKJ_TRACKING_URL   = https://tracking.parcelperfect.com/pptrackservice/v13/Json/
+//   JKJ_TRACKING_TOKEN = 2022003f0d8c6737fafebef4fff6c34e9fe37e92
+//   JKJ_ACCOUNT_NO     = MOK007
+// =============================================================
 
-const axios = require("axios");
-const crypto = require("crypto");
-const pool = require("../db");
+const axios = require('axios');
+const pool  = require('../db');
 
+const JKJ_TRACKING_URL   = process.env.JKJ_TRACKING_URL   || 'https://tracking.parcelperfect.com/pptrackservice/v13/Json/';
+const JKJ_TRACKING_TOKEN = process.env.JKJ_TRACKING_TOKEN  || '2022003f0d8c6737fafebef4fff6c34e9fe37e92';
+const JKJ_ACCOUNT_NO     = process.env.JKJ_ACCOUNT_NO      || 'MOK007';
+
+// ── CORE TRACKING CALL ────────────────────────────────────────
+async function makeTrackingCall(className, method, params) {
+  const queryParams = {
+    params:   JSON.stringify(params),
+    method:   method,
+    class:    className,
+    token_id: JKJ_TRACKING_TOKEN
+  };
+
+  console.log(`[TRACKING] Calling ${className}.${method} for:`, params);
+
+  const response = await axios.get(JKJ_TRACKING_URL, {
+    params:  queryParams,
+    timeout: 20000,
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  const data = response.data;
+
+  if (typeof data === 'string' && data.trim().startsWith('<')) {
+    throw new Error('Tracking API returned HTML — check JKJ_TRACKING_TOKEN and JKJ_TRACKING_URL.');
+  }
+
+  return data;
+}
+
+// ── TRACK SHIPMENT ────────────────────────────────────────────
 async function trackShipment(trackingNo) {
+  try {
 
-    try {
-
-        // =====================================================
-        // GET SHIPMENT FROM DATABASE
-        // =====================================================
-
-        const shipmentResult = await pool.query(`
-      SELECT *
-      FROM waybills
-      WHERE waybill_no = $1
-      OR jkj_reference = $1
+    // 1. Look up waybill in our DB first
+    const shipmentResult = await pool.query(`
+      SELECT * FROM waybills
+      WHERE waybill_no = $1 OR jkj_reference = $1
       LIMIT 1
     `, [trackingNo]);
 
-        if (shipmentResult.rows.length === 0) {
+    if (!shipmentResult.rows.length) {
+      return { success: false, message: 'Shipment not found in our system.' };
+    }
 
-            return {
-                success: false,
-                message: "Shipment not found"
-            };
+    const shipment = shipmentResult.rows[0];
 
-        }
+    // 2. Fetch tracking events from JKJ using static token
+    const trackingData = await makeTrackingCall('Tracking', 'getTracking', {
+      waybillno: trackingNo,
+      accnum:    JKJ_ACCOUNT_NO
+    });
 
-        const shipment = shipmentResult.rows[0];
+    console.log('[TRACKING] Response:', JSON.stringify(trackingData, null, 2));
 
-        // =====================================================
-        // GET SALT
-        // =====================================================
+    if (Number(trackingData.errorcode) !== 0) {
+      throw new Error(trackingData.errormessage || 'Tracking lookup failed');
+    }
 
-        const crypto = require("crypto");
+    // 3. Map events to clean format
+    const events = (trackingData.results || []).map(item => ({
+      status:      item.status      || item.description || 'Updated',
+      location:    item.location    || item.depot        || 'Unknown',
+      description: item.description || item.status       || '',
+      date:        item.scan_date   || item.date          || new Date().toISOString(),
+      time:        item.scan_time   || ''
+    }));
 
-        // =====================================================
-        // GET SALT
-        // =====================================================
+    const latestStatus = events.length > 0 ? events[0].status : 'Booked';
 
-        const saltResponse = await axios.post(
-            "http://tracking.pperfect.com/pptrackservice/v10/Json/Auth/getSalt",
-            {
-                username: process.env.JKJ_EMAIL,
-                PPcust: process.env.JKJ_ACCOUNT_NO
-            }
-        );
-
-        console.log("TRACKING SALT RESPONSE:", saltResponse.data);
-
-        if (saltResponse.data.errorcode !== 0 || !saltResponse.data.results?.[0]?.salt) {
-            throw new Error(saltResponse.data.errormessage || "Could not get tracking salt");
-        }
-
-        const salt = saltResponse.data.results[0].salt;
-
-        // =====================================================
-        // ENCRYPT PASSWORD
-        // =====================================================
-
-        const encryptedPassword = crypto
-            .createHash("md5")
-            .update(process.env.JKJ_PASSWORD + salt)
-            .digest("hex");
-
-        // =====================================================
-        // GET TOKEN
-        // =====================================================
-
-        const tokenResponse = await axios.post(
-            "http://tracking.pperfect.com/pptrackservice/v10/Json/Auth/getToken",
-            {
-                username: process.env.JKJ_EMAIL,
-                password: encryptedPassword,
-                PPcust: process.env.JKJ_ACCOUNT_NO
-            }
-        );
-
-        console.log("TRACKING TOKEN RESPONSE:", tokenResponse.data);
-
-        if (tokenResponse.data.errorcode !== 0 || !tokenResponse.data.results?.[0]?.token_id) {
-            throw new Error(tokenResponse.data.errormessage || "Could not get tracking token");
-        }
-
-        const token = tokenResponse.data.results[0].token_id;
-
-        // =====================================================
-        // GET TRACKING EVENTS
-        // =====================================================
-
-        const trackingResponse = await axios.post(
-            process.env.JKJ_TRACKING_URL,
-            {
-                token,
-                waybillno: trackingNo
-            }
-        );
-
-        console.log(
-            "TRACKING EVENTS RESPONSE:",
-            trackingResponse.data
-        );
-        const trackingData = trackingResponse.data;
-
-        // =====================================================
-        // SAMPLE EVENTS MAPPING
-        // =====================================================
-
-        let events = [];
-
-        if (trackingData.results) {
-
-            events = trackingData.results.map(item => ({
-
-                status: item.status || "Updated",
-                location: item.location || "Unknown",
-                date: item.scan_date || new Date()
-
-            }));
-
-        }
-
-        // =====================================================
-        // UPDATE DATABASE STATUS
-        // =====================================================
-
-        const latestStatus =
-            events.length > 0
-                ? events[0].status
-                : "Created";
-
-        await pool.query(`
+    // 4. Update status in our DB
+    await pool.query(`
       UPDATE waybills
-      SET current_status = $1,
+      SET status     = $1,
           updated_at = NOW()
       WHERE id = $2
     `, [latestStatus, shipment.id]);
 
-        // =====================================================
-        // RETURN CLEAN RESPONSE
-        // =====================================================
+    return {
+      success: true,
+      shipment: {
+        waybill_no:     shipment.waybill_no,
+        jkj_reference:  shipment.jkj_reference,
+        current_status: latestStatus,
+        events
+      }
+    };
 
-        return {
-
-            success: true,
-
-            shipment: {
-
-                waybill_no: shipment.waybill_no,
-
-                jkj_reference: shipment.jkj_reference,
-
-                current_status: latestStatus,
-
-                events
-
-            }
-
-        };
-
-    } catch (error) {
-
-        console.error("TRACKING ERROR:", error.message);
-
-        return {
-
-            success: false,
-
-            message: error.message
-
-        };
-
-    }
-
+  } catch (error) {
+    console.error('[TRACKING] Error:', error.message);
+    return { success: false, message: error.message };
+  }
 }
 
-module.exports = {
-    trackShipment
-};
+module.exports = { trackShipment };
 
 
