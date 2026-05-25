@@ -1119,6 +1119,17 @@
       const due = new Date(today); due.setDate(due.getDate() + 30);
       document.getElementById('dueDate').value = due.toISOString().slice(0, 10);
 
+      // ---- FROM URL ?invoice=INV000010 (View/PDF from invoices.html) ----
+      const urlParams     = new URLSearchParams(window.location.search);
+      const invoiceParam  = urlParams.get('invoice');
+      const downloadParam = urlParams.get('download');
+      const sendParam     = urlParams.get('send');
+
+      if (invoiceParam) {
+        loadInvoiceFromDB(invoiceParam, downloadParam === 'true', sendParam === 'true');
+        return;
+      }
+
       // ---- FROM GROUPED INVOICE MODAL ----
       const groupedRaw = localStorage.getItem('groupedInvoiceData');
       if (groupedRaw) {
@@ -1217,6 +1228,83 @@
       // ---- BLANK ----
       addLine();
     });
+
+    // ===================================================================
+    // LOAD EXISTING INVOICE FROM DATABASE (view / pdf / send mode)
+    // ===================================================================
+    async function loadInvoiceFromDB(invoiceNo, autoDownload, autoSend) {
+      try {
+        const res = await fetch(
+          `https://bookings.moktransports.com/api/invoices/${encodeURIComponent(invoiceNo)}`
+        );
+        if (!res.ok) throw new Error('Invoice not found');
+        const inv = await res.json();
+
+        // ── Header fields ──────────────────────────────────────────
+        document.getElementById('invoiceNumber').value = inv.invoice_no || '';
+
+        if (inv.invoice_date) {
+          document.getElementById('invoiceDate').value = inv.invoice_date.split('T')[0];
+          const due = new Date(inv.invoice_date);
+          due.setDate(due.getDate() + 30);
+          document.getElementById('dueDate').value = due.toISOString().split('T')[0];
+        }
+
+        // ── Bill To ────────────────────────────────────────────────
+        if (inv.client_name) {
+          document.getElementById('billTo').value = inv.client_name;
+        }
+
+        // ── Waybill ref bar ────────────────────────────────────────
+        const waybillNos = inv.waybill_nos || inv.waybill_no || '';
+        if (waybillNos) {
+          document.getElementById('waybillRefBar').style.display = 'flex';
+          document.getElementById('waybillRefNo').textContent = waybillNos;
+        }
+
+        // ── Line items ─────────────────────────────────────────────
+        // Grouped invoice — waybills array from API
+        if (inv.waybills && inv.waybills.length) {
+          inv.waybills.forEach(w => {
+            addLine({
+              service:  w.service      || '',
+              waybill:  w.waybill_no   || '',
+              fromTown: w.consignor_name || '',
+              toTown:   w.consignee_name || '',
+              date:     w.booking_date ? w.booking_date.split('T')[0] : (inv.invoice_date || '').split('T')[0],
+              basic:    parseFloat(w.price || 0)
+            });
+          });
+        } else {
+          // Single waybill invoice
+          addLine({
+            service:  '',
+            waybill:  inv.waybill_no  || '',
+            fromTown: '',
+            toTown:   inv.client_name || '',
+            date:     inv.invoice_date ? inv.invoice_date.split('T')[0] : '',
+            basic:    parseFloat(inv.subtotal || 0)
+          });
+        }
+
+        // ── Hide Save button (already saved) ───────────────────────
+        const saveBtn = document.getElementById('saveInvoiceBtn');
+        if (saveBtn) {
+          saveBtn.textContent = 'Saved';
+          saveBtn.disabled = true;
+          saveBtn.style.opacity = '0.6';
+        }
+
+        // ── Auto-trigger download or send ──────────────────────────
+        if (autoDownload) setTimeout(() => downloadPDF(), 900);
+        if (autoSend)     setTimeout(() => sendInvoice(),  900);
+
+      } catch (err) {
+        console.error('Load invoice error:', err);
+        alert('Could not load invoice: ' + err.message);
+        addLine(); // fallback blank line
+      }
+    }
 
     async function saveInvoiceToDatabase() {
       try {
@@ -1388,4 +1476,5 @@
 </body>
 
 </html>
+
 
