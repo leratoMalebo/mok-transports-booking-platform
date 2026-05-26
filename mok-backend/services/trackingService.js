@@ -58,10 +58,17 @@ async function trackShipment(trackingNo) {
 
         const shipment = shipmentResult.rows[0];
 
-        // 2. Fetch tracking events from JKJ using static token
-        const trackingData = await makeTrackingCall('Waybill', 'getEvents', {
-            trackno: trackingNo
-        });
+        const actualTrackNo =
+            `${shipment.waybill_no}0001`;
+
+        const trackingData =
+            await makeTrackingCall(
+                'Waybill',
+                'getEvents',
+                {
+                    trackno: actualTrackNo
+                }
+            );
 
         console.log('[TRACKING] Response:', JSON.stringify(trackingData, null, 2));
 
@@ -104,16 +111,11 @@ async function trackShipment(trackingNo) {
     }
 }
 
-
-trackingData = await makeTrackingCall(
-    'Waybill',
-    'getEvents',
-    {
-        trackno: 'MOK0000090001'
-    }
-);
-
 module.exports = { trackShipment };
+
+
+
+
 
 
 
