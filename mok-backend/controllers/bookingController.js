@@ -7,12 +7,21 @@ exports.createBooking = async (req, res) => {
     const {
       user_id,
       service,
+
       consignor_name,
       consignor_address,
       consignor_contact,
+      consignor_contact_name,
+      consignor_suburb,
+      consignor_town,
+
       consignee_name,
       consignee_address,
       consignee_contact,
+      consignee_contact_name,
+      consignee_suburb,
+      consignee_town,
+
       weight,
       volumetric_weight,
       price,
@@ -21,20 +30,53 @@ exports.createBooking = async (req, res) => {
 
     const result = await db.query(
       `INSERT INTO bookings 
-      (user_id, service, consignor_name, consignor_address, consignor_contact,
-       consignee_name, consignee_address, consignee_contact,
-       weight, volumetric_weight, price, zone_label)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+      (
+  user_id,
+  service,
+
+  consignor_name,
+  consignor_address,
+  consignor_contact,
+  consignor_contact_name,
+  consignor_suburb,
+  consignor_town,
+
+  consignee_name,
+  consignee_address,
+  consignee_contact,
+  consignee_contact_name,
+  consignee_suburb,
+  consignee_town,
+
+  weight,
+  volumetric_weight,
+  price,
+  zone_label
+)
+       VALUES (
+  $1,$2,$3,$4,$5,$6,$7,$8,
+  $9,$10,$11,$12,$13,$14,
+  $15,$16,$17,$18
+)
        RETURNING *`,
       [
         user_id,
         service,
+
         consignor_name,
         consignor_address,
         consignor_contact,
+        consignor_contact_name,
+        consignor_suburb,
+        consignor_town,
+
         consignee_name,
         consignee_address,
         consignee_contact,
+        consignee_contact_name,
+        consignee_suburb,
+        consignee_town,
+
         weight,
         volumetric_weight,
         price,
@@ -70,4 +112,7 @@ exports.getBookingById = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch booking' });
   }
 };
+
+
+
 

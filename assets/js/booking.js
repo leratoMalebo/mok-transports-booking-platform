@@ -594,6 +594,7 @@ async function confirmBooking() {
         data.fromTown,
         data.fromPostal,
         data.fromEmail,
+        data.fromContactName,
         data.fromContact
       ),
       shipTo: buildAddr(
@@ -603,6 +604,7 @@ async function confirmBooking() {
         data.toTown,
         data.toPostal,
         data.toEmail,
+        data.toContactName,
         data.toContact
       ),
       pickupDate: data.shipmentDate,
@@ -694,4 +696,6 @@ function fallbackDistance() {
   document.getElementById("distance").innerText = dist;
   calculateAll();
 }
+
+
 
