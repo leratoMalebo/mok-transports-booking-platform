@@ -381,6 +381,7 @@ function collectBookingData() {
     fromTown: document.getElementById("fromTown").value,
     fromPostal: document.getElementById("fromPostal").value,
     fromEmail: document.getElementById("fromEmail").value,
+    fromContactName: document.getElementById("fromContactName")?.value || "",
     fromContact: document.getElementById("fromContact").value,
     toCompany: document.getElementById("toCompany").value,
     toAddress: document.getElementById("toAddress").value,
@@ -388,6 +389,7 @@ function collectBookingData() {
     toTown: document.getElementById("toTown").value,
     toPostal: document.getElementById("toPostal").value,
     toEmail: document.getElementById("toEmail").value,
+    toContactName: document.getElementById("toContactName")?.value || "",
     toContact: document.getElementById("toContact").value,
     service: document.getElementById("serviceType").value,
     items,
@@ -441,12 +443,14 @@ function saveBooking() {
       <tr><th colspan="2" class="summary-section">Consignor</th></tr>
       <tr><td>Company</td><td>${data.fromCompany}</td></tr>
       <tr><td>Address</td><td>${data.fromAddress}</td></tr>
-      <tr><td>Contact</td><td>${data.fromContact}</td></tr>
+      <tr><td>Contact Name</td><td>${data.fromContactName || "—"}</td></tr>
+      <tr><td>Contact Number</td><td>${data.fromContact}</td></tr>
       <tr><td>Email</td><td>${data.fromEmail}</td></tr>
       <tr><th colspan="2" class="summary-section">Consignee</th></tr>
       <tr><td>Company</td><td>${data.toCompany}</td></tr>
       <tr><td>Address</td><td>${data.toAddress}</td></tr>
-      <tr><td>Contact</td><td>${data.toContact}</td></tr>
+     <tr><td>Contact Name</td><td>${data.toContactName || "—"}</td></tr>
+<tr><td>Contact Number</td><td>${data.toContact}</td></tr>
       <tr><td>Email</td><td>${data.toEmail}</td></tr>
       <tr><th colspan="2" class="summary-section">Items</th></tr>
     </table>
@@ -486,32 +490,41 @@ async function confirmBooking() {
     console.log("SESSION DATA:", session);
 
     const payload = {
-  user_id: session?.user?.id || session?.id || null,
-  service: data.service,
-  consignor_name: data.fromCompany,
-  consignor_address: [
-    data.fromAddress,
-    data.fromSuburb,
-    data.fromTown,
-    data.fromPostal
-  ].filter(Boolean).join(", "),
-  consignor_contact: data.fromContact || data.fromEmail,
-  consignee_name: data.toCompany,
-  consignee_address: [
-    data.toAddress,
-    data.toSuburb,
-    data.toTown,
-    data.toPostal
-  ].filter(Boolean).join(", "),
-  consignee_contact: data.toContact || data.toEmail,
-  weight: parseFloat(data.chargeWeight || 0),
-  volumetric_weight: parseFloat(data.volWeight || 0),
-  price: parseFloat(data.price || 0),
-  zone_label: data.zoneLabel || document.getElementById("zoneLabel")?.innerText || ""
-};
+      user_id: session?.user?.id || session?.id || null,
+      service: data.service,
+      consignor_name: data.fromCompany,
+      consignor_address: [
+        data.fromAddress,
+        data.fromSuburb,
+        data.fromTown,
+        data.fromPostal
+      ].filter(Boolean).join(", "),
+      consignor_contact: data.fromContact || data.fromEmail,
+      consignor_contact_name: data.fromContactName,
+      consignor_suburb: data.fromSuburb,
+      consignor_town: data.fromTown,
+      consignor_postal: data.fromPostal,
 
-console.log("BOOKING PAYLOAD:", payload);
-    
+      consignee_name: data.toCompany,
+      consignee_address: [
+        data.toAddress,
+        data.toSuburb,
+        data.toTown,
+        data.toPostal
+      ].filter(Boolean).join(", "),
+      consignee_contact: data.toContact || data.toEmail,
+      consignee_contact_name: data.toContactName,
+      consignee_suburb: data.toSuburb,
+      consignee_town: data.toTown,
+      consignee_postal: data.toPostal,
+      weight: parseFloat(data.chargeWeight || 0),
+      volumetric_weight: parseFloat(data.volWeight || 0),
+      price: parseFloat(data.price || 0),
+      zone_label: data.zoneLabel || document.getElementById("zoneLabel")?.innerText || ""
+    };
+
+    console.log("BOOKING PAYLOAD:", payload);
+
 
     const response = await fetch("https://bookings.moktransports.com/api/bookings", {
       method: "POST",
@@ -556,7 +569,7 @@ console.log("BOOKING PAYLOAD:", payload);
     });
     localStorage.setItem("mokBookings", JSON.stringify(existing));
 
-    function buildAddr(company, street, suburb, town, postal, email, contact) {
+    function buildAddr(company, street, suburb, town, postal, email, contactName, contact) {
       const lines = [
         `<strong>${company}</strong>`,
         street,
@@ -564,6 +577,7 @@ console.log("BOOKING PAYLOAD:", payload);
         town,
         postal,
         email,
+        contactName,
         contact
       ].filter(Boolean);
 
