@@ -12,38 +12,38 @@
 const axios = require('axios');
 
 // ── ENV ────────────────────────────────────────────────────────
-const JKJ_SUBMIT_URL   = process.env.JKJ_SUBMIT_URL  || 'https://jkjweb45760.pperfect.com/ppintegrationservice/v28/Json/';
+const JKJ_SUBMIT_URL = process.env.JKJ_SUBMIT_URL || 'https://jkjweb45760.pperfect.com/ppintegrationservice/v28/Json/';
 const JKJ_SUBMIT_TOKEN = process.env.JKJ_SUBMIT_TOKEN || '000710815ba31c469a95714370df353b193c1470';
-const JKJ_ACCOUNT_NO   = process.env.JKJ_ACCOUNT_NO  || 'MOK007';
-const JKJ_PPCUST_ID    = process.env.JKJ_PPCUST_ID   || '2601.3364.2809';
+const JKJ_ACCOUNT_NO = process.env.JKJ_ACCOUNT_NO || 'MOK007';
+const JKJ_PPCUST_ID = process.env.JKJ_PPCUST_ID || '2601.3364.2809';
 
 // ── SERVICE CODE MAP ──────────────────────────────────────────
 function mapServiceToJKJ(service) {
   const s = String(service || '').toUpperCase().trim();
   const MAP = {
-    'SAMEDAY':                 'SDX',
-    'SAME_DAY':                'SDX',
-    'SAME DAY':                'SDX',
-    'SAMEDAY EXPRESS AIR':     'SDX',
-    'ONX':                     'ONX',
-    'OVERNIGHT EXPRESS':       'ONX',
+    'SAMEDAY': 'SDX',
+    'SAME_DAY': 'SDX',
+    'SAME DAY': 'SDX',
+    'SAMEDAY EXPRESS AIR': 'SDX',
+    'ONX': 'ONX',
+    'OVERNIGHT EXPRESS': 'ONX',
     'OVERNIGHT EXPRESS (ONX)': 'ONX',
-    'NDD':                     'NDX',
-    'NEXTDAY EXPRESS':         'NDX',
-    'NEXTDAY':                 'NDX',
-    'ECO':                     'ECO',
-    'ECONOMY SERVICE (ECO)':   'ECO',
-    'ECONOMY SERVICE':         'ECO',
-    'ECONOMY':                 'ECO',
+    'NDD': 'NDX',
+    'NEXTDAY EXPRESS': 'NDX',
+    'NEXTDAY': 'NDX',
+    'ECO': 'ECO',
+    'ECONOMY SERVICE (ECO)': 'ECO',
+    'ECONOMY SERVICE': 'ECO',
+    'ECONOMY': 'ECO',
   };
   return MAP[s] || 'ECO';
 }
 
 // ── DATE HELPER ───────────────────────────────────────────────
 function todayDDMMYYYY() {
-  const d    = new Date();
-  const dd   = String(d.getDate()).padStart(2, '0');
-  const mm   = String(d.getMonth() + 1).padStart(2, '0');
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
   const yyyy = d.getFullYear();
   return `${dd}.${mm}.${yyyy}`;
 }
@@ -51,16 +51,16 @@ function todayDDMMYYYY() {
 // ── CORE API CALL ─────────────────────────────────────────────
 async function makeCall(className, method, params) {
   const queryParams = {
-    params:   JSON.stringify(params),
-    method:   method,
-    class:    className,
+    params: JSON.stringify(params),
+    method: method,
+    class: className,
     token_id: JKJ_SUBMIT_TOKEN
   };
 
   console.log(`[JKJ] Calling ${className}.${method}`);
 
   const response = await axios.get(JKJ_SUBMIT_URL, {
-    params:  queryParams,
+    params: queryParams,
     timeout: 30000,
     headers: { 'Content-Type': 'application/json' }
   });
@@ -78,45 +78,47 @@ async function makeCall(className, method, params) {
 // ── SUBMIT WAYBILL ────────────────────────────────────────────
 exports.submitWaybillToJKJ = async (waybill) => {
   const actualWeight = Math.max(Number(waybill.weight || 1), 0.5);
-  const pieces       = Number(waybill.pieces || 1);
+  const pieces = Number(waybill.pieces || 1);
 
   const params = {
     details: {
-      waybill:        waybill.waybill_no,
-      accnum:         JKJ_ACCOUNT_NO,
-      service:        mapServiceToJKJ(waybill.service),
-      waydate:        todayDDMMYYYY(),
+      waybill: waybill.waybill_no,
+      accnum: JKJ_ACCOUNT_NO,
+      service: mapServiceToJKJ(waybill.service),
+      waydate: todayDDMMYYYY(),
 
       // Consignor (sender)
-      origpers:       (waybill.consignor_name    || 'Mok Transports').substring(0, 40),
-      origperadd1:    (waybill.consignor_address || '12 Jupiter Road, Crown Mines').substring(0, 40),
-      origtown:       (waybill.consignor_town    || 'Johannesburg').substring(0, 30),
+      origpers: (waybill.consignor_contact_name || waybill.consignor_name || 'Mok Transports').substring(0, 40),
+      origperadd1: (waybill.consignor_address || '12 Jupiter Road, Crown Mines').substring(0, 60),
+      origplace: (waybill.consignor_suburb || '').substring(0, 40),
+      origtown: (waybill.consignor_town || 'Johannesburg').substring(0, 30),
       origpercontact: (waybill.consignor_contact || '0118396496').replace(/\D/g, '').substring(0, 15),
 
       // Consignee (receiver)
-      destpers:       (waybill.consignee_name    || 'Receiver').substring(0, 40),
-      destperadd1:    (waybill.consignee_address || 'Receiver Address').substring(0, 40),
-      desttown:       (waybill.consignee_town    || 'Johannesburg').substring(0, 30),
+      destpers: (waybill.consignee_contact_name || waybill.consignee_name || 'Receiver').substring(0, 40),
+      destperadd1: (waybill.consignee_address || 'Receiver Address').substring(0, 60),
+      destplace: (waybill.consignee_suburb || '').substring(0, 40),
+      desttown: (waybill.consignee_town || 'Johannesburg').substring(0, 30),
       destpercontact: (waybill.consignee_contact || '0000000000').replace(/\D/g, '').substring(0, 15),
 
-      reference:      waybill.waybill_no,
-      ppcust:         JKJ_PPCUST_ID
+      reference: waybill.waybill_no,
+      ppcust: JKJ_PPCUST_ID
     },
 
     contents: [{
-      item:        1,
-      pieces:      pieces,
+      item: 1,
+      pieces: pieces,
       description: (waybill.description || 'General Cargo').substring(0, 40),
-      dim1:        Number(waybill.length || 1),
-      dim2:        Number(waybill.width  || 1),
-      dim3:        Number(waybill.height || 1),
-      actmass:     actualWeight
+      dim1: Number(waybill.length || 1),
+      dim2: Number(waybill.width || 1),
+      dim3: Number(waybill.height || 1),
+      actmass: actualWeight
     }],
 
     tracks: [{
-      item:     1,
+      item: 1,
       parcelno: 1,
-      trackno:  `${waybill.waybill_no}0001`
+      trackno: `${waybill.waybill_no}0001`
     }]
   };
 
