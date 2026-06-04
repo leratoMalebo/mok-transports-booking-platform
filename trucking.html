@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Mok Transports | Truck Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#0d2137; --navy2:#132d47; --blue:#1565c0; --sky:#1e88e5;
+      --green:#2e7d32; --orange:#f57c00; --red:#c62828; --teal:#00796b;
+      --bg:#f0f4f8; --card:#fff; --border:#dce3ec;
+      --text:#1a2535; --muted:#607d8b;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    /* ── TOPBAR ─────────────────────────────── */
+    .topbar{background:var(--navy);border-bottom:3px solid var(--orange);height:68px;
+      display:flex;align-items:center;justify-content:space-between;padding:0 32px;
+      position:sticky;top:0;z-index:100;box-shadow:0 4px 18px rgba(13,33,55,.2)}
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand img{height:38px;background:#fff;padding:4px 6px;border-radius:5px}
+    .brand-name{font-family:'Barlow Condensed',sans-serif;color:#fff;font-size:18px;font-weight:800}
+    .brand-sub{font-size:10px;color:#90a4ae;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+    .topbar-right{display:flex;gap:8px}
+    .tbtn{height:34px;padding:0 14px;border-radius:5px;border:none;cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+      letter-spacing:1px;text-transform:uppercase;text-decoration:none;
+      display:inline-flex;align-items:center;gap:6px;transition:.18s}
+    .tbtn-ghost{background:rgba(255,255,255,.08);color:#90a4ae;border:1px solid rgba(255,255,255,.1)}
+    .tbtn-ghost:hover{background:rgba(255,255,255,.15);color:#fff}
+
+    /* ── PAGE ────────────────────────────────── */
+    .page{max-width:1080px;margin:0 auto;padding:28px 20px 80px;
+      display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start}
+
+    /* ── FORM CARD ───────────────────────────── */
+    .form-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+      overflow:visible;box-shadow:0 4px 20px rgba(13,33,55,.07)}
+    .form-header{background:var(--navy);padding:20px 24px;
+      display:flex;align-items:center;gap:14px}
+    .form-header-icon{width:44px;height:44px;background:var(--orange);border-radius:10px;
+      display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+    .form-header-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;
+      font-weight:800;color:#fff;letter-spacing:.5px}
+    .form-header-sub{font-size:12px;color:#90a4ae;margin-top:2px}
+    .form-body{padding:24px}
+
+    /* ── SECTION ─────────────────────────────── */
+    .section{margin-bottom:24px}
+    .section-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;
+      color:var(--muted);text-transform:uppercase;letter-spacing:.8px;
+      margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* ── TYPE TABS ───────────────────────────── */
+    .type-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+    .type-tab{height:52px;border:2px solid var(--border);border-radius:10px;
+      background:#fff;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+      font-size:14px;font-weight:800;letter-spacing:.5px;color:var(--muted);
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      transition:.2s;text-transform:uppercase}
+    .type-tab:hover{border-color:var(--blue);color:var(--blue)}
+    .type-tab.active{border-color:var(--orange);background:#fff8f0;color:var(--orange)}
+
+    /* ── TRUCK GRID ──────────────────────────── */
+    .truck-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .truck-btn{border:2px solid var(--border);border-radius:10px;background:#fff;
+      cursor:pointer;padding:12px 6px;text-align:center;transition:.2s}
+    .truck-btn:hover{border-color:var(--blue)}
+    .truck-btn.active{border-color:var(--orange);background:#fff8f0}
+    .truck-icon{font-size:24px;margin-bottom:4px}
+    .truck-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;
+      color:var(--navy);letter-spacing:.3px}
+    .truck-cap{font-size:10px;color:var(--muted);margin-top:2px}
+
+    /* ── FORM FIELDS ─────────────────────────── */
+    .field-group{margin-bottom:14px}
+    .field-label{font-size:11px;font-weight:700;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;display:block}
+    .field-input{width:100%;height:42px;border:1px solid var(--border);border-radius:7px;
+      padding:0 13px;font-family:'Barlow',sans-serif;font-size:14px;
+      outline:none;background:#fff;color:var(--text);transition:.2s}
+    .field-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.09)}
+    .field-select{width:100%;height:42px;border:1px solid var(--border);border-radius:7px;
+      padding:0 13px;font-family:'Barlow',sans-serif;font-size:14px;
+      outline:none;background:#fff;color:var(--text);transition:.2s;cursor:pointer}
+    .field-select:focus{border-color:var(--blue)}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* ── DELIVERY TYPE ───────────────────────── */
+    .delivery-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .delivery-tab{height:40px;border:1.5px solid var(--border);border-radius:7px;
+      background:#fff;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+      font-size:12px;font-weight:800;letter-spacing:.5px;color:var(--muted);
+      display:flex;align-items:center;justify-content:center;gap:6px;
+      transition:.2s;text-transform:uppercase}
+    .delivery-tab.active{border-color:var(--blue);background:#e3f2fd;color:var(--blue)}
+
+    /* ── DISTANCE BUTTON ─────────────────────── */
+    .dist-btn{width:100%;height:44px;border:1.5px dashed var(--border);border-radius:8px;
+      background:#fafbfc;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+      font-size:13px;font-weight:800;letter-spacing:.8px;color:var(--muted);
+      text-transform:uppercase;display:flex;align-items:center;justify-content:center;
+      gap:8px;transition:.2s;margin-top:4px}
+    .dist-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);background:#f0f4ff}
+    .dist-btn:disabled{opacity:.6;cursor:not-allowed}
+    .dist-btn.calculated{border-style:solid;border-color:var(--green);
+      color:var(--green);background:#f0faf0}
+
+    /* ── DISTANCE RESULT ─────────────────────── */
+    .dist-result{background:#f0faf0;border:1px solid #a5d6a7;border-radius:8px;
+      padding:12px 16px;margin-top:10px;display:none}
+    .dist-result.show{display:block}
+    .dist-result-row{display:flex;justify-content:space-between;align-items:center;
+      font-size:13px;padding:3px 0}
+    .dist-result-label{color:var(--muted);font-size:12px}
+    .dist-result-val{font-weight:700;color:var(--navy)}
+
+    /* ── MAP ─────────────────────────────────── */
+    #mapContainer{width:100%;height:320px;border-radius:10px;margin-top:14px;
+      border:1px solid var(--border);display:none;overflow:hidden}
+    #mapContainer.show{display:block}
+
+    /* ── CB DIRECTION ────────────────────────── */
+    .dir-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+    .dir-tab{height:40px;border:1.5px solid var(--border);border-radius:7px;
+      background:#fff;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+      font-size:12px;font-weight:800;letter-spacing:.3px;color:var(--muted);
+      display:flex;align-items:center;justify-content:center;gap:6px;transition:.2s}
+    .dir-tab.active{border-color:var(--orange);background:#fff8f0;color:var(--orange)}
+
+    /* ── CB PRICE BOX ────────────────────────── */
+    .cb-price-box{background:#fff8f0;border:1px solid #ffcc80;border-radius:8px;
+      padding:12px 16px;margin-top:10px;display:none}
+    .cb-price-box.show{display:block}
+    .cb-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;
+      border-bottom:1px solid rgba(0,0,0,.06)}
+    .cb-row:last-child{border-bottom:none}
+    .cb-label{color:var(--muted)}
+    .cb-val{font-weight:700;color:var(--navy)}
+
+    /* ── SUBMIT ──────────────────────────────── */
+    .submit-btn{width:100%;height:52px;background:var(--orange);color:#fff;border:none;
+      border-radius:10px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+      font-size:16px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      transition:.2s;margin-top:8px}
+    .submit-btn:hover{background:#fb8c00}
+    .submit-btn:disabled{background:#b0bec5;cursor:not-allowed}
+
+    /* ── SUMMARY PANEL ───────────────────────── */
+    .summary-panel{position:sticky;top:88px}
+    .summary-card{background:var(--navy);border-radius:12px;overflow:hidden;
+      box-shadow:0 4px 20px rgba(13,33,55,.18)}
+    .summary-header{padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .summary-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;
+      color:#fff;letter-spacing:.8px;text-transform:uppercase}
+    .summary-body{padding:20px}
+    .sum-row{display:flex;justify-content:space-between;align-items:flex-start;
+      padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+    .sum-row:last-child{border-bottom:none}
+    .sum-label{color:#90a4ae;font-size:11px;font-weight:600;text-transform:uppercase;
+      letter-spacing:.8px;margin-top:2px}
+    .sum-val{color:#fff;font-weight:600;text-align:right;max-width:180px;
+      word-break:break-word;font-size:13px}
+    .sum-val.mono{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800}
+
+    .price-display{margin-top:16px;background:rgba(245,124,0,.12);
+      border:1px solid rgba(245,124,0,.3);border-radius:10px;padding:16px 20px;text-align:center}
+    .price-label{font-size:10px;color:#90a4ae;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+    .price-amount{font-family:'Barlow Condensed',sans-serif;font-size:36px;
+      font-weight:800;color:var(--orange);letter-spacing:1px}
+    .price-sub{font-size:11px;color:#90a4ae;margin-top:4px}
+    .price-toll{font-size:12px;color:#90a4ae;margin-top:6px;padding-top:6px;
+      border-top:1px solid rgba(255,255,255,.08)}
+
+    .urgency-badge{display:inline-block;background:rgba(21,101,192,.2);color:#64b5f6;
+      border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;
+      letter-spacing:.5px;margin-left:6px;vertical-align:middle}
+
+    /* ── TRUCK VISUAL ────────────────────────── */
+    .truck-visual{background:rgba(255,255,255,.05);border-radius:10px;
+      padding:14px;margin-bottom:16px;text-align:center}
+    .truck-visual-icon{font-size:48px;margin-bottom:6px}
+    .truck-visual-name{font-family:'Barlow Condensed',sans-serif;font-size:18px;
+      font-weight:800;color:#fff;letter-spacing:.5px}
+    .truck-visual-class{font-size:11px;color:#90a4ae;margin-top:2px}
+
+    /* ── SUCCESS OVERLAY ─────────────────────── */
+    .success-overlay{display:none;position:fixed;inset:0;background:rgba(13,33,55,.7);
+      z-index:500;align-items:center;justify-content:center}
+    .success-overlay.show{display:flex}
+    .success-modal{background:#fff;border-radius:16px;padding:36px;text-align:center;
+      max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+    .success-icon{font-size:56px;margin-bottom:16px}
+    .success-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;
+      font-weight:800;color:var(--navy);margin-bottom:8px;letter-spacing:.5px}
+    .success-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+    .success-ref{font-family:'Barlow Condensed',sans-serif;font-size:24px;
+      font-weight:800;color:var(--orange);margin-bottom:24px}
+    .success-btns{display:flex;gap:10px;justify-content:center}
+    .success-btn{height:42px;padding:0 20px;border-radius:7px;border:none;cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;
+      letter-spacing:1px;text-transform:uppercase}
+    .success-btn-primary{background:var(--orange);color:#fff}
+    .success-btn-secondary{background:#eceff1;color:var(--navy)}
+
+    /* Google Maps autocomplete dropdown fix */
+    .pac-container {
+      z-index: 9999 !important;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.15);
+      border: 1px solid var(--border);
+      font-family: 'Barlow', sans-serif;
+    }
+    .pac-item {
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pac-item:hover { background: #f5f8ff }
+    .pac-item-query { font-weight: 600; color: var(--navy) }
+
+    @media(max-width:900px){
+      .page{grid-template-columns:1fr}
+      .summary-panel{position:static}
+      .truck-grid{grid-template-columns:repeat(3,1fr)}
+    }
+    @media(max-width:560px){
+      .topbar{padding:0 16px}
+      .page{padding:16px 12px 60px}
+      .type-tabs{grid-template-columns:1fr 1fr}
+      .truck-grid{grid-template-columns:repeat(3,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/images/mok-logo.png" alt="Mok Transports">
+    <div>
+      <div class="brand-name">Mok Transports Services (Pty) Ltd</div>
+      <div class="brand-sub">Truck Booking</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <a class="tbtn tbtn-ghost" id="backBtn" href="clientDashboard.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Dashboard
+    </a>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- ── LEFT: FORM ─────────────────────────── -->
+  <div class="form-card">
+    <div class="form-header">
+      <div class="form-header-icon">🚛</div>
+      <div>
+        <div class="form-header-title">Book a Truck</div>
+        <div class="form-header-sub">National & Cross Border freight — Mok Transports fleet</div>
+      </div>
+    </div>
+    <div class="form-body">
+
+      <!-- CLIENT INFO -->
+      <div class="section">
+        <div class="section-label">Client Details</div>
+        <div class="field-group">
+          <label class="field-label">Full Name / Company</label>
+          <input class="field-input" type="text" id="clientName" placeholder="e.g. Otis South Africa">
+        </div>
+        <div class="grid-2">
+          <div class="field-group">
+            <label class="field-label">Phone Number</label>
+            <input class="field-input" type="tel" id="clientPhone" placeholder="0XX XXX XXXX">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Email</label>
+            <input class="field-input" type="email" id="clientEmail" placeholder="name@company.com">
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Commodity / Description of Goods</label>
+          <input class="field-input" type="text" id="commodity" placeholder="e.g. Machinery, furniture, pallets…">
+        </div>
+      </div>
+
+      <!-- SHIPMENT TYPE -->
+      <div class="section">
+        <div class="section-label">Shipment Type</div>
+        <div class="type-tabs">
+          <button class="type-tab active" id="tab-national" onclick="setType('National')">
+            🇿🇦 National
+          </button>
+          <button class="type-tab" id="tab-cross" onclick="setType('Cross Border')">
+            🌍 Cross Border
+          </button>
+        </div>
+
+        <!-- DELIVERY TYPE -->
+        <div class="field-group">
+          <label class="field-label">Delivery Type</label>
+          <div class="delivery-tabs">
+            <button class="delivery-tab active" id="del-standard" onclick="setDelivery('Standard')">
+              🚛 Standard Delivery
+            </button>
+            <button class="delivery-tab" id="del-urgent" onclick="setDelivery('Dedicated')">
+              ⚡ Urgent / Dedicated <span style="font-size:10px;color:inherit">(+15%)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRUCK SELECTION -->
+      <div class="section">
+        <div class="section-label">Select Truck</div>
+        <div class="truck-grid">
+          <button class="truck-btn active" onclick="setVehicle('1 Tonner',this)">
+            <div class="truck-icon">🚐</div>
+            <div class="truck-name">1 Tonner</div>
+            <div class="truck-cap">≤1t</div>
+          </button>
+          <button class="truck-btn" onclick="setVehicle('4 Tonner',this)">
+            <div class="truck-icon">🚚</div>
+            <div class="truck-name">4 Tonner</div>
+            <div class="truck-cap">≤4t</div>
+          </button>
+          <button class="truck-btn" onclick="setVehicle('8 Tonner',this)">
+            <div class="truck-icon">🚛</div>
+            <div class="truck-name">8 Tonner</div>
+            <div class="truck-cap">≤8t</div>
+          </button>
+          <button class="truck-btn" onclick="setVehicle('Tri-Axle',this)">
+            <div class="truck-icon">🛻</div>
+            <div class="truck-name">Tri-Axle</div>
+            <div class="truck-cap">≤16t</div>
+          </button>
+          <button class="truck-btn" onclick="setVehicle('Super Link',this)">
+            <div class="truck-icon">🚜</div>
+            <div class="truck-name">Super Link</div>
+            <div class="truck-cap">≤34t</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- NATIONAL SECTION -->
+      <div id="section-national" class="section">
+        <div class="section-label">Route Details</div>
+        <div class="field-group">
+          <label class="field-label">Pickup Address (South Africa)</label>
+          <input class="field-input" id="pickup" type="text" placeholder="e.g. 12 Jupiter Road, Crown Mines, Johannesburg" autocomplete="off">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Delivery Address</label>
+          <input class="field-input" id="delivery" type="text" placeholder="e.g. 10 Long Street, Cape Town" autocomplete="off">
+        </div>
+        <button class="dist-btn" id="distBtn" onclick="calculateDistance()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 00-8 8c0 5.25 8 13 8 13s8-7.75 8-13a8 8 0 00-8-8z"/></svg>
+          Calculate Distance &amp; Tolls
+        </button>
+        <div class="dist-result" id="distResult">
+          <div class="dist-result-row">
+            <span class="dist-result-label">Distance</span>
+            <span class="dist-result-val" id="distKm">—</span>
+          </div>
+          <div class="dist-result-row">
+            <span class="dist-result-label">Est. Toll Cost</span>
+            <span class="dist-result-val" id="distToll">—</span>
+          </div>
+        </div>
+        <div id="mapContainer"></div>
+      </div>
+
+      <!-- CROSS BORDER SECTION -->
+      <div id="section-cross" class="section" style="display:none">
+        <div class="section-label">Cross Border Details</div>
+        <div class="dir-tabs">
+          <button class="dir-tab active" id="dir-sa-abroad" onclick="setCBDir('SA_TO_ABROAD')">🇿🇦 SA → Abroad</button>
+          <button class="dir-tab" id="dir-abroad-sa" onclick="setCBDir('ABROAD_TO_SA')">Abroad → 🇿🇦 SA</button>
+        </div>
+        <div class="grid-2" style="margin-bottom:14px">
+          <div class="field-group" style="margin-bottom:0">
+            <label class="field-label">Country</label>
+            <select class="field-select" id="cbCountry" onchange="onCountryChange()">
+              <option value="">Select Country</option>
+              <option value="Botswana">🇧🇼 Botswana</option>
+              <option value="Namibia">🇳🇦 Namibia</option>
+              <option value="Zimbabwe">🇿🇼 Zimbabwe</option>
+              <option value="Kenya">🇰🇪 Kenya</option>
+            </select>
+          </div>
+          <div class="field-group" style="margin-bottom:0">
+            <label class="field-label">City / Destination</label>
+            <select class="field-select" id="cbCity" onchange="updateCBPrice()">
+              <option value="">Select Country First</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" id="cbPickupLabel">Pickup Address (South Africa)</label>
+          <input class="field-input" id="cbPickup" type="text" placeholder="SA pickup address" autocomplete="off">
+        </div>
+        <div class="field-group">
+          <label class="field-label" id="cbDeliveryLabel">Delivery Address (Destination)</label>
+          <input class="field-input" id="cbDelivery" type="text" placeholder="Delivery address" autocomplete="off">
+        </div>
+        <button class="dist-btn" id="cbDistBtn" onclick="calculateCBDistance()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 00-8 8c0 5.25 8 13 8 13s8-7.75 8-13a8 8 0 00-8-8z"/></svg>
+          Get Exact Distance (Optional)
+        </button>
+        <div class="cb-price-box" id="cbPriceBox">
+          <div class="cb-row"><span class="cb-label">Base Rate</span><span class="cb-val" id="cbBaseRate">—</span></div>
+          <div class="cb-row"><span class="cb-label">Border Crossing Fee</span><span class="cb-val" id="cbBorderFee">—</span></div>
+          <div class="cb-row" id="cbSurchargeRow" style="display:none">
+            <span class="cb-label">Distance Surcharge</span><span class="cb-val" id="cbSurcharge">—</span>
+          </div>
+          <div class="cb-row" id="cbNoteRow" style="display:none">
+            <span class="cb-label" id="cbNote" style="font-style:italic;font-size:11px"></span>
+          </div>
+          <div class="cb-row" style="margin-top:4px">
+            <span class="cb-label" style="font-weight:700;color:var(--navy)">Total</span>
+            <span class="cb-val" style="color:var(--orange);font-size:15px" id="cbTotal">—</span>
+          </div>
+        </div>
+        <div id="mapContainerCB"></div>
+      </div>
+
+      <!-- SUBMIT -->
+      <button class="submit-btn" id="submitBtn" onclick="submitBooking()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Confirm Truck Booking
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ── RIGHT: SUMMARY ─────────────────────── -->
+  <div class="summary-panel">
+    <div class="summary-card">
+      <div class="summary-header">
+        <div class="summary-title">Booking Summary</div>
+      </div>
+      <div class="summary-body">
+
+        <div class="truck-visual">
+          <div class="truck-visual-icon" id="sumTruckIcon">🚐</div>
+          <div class="truck-visual-name" id="sumTruckName">1 Tonner</div>
+          <div class="truck-visual-class" id="sumTruckClass">Toll Class 1</div>
+        </div>
+
+        <div class="sum-row">
+          <span class="sum-label">Type</span>
+          <span class="sum-val" id="sumType">National</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-label">Delivery</span>
+          <span class="sum-val" id="sumDelivery">Standard</span>
+        </div>
+        <div class="sum-row" id="sumRouteRow" style="display:none">
+          <span class="sum-label">Route</span>
+          <span class="sum-val" id="sumRoute">—</span>
+        </div>
+        <div class="sum-row" id="sumDistRow" style="display:none">
+          <span class="sum-label">Distance</span>
+          <span class="sum-val mono" id="sumDist">—</span>
+        </div>
+        <div class="sum-row" id="sumTollRow" style="display:none">
+          <span class="sum-label">Est. Tolls</span>
+          <span class="sum-val mono" id="sumToll">—</span>
+        </div>
+        <div class="sum-row" id="sumCBRow" style="display:none">
+          <span class="sum-label">Destination</span>
+          <span class="sum-val" id="sumCB">—</span>
+        </div>
+
+        <div class="price-display" id="priceDisplay" style="display:none">
+          <div class="price-label">Estimated Price (Excl. VAT)</div>
+          <div class="price-amount" id="priceAmount">R 0</div>
+          <div class="price-sub" id="priceSub">Base rate only</div>
+          <div class="price-toll" id="priceTollNote" style="display:none"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-modal">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Booking Confirmed!</div>
+    <div class="success-ref" id="successRef">MOK-T001</div>
+    <div class="success-sub" id="successMsg">Your truck booking has been submitted. Mok Transports will contact you to confirm arrangements.</div>
+    <div class="success-btns">
+      <button class="success-btn success-btn-primary" onclick="newBooking()">New Booking</button>
+      <button class="success-btn success-btn-secondary" id="dashBtn">Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── GOOGLE MAPS API KEY ───────────────────────
+// Set your key here — replace with your actual key
+const GOOGLE_KEY = 'AIzaSyBYRH4p5TFXM5irgQh0N0eRxDMNiGK5ZGU';
+
+// ── PRICING DATA (from pricing.js) ───────────
+const nationalRates = {
+  "1 Tonner":  {50:3248, 100:4524, 150:5974, 200:6786, 250:7099},
+  "4 Tonner":  {50:4582, 100:6728, 150:8097, 200:8410, 250:8758},
+  "8 Tonner":  {50:6474, 100:10205,150:12415,200:12805,250:13325},
+  "Tri-Axle":  {50:9018, 100:11475,150:15525,200:17280,250:18225},
+  "Super Link":{50:12320,100:16100,150:19530,200:20300,250:24500},
+};
+const perKmRates = {"1 Tonner":12,"4 Tonner":18,"8 Tonner":24,"Tri-Axle":30,"Super Link":38};
+
+const crossBorderRates = {
+  Botswana:{flag:"🇧🇼",expectedKm:{Gaborone:360,Jwaneng:450,Francistown:620},
+    cities:{Gaborone:{"1 Tonner":9850,"4 Tonner":11850,"8 Tonner":16850,"Tri-Axle":22500,"Super Link":26500},
+            Jwaneng:{"1 Tonner":11850,"4 Tonner":14850,"8 Tonner":19850,"Tri-Axle":40850,"Super Link":48250},
+            Francistown:{"1 Tonner":11850,"4 Tonner":16850,"8 Tonner":19850,"Tri-Axle":27850,"Super Link":29850}}},
+  Namibia:{flag:"🇳🇦",expectedKm:{Windhoek:1480,Swakopmund:1700},
+    cities:{Windhoek:{"1 Tonner":11850,"4 Tonner":16850,"8 Tonner":21850,"Tri-Axle":28500,"Super Link":42850},
+            Swakopmund:{"1 Tonner":13850,"4 Tonner":17800,"8 Tonner":25850,"Tri-Axle":42800,"Super Link":49850}}},
+  Zimbabwe:{flag:"🇿🇼",expectedKm:{Harare:1200,Bulawayo:900},
+    cities:{Harare:{"1 Tonner":14500,"4 Tonner":18500,"8 Tonner":24500,"Tri-Axle":32000,"Super Link":42000},
+            Bulawayo:{"1 Tonner":12500,"4 Tonner":16500,"8 Tonner":21500,"Tri-Axle":28000,"Super Link":37000}}},
+  Kenya:{flag:"🇰🇪",expectedKm:{Nairobi:3200,Mombasa:3600},
+    cities:{Nairobi:{"1 Tonner":28000,"4 Tonner":36000,"8 Tonner":48000,"Tri-Axle":62000,"Super Link":78000},
+            Mombasa:{"1 Tonner":32000,"4 Tonner":42000,"8 Tonner":55000,"Tri-Axle":70000,"Super Link":88000}}},
+};
+
+const vehicleTollClass = {"1 Tonner":1,"4 Tonner":2,"8 Tonner":3,"Tri-Axle":3,"Super Link":4};
+const truckIcons  = {"1 Tonner":"🚐","4 Tonner":"🚚","8 Tonner":"🚛","Tri-Axle":"🛻","Super Link":"🚜"};
+const truckClass  = {"1 Tonner":"Toll Class 1","4 Tonner":"Toll Class 2","8 Tonner":"Toll Class 3","Tri-Axle":"Toll Class 3","Super Link":"Toll Class 4"};
+
+// ── STATE ─────────────────────────────────────
+const API = 'https://bookings.moktransports.com/api';
+let state = {
+  type:'National', vehicle:'1 Tonner', deliveryType:'Standard',
+  distance:null, tollCost:0, cbDistance:null,
+  cbCountry:'', cbCity:'', cbDir:'SA_TO_ABROAD',
+  cbResult:null, mapsLoaded:false, map:null, mapCB:null,
+  dirRenderer:null, dirRendererCB:null
+};
+
+// ── SESSION ───────────────────────────────────
+const session = JSON.parse(localStorage.getItem('mokSession')||'null');
+if (session) {
+  document.getElementById('clientName').value  = session.company || session.name || '';
+  document.getElementById('clientEmail').value = session.email   || '';
+  // Clients go back to client dashboard, staff to staff dashboard
+  document.getElementById('backBtn').href =
+    session.role === 'client' ? 'clientDashboard.html' : 'dashboard.html';
+  document.getElementById('dashBtn').onclick = () =>
+    window.location.href = session.role === 'client' ? 'clientDashboard.html' : 'dashboard.html';
+}
+
+// ── LOAD GOOGLE MAPS ──────────────────────────
+function loadGoogleMaps() {
+  if (window.google) { state.mapsLoaded=true; initAutocomplete(); return; }
+  const s = document.createElement('script');
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_KEY}&libraries=places&callback=onMapsLoaded`;
+  s.async = true; s.defer = true;
+  document.head.appendChild(s);
+}
+window.onMapsLoaded = function() {
+  state.mapsLoaded = true;
+  initAutocomplete();
+};
+function initAutocomplete() {
+  const opts = { componentRestrictions:{ country:[] } };
+  ['pickup','delivery','cbPickup','cbDelivery'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) new google.maps.places.Autocomplete(el, opts);
+  });
+}
+loadGoogleMaps();
+
+// ── TYPE SWITCH ───────────────────────────────
+function setType(t) {
+  state.type = t;
+  state.distance = null; state.tollCost = 0; state.cbResult = null;
+  document.getElementById('section-national').style.display = t==='National'?'block':'none';
+  document.getElementById('section-cross').style.display    = t==='Cross Border'?'block':'none';
+  document.getElementById('tab-national').classList.toggle('active', t==='National');
+  document.getElementById('tab-cross').classList.toggle('active', t==='Cross Border');
+  document.getElementById('sumType').textContent = t;
+  document.getElementById('distResult').classList.remove('show');
+  document.getElementById('cbPriceBox').classList.remove('show');
+  document.getElementById('mapContainer').classList.remove('show');
+  document.getElementById('sumDistRow').style.display='none';
+  document.getElementById('sumTollRow').style.display='none';
+  document.getElementById('sumRouteRow').style.display='none';
+  document.getElementById('sumCBRow').style.display='none';
+  document.getElementById('priceDisplay').style.display='none';
+}
+
+// ── VEHICLE SWITCH ────────────────────────────
+function setVehicle(v, btn) {
+  state.vehicle = v;
+  document.querySelectorAll('.truck-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sumTruckIcon').textContent  = truckIcons[v];
+  document.getElementById('sumTruckName').textContent  = v;
+  document.getElementById('sumTruckClass').textContent = truckClass[v];
+  // Recalc if data exists
+  if (state.type==='National' && state.distance) updateNationalPrice();
+  if (state.type==='Cross Border' && state.cbCountry && state.cbCity) updateCBPrice();
+}
+
+// ── DELIVERY TYPE ─────────────────────────────
+function setDelivery(d) {
+  state.deliveryType = d;
+  document.getElementById('del-standard').classList.toggle('active',d==='Standard');
+  document.getElementById('del-urgent').classList.toggle('active',d==='Dedicated');
+  document.getElementById('sumDelivery').textContent =
+    d==='Dedicated' ? 'Urgent / Dedicated (+15%)' : 'Standard';
+  if (state.type==='National' && state.distance) updateNationalPrice();
+}
+
+// ── CB DIRECTION ──────────────────────────────
+function setCBDir(dir) {
+  state.cbDir = dir;
+  document.getElementById('dir-sa-abroad').classList.toggle('active',dir==='SA_TO_ABROAD');
+  document.getElementById('dir-abroad-sa').classList.toggle('active',dir==='ABROAD_TO_SA');
+  document.getElementById('cbPickupLabel').textContent  =
+    dir==='SA_TO_ABROAD' ? 'Pickup Address (South Africa)' : 'Pickup Address (Abroad)';
+  document.getElementById('cbDeliveryLabel').textContent =
+    dir==='SA_TO_ABROAD' ? 'Delivery Address (Destination Country)' : 'Delivery Address (South Africa)';
+}
+
+// ── COUNTRY CHANGE ────────────────────────────
+function onCountryChange() {
+  const country = document.getElementById('cbCountry').value;
+  state.cbCountry = country; state.cbCity = '';
+  const citySelect = document.getElementById('cbCity');
+  citySelect.innerHTML = '<option value="">Select City</option>';
+  if (country && crossBorderRates[country]) {
+    Object.keys(crossBorderRates[country].cities).forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      citySelect.appendChild(o);
+    });
+  }
+  document.getElementById('cbPriceBox').classList.remove('show');
+  document.getElementById('priceDisplay').style.display='none';
+}
+
+// ── NATIONAL DISTANCE CALC ────────────────────
+function calculateDistance() {
+  const pickup   = document.getElementById('pickup').value;
+  const delivery = document.getElementById('delivery').value;
+  if (!pickup || !delivery) { alert('Enter both pickup and delivery addresses.'); return; }
+  if (!state.mapsLoaded) { alert('Google Maps is still loading. Please wait.'); return; }
+
+  const btn = document.getElementById('distBtn');
+  btn.textContent = 'Calculating…'; btn.disabled = true;
+
+  const svc = new google.maps.DirectionsService();
+  svc.route({origin:pickup, destination:delivery, travelMode:google.maps.TravelMode.DRIVING},
+    (result, status) => {
+      btn.disabled = false;
+      if (status !== 'OK') {
+        btn.textContent = '📍 Calculate Distance & Tolls';
+        alert('Could not calculate route. Check the addresses.'); return;
+      }
+      const km = Math.round(result.routes[0].legs[0].distance.value / 1000);
+      state.distance = km;
+
+      // Tolls
+      const toll = estimateTolls(pickup, delivery, state.vehicle, km);
+      state.tollCost = toll.total;
+
+      // Show distance result
+      document.getElementById('distKm').textContent  = `${km} km`;
+      document.getElementById('distToll').textContent =
+        `R ${toll.total.toLocaleString()}${toll.estimated?' (est.)':''}`;
+      document.getElementById('distResult').classList.add('show');
+
+      // Map
+      const mapEl = document.getElementById('mapContainer');
+      mapEl.classList.add('show');
+      if (!state.map) {
+        state.map = new google.maps.Map(mapEl, {zoom:7,center:{lat:-26.2,lng:28.0}});
+        state.dirRenderer = new google.maps.DirectionsRenderer({map:state.map});
+      }
+      state.dirRenderer.setDirections(result);
+
+      // Summary panel
+      document.getElementById('sumRouteRow').style.display='flex';
+      document.getElementById('sumRoute').textContent = `${pickup.split(',')[0]} → ${delivery.split(',')[0]}`;
+      document.getElementById('sumDistRow').style.display='flex';
+      document.getElementById('sumDist').textContent = `${km} km`;
+      document.getElementById('sumTollRow').style.display='flex';
+      document.getElementById('sumToll').textContent = `R ${toll.total.toLocaleString()}`;
+
+      btn.classList.add('calculated');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${km} km calculated`;
+
+      updateNationalPrice();
+    }
+  );
+}
+
+function updateNationalPrice() {
+  if (!state.distance) return;
+  let base = getNationalRate(state.vehicle, state.distance);
+  if (state.deliveryType === 'Dedicated') base = Math.round(base * 1.15);
+  const total = base + state.tollCost;
+  const vat   = Math.round(total * 0.15);
+
+  document.getElementById('priceDisplay').style.display = 'block';
+  document.getElementById('priceAmount').textContent = `R ${base.toLocaleString()}`;
+  document.getElementById('priceSub').textContent =
+    state.deliveryType==='Dedicated' ? 'Urgent rate (base + 15%)' : 'Base rate excl. VAT & tolls';
+  document.getElementById('priceTollNote').style.display = 'block';
+  document.getElementById('priceTollNote').textContent =
+    `+ Tolls: R ${state.tollCost.toLocaleString()} | Total incl. tolls: R ${total.toLocaleString()}`;
+}
+
+function getNationalRate(vehicle, km) {
+  const brackets = [50,100,150,200,250];
+  const rates = nationalRates[vehicle];
+  if (!rates) return 0;
+  for (const b of brackets) { if (km <= b) return rates[b]; }
+  return Math.round(rates[250] + (km-250) * (perKmRates[vehicle]||20));
+}
+
+// ── CB DISTANCE ───────────────────────────────
+function calculateCBDistance() {
+  const pickup   = document.getElementById('cbPickup').value;
+  const delivery = document.getElementById('cbDelivery').value;
+  if (!pickup || !delivery) { alert('Enter both addresses.'); return; }
+  if (!state.mapsLoaded) { alert('Google Maps still loading.'); return; }
+
+  const btn = document.getElementById('cbDistBtn');
+  btn.textContent = 'Calculating…'; btn.disabled = true;
+
+  new google.maps.DirectionsService().route(
+    {origin:pickup, destination:delivery, travelMode:google.maps.TravelMode.DRIVING},
+    (result, status) => {
+      btn.disabled = false;
+      btn.textContent = 'Get Exact Distance (Optional)';
+      if (status !== 'OK') { alert('Could not calculate route.'); return; }
+      const km = Math.round(result.routes[0].legs[0].distance.value / 1000);
+      state.cbDistance = km;
+
+      const mapEl = document.getElementById('mapContainerCB');
+      mapEl.style.cssText = 'width:100%;height:280px;border-radius:10px;margin-top:12px;border:1px solid var(--border)';
+      if (!state.mapCB) {
+        state.mapCB = new google.maps.Map(mapEl, {zoom:6,center:{lat:-26.2,lng:28.0}});
+        state.dirRendererCB = new google.maps.DirectionsRenderer({map:state.mapCB});
+      }
+      state.dirRendererCB.setDirections(result);
+      updateCBPrice();
+    }
+  );
+}
+
+// ── CB PRICE ──────────────────────────────────
+function updateCBPrice() {
+  const country = document.getElementById('cbCountry').value;
+  const city    = document.getElementById('cbCity').value;
+  state.cbCountry = country; state.cbCity = city;
+
+  if (!country || !city) return;
+  const countryData = crossBorderRates[country];
+  if (!countryData) return;
+  const baseRate = countryData.cities[city]?.[state.vehicle];
+  if (!baseRate) return;
+
+  const borderFee   = 2500;
+  const expectedKm  = countryData.expectedKm[city] || 0;
+  let distSurcharge = 0; let note = '';
+
+  if (state.cbDistance && expectedKm) {
+    const over = state.cbDistance - expectedKm;
+    const threshold = expectedKm * 0.10;
+    if (over > threshold) {
+      distSurcharge = Math.round(over * 8);
+      note = `Distance surcharge: ${state.cbDistance}km vs expected ${expectedKm}km`;
+    }
+  }
+
+  const total = baseRate + borderFee + distSurcharge;
+  state.cbResult = {price:total, baseRate, borderFee, distSurcharge, note};
+
+  document.getElementById('cbBaseRate').textContent  = `R ${baseRate.toLocaleString()}`;
+  document.getElementById('cbBorderFee').textContent = `R ${borderFee.toLocaleString()}`;
+  document.getElementById('cbTotal').textContent     = `R ${total.toLocaleString()}`;
+
+  if (distSurcharge > 0) {
+    document.getElementById('cbSurchargeRow').style.display='flex';
+    document.getElementById('cbSurcharge').textContent = `R ${distSurcharge.toLocaleString()}`;
+  }
+  if (note) {
+    document.getElementById('cbNoteRow').style.display='flex';
+    document.getElementById('cbNote').textContent = note;
+  }
+
+  document.getElementById('cbPriceBox').classList.add('show');
+  document.getElementById('sumCBRow').style.display='flex';
+  document.getElementById('sumCB').textContent = `${country} — ${city}`;
+
+  document.getElementById('priceDisplay').style.display='block';
+  document.getElementById('priceAmount').textContent = `R ${total.toLocaleString()}`;
+  document.getElementById('priceSub').textContent = 'Incl. border fee excl. VAT';
+  document.getElementById('priceTollNote').style.display='none';
+}
+
+// ── TOLL ESTIMATOR ────────────────────────────
+function estimateTolls(pickup, delivery, vehicle, km) {
+  const cls = vehicleTollClass[vehicle] || 1;
+  const perKm = [2.5,5.5,7.5,9.5];
+  const text = (pickup+' '+delivery).toLowerCase();
+
+  // Route key detection
+  let routeKeys = [];
+  if (/durban|kwazulu|dbn/.test(text)) routeKeys=['N3'];
+  else if (/cape town|western cape|cpt/.test(text)) routeKeys=['N1_VAAL','N1_HUGUENOT'];
+  else if (/nelspruit|mbombela|mozambique/.test(text)) routeKeys=['N4'];
+  else if (/rustenburg|sun city/.test(text)) routeKeys=['N4_MAGALIES'];
+  else if (/polokwane|limpopo|bela-bela/.test(text)) routeKeys=['N1','N1_NORTH'];
+  else if (/pretoria|tshwane|centurion/.test(text)) routeKeys=['N1'];
+  else if (/witbank|emalahleni|secunda/.test(text)) routeKeys=['N4'];
+  else if (/east london|eastern cape/.test(text)) routeKeys=['N3'];
+  else if (/richards bay/.test(text)) routeKeys=['N3','N2'];
+  else {
+    const estimate = Math.round(km * (perKm[cls-1]||2.5));
+    return {total:estimate,estimated:true};
+  }
+
+  // Toll plaza data (key plazas only for brevity — extend as needed)
+  const tollData = {
+    N1:[{c1:12,c2:30.5,c3:35,c4:42},{c1:14.5,c2:36,c3:42,c4:51},{c1:16,c2:40,c3:46,c4:55},{c1:7.2,c2:18,c3:22,c4:25},{c1:14.5,c2:36,c3:44,c4:50},{c1:34,c2:116,c3:126,c4:145},{c1:73,c2:196,c3:216,c4:249},{c1:31.5,c2:85,c3:94,c4:108}],
+    N3:[{c1:67,c2:165,c3:231,c4:313},{c1:20,c2:49,c3:69,c4:94},{c1:29,c2:34,c3:63,c4:96},{c1:96,c2:159,c3:251,c4:347},{c1:60,c2:99,c3:147,c4:204},{c1:90,c2:155,c3:207,c4:294},{c1:65,c2:101,c3:154,c4:222}],
+    N4:[{c1:19.5,c2:49,c3:56,c4:68},{c1:19.5,c2:49,c3:56,c4:68},{c1:19.5,c2:68,c3:74,c4:87},{c1:29,c2:70,c3:79,c4:93},{c1:99,c2:249,c3:302,c4:355},{c1:81,c2:176,c3:268,c4:352},{c1:122,c2:338,c3:493,c4:704}],
+    N1_NORTH:[{c1:60,c2:152,c3:203,c4:249},{c1:77,c2:144,c3:174,c4:233},{c1:62,c2:170,c3:198,c4:248},{c1:60,c2:163,c3:224,c4:269}],
+    N2:[{c1:40,c2:70,c3:96,c4:157},{c1:15,c2:31,c3:41,c4:59},{c1:18,c2:50,c3:67,c4:101},{c1:62,c2:118,c3:141,c4:210}],
+    N1_VAAL:[{c1:76,c2:152,c3:229,c4:321},{c1:89,c2:167,c3:200,c4:267},{c1:27,c2:80,c3:92,c4:122}],
+    N1_HUGUENOT:[{c1:53,c2:146,c3:229,c4:371}],
+    N4_MAGALIES:[{c1:8,c2:15,c3:20,c4:26},{c1:6,c2:11,c3:15,c4:20}],
+  };
+
+  const ck = `c${cls}`;
+  let total = 0;
+  for (const rk of routeKeys) {
+    const plazas = tollData[rk] || [];
+    plazas.forEach(p => total += (p[ck]||0));
+  }
+  return {total:Math.round(total), estimated:false};
+}
+
+// ── SUBMIT ────────────────────────────────────
+function submitBooking() {
+  const name   = document.getElementById('clientName').value.trim();
+  const phone  = document.getElementById('clientPhone').value.trim();
+  const email  = document.getElementById('clientEmail').value.trim();
+  const commodity = document.getElementById('commodity').value.trim();
+
+  if (!name || !phone) { alert('Please enter client name and phone number.'); return; }
+
+  if (state.type==='National' && !state.distance) {
+    alert('Please calculate the distance first.'); return;
+  }
+  if (state.type==='Cross Border' && (!state.cbCountry || !state.cbCity)) {
+    alert('Please select a country and city.'); return;
+  }
+
+  const price = state.type==='National'
+    ? (() => { let b=getNationalRate(state.vehicle,state.distance); if(state.deliveryType==='Dedicated') b=Math.round(b*1.15); return b; })()
+    : (state.cbResult?.price || 0);
+
+  if (!price) { alert('Could not calculate price. Please check all details.'); return; }
+
+  // Generate reference
+  let n = Number(localStorage.getItem('mokTruckBooking')||1000);
+  n++;
+  localStorage.setItem('mokTruckBooking', n);
+  const ref = `TRK-${n}`;
+
+  const route = state.type==='National'
+    ? `${document.getElementById('pickup').value.split(',')[0]} → ${document.getElementById('delivery').value.split(',')[0]}`
+    : `SA → ${state.cbCity}, ${state.cbCountry}`;
+
+  document.getElementById('successRef').textContent = ref;
+  document.getElementById('successMsg').textContent =
+    `Truck: ${state.vehicle} | ${route} | R ${price.toLocaleString()} excl. VAT. Mok Transports will contact you to confirm arrangements.`;
+  document.getElementById('successOverlay').classList.add('show');
+}
+
+function newBooking() {
+  document.getElementById('successOverlay').classList.remove('show');
+  document.getElementById('clientPhone').value = '';
+  document.getElementById('commodity').value   = '';
+  state.distance = null; state.tollCost = 0; state.cbResult = null;
+  document.getElementById('distResult').classList.remove('show');
+  document.getElementById('cbPriceBox').classList.remove('show');
+  document.getElementById('mapContainer').classList.remove('show');
+  document.getElementById('priceDisplay').style.display='none';
+  document.getElementById('distBtn').classList.remove('calculated');
+  document.getElementById('distBtn').innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 00-8 8c0 5.25 8 13 8 13s8-7.75 8-13a8 8 0 00-8-8z"/></svg> Calculate Distance & Tolls`;
+  document.getElementById('pickup').value=''; document.getElementById('delivery').value='';
+  document.getElementById('cbCountry').value=''; document.getElementById('cbCity').innerHTML='<option value="">Select Country First</option>';
+  document.getElementById('sumRouteRow').style.display='none';
+  document.getElementById('sumDistRow').style.display='none';
+  document.getElementById('sumTollRow').style.display='none';
+  document.getElementById('sumCBRow').style.display='none';
+}
+</script>
+
+<!-- Load Google Maps after script so callback is defined -->
+</body>
+</html>
+
+
+

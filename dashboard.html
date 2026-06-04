@@ -665,6 +665,69 @@
       margin-bottom: 8px
     }
 
+    .shipment-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .shipment-modal {
+      background: white;
+      width: 850px;
+      max-width: 95%;
+      border-radius: 16px;
+      padding: 30px;
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .service-card {
+      text-decoration: none;
+      color: #1a2535;
+      border: 1px solid #dce3ec;
+      border-radius: 14px;
+      padding: 24px;
+      transition: .2s;
+    }
+
+    .service-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .local {
+      border-top: 5px solid #f57c00;
+    }
+
+    .international {
+      border-top: 5px solid #1565c0;
+    }
+
+    .freight {
+      border-top: 5px solid #2e7d32;
+    }
+
+    .service-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .service-desc {
+      color: #607d8b;
+      font-size: 13px;
+    }
+
+
+
     .client-select {
       width: 100%;
       height: 44px;
@@ -843,7 +906,7 @@
         Dashboard
       </a>
 
-      <a class="nav-item" href="booking.html">
+      <a class="nav-item" href="#" onclick="openShipmentServices(); return false;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 5v14M5 12h14" />
         </svg>
@@ -919,7 +982,9 @@
 
       <div class="topbar-actions">
         <a class="btn-primary dark" href="waybills.html">Waybills</a>
-        <a class="btn-primary" href="booking.html">New Shipment</a>
+        <a class="btn-primary" href="#" onclick="openShipmentServices(); return false;">
+          New Shipment
+        </a>
       </div>
     </div>
 
@@ -995,15 +1060,31 @@
 
         <div class="quick-actions">
 
-          <a class="action-tile" href="booking.html">
+          <div class="action-tile" onclick="openShipmentServices()" style="cursor:pointer;">
             <div class="action-icon blue">
               <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2.2">
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </div>
             <div>
-              <div class="action-label">New Shipment</div>
-              <div class="action-desc">Create a booking and generate a waybill</div>
+              <div class="action-label">Create Shipment</div>
+              <div class="action-desc">Local Courier, International DHL and Truck Freight</div>
+            </div>
+            <div class="arrow">›</div>
+          </div>
+
+          <a class="action-tile" href="trucking.html">
+            <div class="action-icon" style="background:#fff3e0">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2">
+                <rect x="1" y="3" width="15" height="13" rx="1"/>
+                <path d="M16 8h4l3 5v3h-7V8z"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/>
+                <circle cx="18.5" cy="18.5" r="2.5"/>
+              </svg>
+            </div>
+            <div>
+              <div class="action-label">Truck Booking</div>
+              <div class="action-desc">National & Cross Border truck freight</div>
             </div>
             <div class="arrow">›</div>
           </a>
@@ -1050,53 +1131,34 @@
             <div class="arrow">›</div>
           </div>
 
-          <<a class="action-tile" href="statements.html">
-
-            <div class="action-icon purple">
-
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6a1b9a" stroke-width="2">
-
+          <a class="action-tile" href="statements.html">
+            <div class="action-icon" style="background:#e8f5e9">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-
-                <polyline points="14 2 14 8 20 8" />
-
                 <line x1="9" y1="13" x2="15" y2="13" />
-
                 <line x1="9" y1="17" x2="15" y2="17" />
-
               </svg>
-
             </div>
-
             <div>
-
-              <div class="action-label">
-                Client Statements
-              </div>
-
-              <div class="action-desc">
-                Generate finance statements
-              </div>
-
+              <div class="action-label">Client Statements</div>
+              <div class="action-desc">Generate finance statements</div>
             </div>
-
             <div class="arrow">›</div>
+          </a>
 
-            </a>
-
-            <a class="action-tile" href="track.html">
-              <div class="action-icon teal">
-                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </div>
-              <div>
-                <div class="action-label">Track Shipments</div>
-                <div class="action-desc">Tracking module for weekend rollout</div>
-              </div>
-              <div class="arrow">›</div>
-            </a>
+          <a class="action-tile" href="track.html">
+            <div class="action-icon teal">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </div>
+            <div>
+              <div class="action-label">Track Shipments</div>
+              <div class="action-desc">Real-time shipment tracking</div>
+            </div>
+            <div class="arrow">›</div>
+          </a>
 
         </div>
 
@@ -1403,6 +1465,15 @@
       window.location.href = 'invoice.html';
     }
 
+    function openShipmentServices() {
+      const modal = document.getElementById("shipmentModal");
+      modal.style.display = "flex";
+    }
+
+    function closeShipmentServices() {
+      const modal = document.getElementById("shipmentModal");
+      modal.style.display = "none";
+    }
     loadDashboard();
   </script>
 
@@ -1434,9 +1505,49 @@
       </div>
     </div>
   </div>
+
+  <div id="shipmentModal" class="shipment-overlay" style="display:none;">
+    <div class="shipment-modal">
+
+      <h3>Select Shipment Service</h3>
+
+      <div class="service-grid">
+
+        <a href="booking.html" class="service-card local">
+          <div class="service-title">📦 Local Shipments</div>
+          <div class="service-desc">
+            JKJ Express Courier Services
+          </div>
+        </a>
+
+        <a href="imports.html" class="service-card international">
+          <div class="service-title">🌍 International Shipments</div>
+          <div class="service-desc">
+            DHL Express International
+          </div>
+        </a>
+
+        <a href="truck-freight.html" class="service-card freight">
+          <div class="service-title">🚛 Truck Freight</div>
+          <div class="service-desc">
+            Mok Transports Fleet Operations
+          </div>
+        </a>
+
+      </div>
+
+      <button onclick="closeShipmentServices()">
+        Close
+      </button>
+
+    </div>
+  </div>
 </body>
 
 </html>
+
+
+
 
 
 
