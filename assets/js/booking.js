@@ -188,13 +188,14 @@ function calculatePrice(service, chargeable, fromAddress, toAddress) {
 // ----------------------------------------------------------
 // 4. WAYBILL NUMBER GENERATOR — sequential MOK000001, MOK000002 …
 // ----------------------------------------------------------
+/*
 function generateWaybillNumber() {
   const current = parseInt(localStorage.getItem("mokWaybillCounter") || "0", 10);
   const next = current + 1;
   localStorage.setItem("mokWaybillCounter", String(next));
   return `MOK${String(next).padStart(6, "0")}`;
 }
-
+*/
 // ----------------------------------------------------------
 // 5. TABLE ROW MANAGEMENT
 // ----------------------------------------------------------

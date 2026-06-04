@@ -33,39 +33,122 @@ function calculateWeights() {
 
 /* ================= COST ================= */
 function calculateCost() {
-  const chargeable = Number(chargeWeight.innerText || 0);
-  const rate = Number(rate.value || 0);
-  const fuel = Number(fuel.value || 0);
+
+  const chargeable =
+    Number(document.getElementById("chargeWeight")?.innerText || 0);
+
+  const rate =
+    Number(document.getElementById("rate")?.value || 0);
+
+  const fuel =
+    Number(document.getElementById("fuel")?.value || 0);
 
   const total = (chargeable * rate) + fuel;
-  totalCost.innerText = total.toFixed(2);
+
+  document.getElementById("totalCost").innerText =
+    total.toFixed(2);
+
+}
+
+
+function collectBookingData() {
+
+  return {
+
+    shipmentDirection:
+      document.getElementById("shipmentDirection")?.value || "EXPORT",
+
+    fromCountry:
+      document.getElementById("fromCountry")?.value || "ZA",
+
+    toCountry:
+      document.getElementById("toCountry")?.value || "ZA",
+
+    declaredValue:
+      document.getElementById("declaredValue")?.value || 0,
+
+    currency:
+      document.getElementById("currency")?.value || "ZAR",
+
+    incoterm:
+      document.getElementById("incoterm")?.value || "DAP",
+
+    contentsType:
+      document.getElementById("contentsType")?.value || "",
+
+    shipmentDescription:
+      document.getElementById("shipmentDescription")?.value || "",
+
+    consignorCompany:
+      document.getElementById("consignorCompany")?.value || "",
+
+    consignorContactName:
+      document.getElementById("consignorContactName")?.value || "",
+
+    consigneeCompany:
+      document.getElementById("consigneeCompany")?.value || "",
+
+    consigneeContactName:
+      document.getElementById("consigneeContactName")?.value || "",
+
+    consignorPhone:
+      document.getElementById("consignorPhone")?.value || "",
+
+    consigneePhone:
+      document.getElementById("consigneePhone")?.value || "",
+
+    consignorEmail:
+      document.getElementById("consignorEmail")?.value || "",
+
+    consigneeEmail:
+      document.getElementById("consigneeEmail")?.value || "",
+
+    pieces:
+      document.getElementById("pieces")?.value || 1,
+
+    actualWeight:
+      document.getElementById("actualWeight")?.value || 0,
+
+    volumetricWeight:
+      document.getElementById("volWeight")?.innerText || 0,
+
+    chargeableWeight:
+      document.getElementById("chargeWeight")?.innerText || 0,
+
+    totalCost:
+      document.getElementById("totalCost")?.innerText || 0
+
+  };
+
 }
 
 /* ================= SAVE ================= */
 function saveInternationalShipment() {
+
   const id = "INT-" + Date.now();
 
-  const data = {
-    id,
-    shipmentCategory: "International",
-    shipmentType: document.querySelector('input[name="shipmentType"]:checked')?.value,
-    contentType: document.querySelector('input[name="contentType"]:checked')?.value,
-    documentType: document.getElementById("documentType")?.value || null,
-    packageType: document.getElementById("packageType")?.value || null,
-    transportMode: transportMode.value,
+  const data = collectBookingData();
 
-    pieces: pieces.value,
-    actualWeight: actualWeight.value,
-    volumetricWeight: volWeight.innerText,
-    chargeableWeight: chargeWeight.innerText,
-    totalCost: totalCost.innerText,
+  data.id = id;
+  data.shipmentCategory = "International";
+  data.createdAt = new Date().toLocaleString();
 
-    createdAt: new Date().toLocaleString()
-  };
+  localStorage.setItem(
+    "shipment_" + id,
+    JSON.stringify(data)
+  );
 
-  localStorage.setItem("shipment_" + id, JSON.stringify(data));
-  M.toast({ html: "International shipment saved" });
+  console.log("DHL SHIPMENT:", data);
+
+  M.toast({
+    html: "International shipment saved"
+  });
+
+  return data;
+
 }
+
+
 
 /* ================= WAYBILL ================= */
 function generateWaybill() {
@@ -91,3 +174,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 scope: "INTERNATIONAL"
 shipmentScope: "INTERNATIONAL"
+
+
+
+
+
+

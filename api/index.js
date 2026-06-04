@@ -34,6 +34,7 @@ app.use('/api/invoices', require('../mok-backend/routes/invoices'));
 app.use("/api/statements",require("../mok-backend/routes/statements"));
 app.use('/api/clients',require('../mok-backend/routes/client'));
 app.use('/api/tracking', require('../mok-backend/routes/tracking'));
+app.use('/api/dhl', require('../mok-backend/routes/dhl'));
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Mok Transports API live' });
 });
