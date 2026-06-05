@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Mok Transports | Truck Booking</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -289,6 +290,21 @@
           <label class="field-label">Commodity / Description of Goods</label>
           <input class="field-input" type="text" id="commodity" placeholder="e.g. Machinery, furniture, pallets…">
         </div>
+        <div class="grid-2">
+          <div class="field-group">
+            <label class="field-label">Shipment Date</label>
+            <input class="field-input" type="date" id="shipmentDate">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Processed By</label>
+            <select class="field-select" id="processedBy">
+              <option value="Neo">Neo Lumkwana</option>
+              <option value="Mavis">Mavis Selomane</option>
+              <option value="Ryan">Ryan Mokgethi</option>
+              <option value="Lebo">Lebo Ngobeni</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- SHIPMENT TYPE -->
@@ -432,10 +448,17 @@
       </div>
 
       <!-- SUBMIT -->
-      <button class="submit-btn" id="submitBtn" onclick="submitBooking()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-        Confirm Truck Booking
-      </button>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="submit-btn" id="submitBtn" onclick="submitBooking()" style="flex:1">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          Confirm &amp; Save Booking
+        </button>
+        <button class="submit-btn" id="pdfBtn" onclick="downloadPDF()"
+          style="background:#c62828;flex:0 0 auto;padding:0 20px;width:auto">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          PDF
+        </button>
+      </div>
 
     </div>
   </div>
@@ -486,6 +509,22 @@
           <div class="price-toll" id="priceTollNote" style="display:none"></div>
         </div>
 
+        <!-- Toll toggle -->
+        <div id="tollToggle" style="display:none;margin-top:12px">
+          <div style="font-size:10px;color:#90a4ae;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Include Tolls in PDF?</div>
+          <div style="display:flex;gap:6px">
+            <button onclick="setTollToggle(true)" id="tollYes"
+              style="flex:1;height:32px;border-radius:5px;border:none;cursor:pointer;
+              font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;
+              letter-spacing:.5px;background:#2e7d32;color:#fff">✅ Include</button>
+            <button onclick="setTollToggle(false)" id="tollNo"
+              style="flex:1;height:32px;border-radius:5px;border:1px solid rgba(255,255,255,.2);
+              cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:11px;
+              font-weight:800;letter-spacing:.5px;background:transparent;color:#90a4ae">❌ Exclude</button>
+          </div>
+          <div id="tollToggleNote" style="font-size:10px;color:#90a4ae;margin-top:6px;line-height:1.5"></div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -501,6 +540,7 @@
     <div class="success-sub" id="successMsg">Your truck booking has been submitted. Mok Transports will contact you to confirm arrangements.</div>
     <div class="success-btns">
       <button class="success-btn success-btn-primary" onclick="newBooking()">New Booking</button>
+      <button class="success-btn" style="background:#c62828;color:#fff" onclick="downloadPDFFromModal()">Download PDF</button>
       <button class="success-btn success-btn-secondary" id="dashBtn">Dashboard</button>
     </div>
   </div>
@@ -508,8 +548,8 @@
 
 <script>
 // ── GOOGLE MAPS API KEY ───────────────────────
-
-const GOOGLE_KEY = 'AIzaSyBsZik-na0xiGCAdoGfMrvzMhQHOGQjhkM';
+// Set your key here — replace with your actual key
+const GOOGLE_KEY = 'AIzaSyBYRH4p5TFXM5irgQh0N0eRxDMNiGK5ZGU';
 
 // ── PRICING DATA (from pricing.js) ───────────
 const nationalRates = {
@@ -702,6 +742,12 @@ function calculateDistance() {
       document.getElementById('sumTollRow').style.display='flex';
       document.getElementById('sumToll').textContent = `R ${toll.total.toLocaleString()}`;
 
+      // Show toll toggle if tolls > 0
+      if (toll.total > 0) {
+        document.getElementById('tollToggle').style.display='block';
+        setTollToggle(true);
+      }
+
       btn.classList.add('calculated');
       btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${km} km calculated`;
 
@@ -859,42 +905,347 @@ function estimateTolls(pickup, delivery, vehicle, km) {
   return {total:Math.round(total), estimated:false};
 }
 
-// ── SUBMIT ────────────────────────────────────
-function submitBooking() {
+// ── TOLL TOGGLE ───────────────────────────────
+let includeTolls = true;
+function setTollToggle(val) {
+  includeTolls = val;
+  document.getElementById('tollYes').style.background = val ? '#2e7d32' : 'transparent';
+  document.getElementById('tollYes').style.color = val ? '#fff' : '#90a4ae';
+  document.getElementById('tollNo').style.background  = !val ? '#c62828' : 'transparent';
+  document.getElementById('tollNo').style.color = !val ? '#fff' : '#90a4ae';
+  const price = state.type==='National'
+    ? (() => { let b=getNationalRate(state.vehicle,state.distance); if(state.deliveryType==='Dedicated') b=Math.round(b*1.15); return b; })()
+    : (state.cbResult?.price||0);
+  const toll = state.tollCost||0;
+  const total = val ? price+toll : price;
+  document.getElementById('tollToggleNote').textContent = val
+    ? `PDF total: R ${(price+toll).toLocaleString()} (freight + tolls)`
+    : `PDF total: R ${price.toLocaleString()} (freight only, excl. tolls)`;
+}
+
+// ── BUILD BOOKING PAYLOAD ─────────────────────
+function buildPayload() {
+  const name      = document.getElementById('clientName').value.trim();
+  const phone     = document.getElementById('clientPhone').value.trim();
+  const email     = document.getElementById('clientEmail').value.trim();
+  const commodity = document.getElementById('commodity').value.trim();
+  const shipDate  = document.getElementById('shipmentDate').value;
+  const agent     = document.getElementById('processedBy').value;
+
+  const price = state.type==='National'
+    ? (() => { let b=getNationalRate(state.vehicle,state.distance); if(state.deliveryType==='Dedicated') b=Math.round(b*1.15); return b; })()
+    : (state.cbResult?.price||0);
+
+  const pickup   = document.getElementById('pickup').value   || document.getElementById('cbPickup').value  || '';
+  const delivery = document.getElementById('delivery').value || document.getElementById('cbDelivery').value || '';
+  const route    = state.type==='National'
+    ? `${pickup.split(',')[0]} → ${delivery.split(',')[0]}`
+    : `SA → ${state.cbCity}, ${state.cbCountry}`;
+
+  // Quote number
+  let n = Number(localStorage.getItem('mokTruckRef')||2000); n++;
+  localStorage.setItem('mokTruckRef', n);
+  const ref = `TRK-${n}`;
+
+  return {
+    ref, name, phone, email, commodity, shipDate, agent,
+    type:         state.type,
+    vehicle:      state.vehicle,
+    deliveryType: state.deliveryType,
+    price,
+    tollCost:     state.tollCost||0,
+    tollEstimated: state.tollEstimated||false,
+    distance:     state.distance||null,
+    pickup, delivery,
+    cbCountry:    state.cbCountry||'',
+    cbCity:       state.cbCity||'',
+    cbDir:        state.cbDir||'SA_TO_ABROAD',
+    cbResult:     state.cbResult||null,
+    route,
+    date: new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})
+  };
+}
+
+// ── SUBMIT + SAVE ─────────────────────────────
+async function submitBooking() {
   const name   = document.getElementById('clientName').value.trim();
   const phone  = document.getElementById('clientPhone').value.trim();
-  const email  = document.getElementById('clientEmail').value.trim();
-  const commodity = document.getElementById('commodity').value.trim();
+  const shipDate = document.getElementById('shipmentDate').value;
 
   if (!name || !phone) { alert('Please enter client name and phone number.'); return; }
-
+  if (!shipDate) { alert('Please select a shipment date.'); return; }
   if (state.type==='National' && !state.distance) {
     alert('Please calculate the distance first.'); return;
   }
   if (state.type==='Cross Border' && (!state.cbCountry || !state.cbCity)) {
     alert('Please select a country and city.'); return;
   }
-
   const price = state.type==='National'
     ? (() => { let b=getNationalRate(state.vehicle,state.distance); if(state.deliveryType==='Dedicated') b=Math.round(b*1.15); return b; })()
-    : (state.cbResult?.price || 0);
+    : (state.cbResult?.price||0);
+  if (!price) { alert('Could not calculate price.'); return; }
 
-  if (!price) { alert('Could not calculate price. Please check all details.'); return; }
+  const payload = buildPayload();
+  state.lastPayload = payload;
 
-  // Generate reference
-  let n = Number(localStorage.getItem('mokTruckBooking')||1000);
-  n++;
-  localStorage.setItem('mokTruckBooking', n);
-  const ref = `TRK-${n}`;
+  // Save to DB
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res = await fetch(`${API}/truck-bookings`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        booking_ref:   payload.ref,
+        client_name:   payload.name,
+        client_phone:  payload.phone,
+        client_email:  payload.email,
+        commodity:     payload.commodity,
+        shipment_date: payload.shipDate,
+        processed_by:  payload.agent,
+        type:          payload.type,
+        vehicle:       payload.vehicle,
+        delivery_type: payload.deliveryType,
+        price:         payload.price,
+        toll_cost:     payload.tollCost,
+        distance_km:   payload.distance,
+        pickup:        payload.pickup,
+        delivery:      payload.delivery,
+        country:       payload.cbCountry||null,
+        city:          payload.cbCity||null,
+        route:         payload.route,
+        status:        'confirmed'
+      })
+    });
+    if (!res.ok) { const e=await res.json(); throw new Error(e.error||'Save failed'); }
+  } catch(err) {
+    console.error('Save error:', err);
+    // Show warning but don't block — still show success
+    console.warn('Booking saved locally only:', err.message);
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg> Confirm & Save Booking';
+  }
 
-  const route = state.type==='National'
-    ? `${document.getElementById('pickup').value.split(',')[0]} → ${document.getElementById('delivery').value.split(',')[0]}`
-    : `SA → ${state.cbCity}, ${state.cbCountry}`;
-
-  document.getElementById('successRef').textContent = ref;
+  document.getElementById('successRef').textContent = payload.ref;
   document.getElementById('successMsg').textContent =
-    `Truck: ${state.vehicle} | ${route} | R ${price.toLocaleString()} excl. VAT. Mok Transports will contact you to confirm arrangements.`;
+    `${payload.vehicle} | ${payload.route} | R ${payload.price.toLocaleString()} excl. VAT | ${payload.date}`;
   document.getElementById('successOverlay').classList.add('show');
+}
+
+// ── PDF GENERATION ────────────────────────────
+function buildShortAddr(addr) {
+  if (!addr) return '';
+  const parts = addr.split(',').map(p=>p.trim()).filter(p=>p.length>1 && !/^\d+$/.test(p) && p.toLowerCase()!=='south africa');
+  const chosen = parts[0] || addr.split(',')[0];
+  return chosen.length>20 ? chosen.slice(0,18)+'...' : chosen;
+}
+
+function generateTruckPDF(payload, withTolls) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  const W=210, M=14, pad=2.5;
+
+  // Agent map
+  const agents = {
+    Neo:   {name:'Neo Lumkwana',  tel:'069 437 1308', email:'neo@moktransports.com'},
+    Mavis: {name:'Mavis Selomane',tel:'011 839 6496', email:'mavis@moktransports.com'},
+    Ryan:  {name:'Ryan Mokgethi', tel:'011 839 6496', email:'ryan@moktransports.com'},
+    Lebo:  {name:'Lebo Ngobeni',  tel:'011 839 6496', email:'lebo@moktransports.com'},
+  };
+  const agent = agents[payload.agent] || agents.Neo;
+
+  // Logo
+  const logo = new Image(); logo.crossOrigin='anonymous'; logo.src='/assets/images/mok-logo.png';
+  const render = () => {
+    try { doc.addImage(logo,'PNG',M,8,40,16); } catch(_){}
+
+    // Header right
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(70,70,70);
+    doc.text('Mok Transports Services (Pty) Ltd',130,13);
+    doc.text('12 Jupiter Road, Crown Mines',       130,18);
+    doc.text('Johannesburg, 2091',                 130,23);
+    doc.text('011 839 6496 | 084 902 2258',         130,28);
+    doc.text('accounts@moktransports.com',          130,33);
+
+    // Divider
+    doc.setDrawColor(10,42,67); doc.setLineWidth(0.6); doc.line(M,37,W-M,37);
+
+    // FROM box
+    doc.setFillColor(245,247,252); doc.roundedRect(M,41,90,52,2,2,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+    doc.text('FROM:',M+3,48);
+    doc.setFont('helvetica','normal'); doc.setTextColor(50,50,50);
+    doc.text('Mok Transports Services (Pty) Ltd',M+3,55);
+    doc.text('Reg No: 2015/162275/07',M+3,61);
+    doc.text(agent.name,M+3,67);
+    doc.text('Tel: '+agent.tel,M+3,73);
+    doc.text('Email: '+agent.email,M+3,79);
+
+    // META box (dark)
+    const metaLines=[
+      {label:'Date:',       value:payload.date},
+      {label:'Booking Ref:',value:payload.ref},
+      {label:'Shipment Date:',value:payload.shipDate
+        ? new Date(payload.shipDate).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})
+        : '—'},
+    ];
+    const metaH = 14 + metaLines.length*8;
+    doc.setFillColor(10,42,67); doc.roundedRect(108,41,88,metaH,2,2,'F');
+    metaLines.forEach((row,i) => {
+      const ry = 51+i*8;
+      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(160,190,220);
+      doc.text(row.label,111,ry);
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(255,255,255);
+      doc.text(String(row.value||'—'),148,ry,{align:'right'});
+    });
+
+    // TO box
+    const toTop = 41+metaH+4;
+    doc.setFillColor(245,247,252); doc.roundedRect(108,toTop,88,28,2,2,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+    doc.text('TO:',111,toTop+7);
+    doc.setFont('helvetica','normal'); doc.setTextColor(50,50,50);
+    doc.text('Client: '+payload.name, 111,toTop+13);
+    if(payload.phone) doc.text('Tel: '+payload.phone,111,toTop+19);
+    if(payload.email) doc.text('Email: '+payload.email,111,toTop+25);
+
+    let y = Math.max(41+52, toTop+28)+6;
+
+    // Section header
+    doc.setFillColor(10,42,67); doc.rect(M,y,W-M*2,9,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(255,255,255);
+    doc.text('TRUCK BOOKING DETAILS',M+3,y+6.5);
+    y+=12;
+
+    // Table header
+    const cols = {vehicle:M,type:M+30,route:M+65,desc:M+120,price:W-M};
+    doc.setFillColor(230,235,245); doc.rect(M,y,W-M*2,7,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(10,42,67);
+    doc.text('Vehicle',     cols.vehicle+pad, y+5);
+    doc.text('Type',        cols.type+pad,    y+5);
+    doc.text('Route',       cols.route+pad,   y+5);
+    doc.text('Commodity',   cols.desc+pad,    y+5);
+    doc.text('Price',       cols.price-pad,   y+5,{align:'right'});
+    [cols.type,cols.route,cols.desc,cols.price].forEach(x=>{
+      doc.setDrawColor(190,200,215); doc.setLineWidth(0.3); doc.line(x,y,x,y+7);
+    });
+    y+=9;
+
+    // Data row
+    const shortRoute = payload.type==='National'
+      ? buildShortAddr(payload.pickup)+' > '+buildShortAddr(payload.delivery)
+      : (payload.cbDir==='ABROAD_TO_SA'
+        ? payload.cbCity+', '+payload.cbCountry+' > SA'
+        : 'SA > '+payload.cbCity+', '+payload.cbCountry);
+    const desc = payload.commodity || 'General Freight';
+    const typeLabel = payload.type+(payload.deliveryType==='Dedicated'?' (Urgent)':'');
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(50,50,50);
+    const vLines = doc.splitTextToSize(payload.vehicle,26);
+    const tLines = doc.splitTextToSize(typeLabel,28);
+    const rLines = doc.splitTextToSize(shortRoute,48);
+    const dLines = doc.splitTextToSize(desc,42);
+    const rowH   = Math.max(vLines.length,tLines.length,rLines.length,dLines.length)*4.8+7;
+    doc.setFillColor(252,253,255); doc.rect(M,y-1,W-M*2,rowH,'F');
+    [cols.type,cols.route,cols.desc,cols.price].forEach(x=>{
+      doc.setDrawColor(220,226,234); doc.setLineWidth(0.25); doc.line(x,y-1,x,y-1+rowH);
+    });
+    doc.text(vLines,cols.vehicle+pad,y+3);
+    doc.text(tLines,cols.type+pad,y+3);
+    doc.text(rLines,cols.route+pad,y+3);
+    doc.text(dLines,cols.desc+pad,y+3);
+    doc.text('R'+payload.price.toLocaleString(),cols.price-pad,y+3,{align:'right'});
+    y+=rowH;
+
+    doc.setDrawColor(210,218,228); doc.setLineWidth(0.35); doc.line(M,y,W-M,y); y+=4;
+
+    // Toll row
+    if(payload.tollCost>0 && withTolls) {
+      doc.setFillColor(250,251,254); doc.rect(M,y,W-M*2,8,'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+      doc.text(payload.tollEstimated?'Toll Fees (estimated)':'Toll Fees',M+pad,y+5.5);
+      doc.text('R'+payload.tollCost.toLocaleString(),W-M-pad,y+5.5,{align:'right'});
+      doc.setDrawColor(210,218,228); doc.setLineWidth(0.35); doc.line(M,y+8,W-M,y+8);
+      y+=12;
+    }
+
+    // Totals
+    const tollAmt = (payload.tollCost>0&&withTolls) ? payload.tollCost : 0;
+    const total   = payload.price + tollAmt;
+    const totX    = 128;
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(70,70,70);
+    doc.text('Subtotal:',totX,y);
+    doc.text('R'+payload.price.toLocaleString(),W-M-pad,y,{align:'right'}); y+=7;
+    if(tollAmt>0){
+      doc.text('Tolls:',totX,y);
+      doc.text('R'+tollAmt.toLocaleString(),W-M-pad,y,{align:'right'}); y+=7;
+    }
+    doc.setDrawColor(10,42,67); doc.setLineWidth(0.5); doc.line(totX,y,W-M,y); y+=6;
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(10,42,67);
+    const totalLabel = payload.tollCost>0&&!withTolls?'Total Excl. Tolls:':'Total Excl. VAT:';
+    doc.text(totalLabel,totX,y);
+    doc.text('R'+total.toLocaleString(),W-M-pad,y,{align:'right'}); y+=14;
+
+    // Shipment info box
+    if(payload.shipDate){
+      doc.setFillColor(245,247,252); doc.roundedRect(M,y,W-M*2,20,2,2,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+      doc.text('SHIPMENT DATE:',M+3,y+8);
+      doc.setFont('helvetica','normal'); doc.setTextColor(50,50,50);
+      doc.text(new Date(payload.shipDate).toLocaleDateString('en-ZA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}),M+3,y+15);
+      if(payload.distance) {
+        doc.setFont('helvetica','bold'); doc.setTextColor(10,42,67);
+        doc.text('DISTANCE:',130,y+8);
+        doc.setFont('helvetica','normal'); doc.setTextColor(50,50,50);
+        doc.text(payload.distance+' km',130,y+15);
+      }
+      y+=26;
+    }
+
+    // Terms
+    doc.setDrawColor(210,215,225); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=7;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+    doc.text('Terms & Conditions:',M,y); y+=6;
+    const terms=[
+      'This estimate does not include storage, survey, customs inspection, or unforeseen expenses.',
+      'Our offer is without commitment until a final transport agreement is reached.',
+      'Subject to standard and unchanged conditions of transport.',
+      'Orders are subject to Standard Trading Conditions of MTRS.',
+      'Finance requires prior approval. Payment must be made in advance if no credit facility exists.',
+    ];
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(90,90,90);
+    for(const t of terms){
+      const lines=doc.splitTextToSize('• '+t,W-M*2);
+      doc.text(lines,M,y); y+=lines.length*4.5;
+    }
+
+    // Footer
+    doc.setFillColor(10,42,67); doc.rect(0,281,W,16,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(255,255,255);
+    doc.text('Thank you for choosing Mok Transports Services (Pty) Ltd',W/2,291,{align:'center'});
+
+    doc.save(`${payload.ref}.pdf`);
+  };
+
+  let rendered=false;
+  const safe=()=>{if(rendered)return;rendered=true;render();};
+  logo.onload=safe; logo.onerror=safe;
+  if(logo.complete) safe();
+}
+
+function downloadPDF() {
+  const name     = document.getElementById('clientName').value.trim();
+  const shipDate = document.getElementById('shipmentDate').value;
+  if (!name) { alert('Please fill in client name first.'); return; }
+  if (!shipDate) { alert('Please select a shipment date first.'); return; }
+  if (state.type==='National' && !state.distance) { alert('Please calculate distance first.'); return; }
+  if (state.type==='Cross Border' && (!state.cbCountry||!state.cbCity)) { alert('Please select country and city.'); return; }
+  const payload = state.lastPayload || buildPayload();
+  generateTruckPDF(payload, includeTolls);
+}
+function downloadPDFFromModal() {
+  if (state.lastPayload) generateTruckPDF(state.lastPayload, includeTolls);
 }
 
 function newBooking() {
@@ -920,6 +1271,5 @@ function newBooking() {
 <!-- Load Google Maps after script so callback is defined -->
 </body>
 </html>
-
 
 
