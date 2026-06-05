@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Mok Transports | Truck Bookings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#0d2137;--navy2:#132d47;--blue:#1565c0;--sky:#1e88e5;
+      --green:#2e7d32;--orange:#f57c00;--red:#c62828;--teal:#00796b;
+      --bg:#f0f4f8;--card:#fff;--border:#dce3ec;
+      --text:#1a2535;--muted:#607d8b;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    /* TOPBAR */
+    .topbar{background:var(--navy);border-bottom:3px solid var(--orange);height:68px;
+      display:flex;align-items:center;justify-content:space-between;padding:0 32px;
+      position:sticky;top:0;z-index:100;box-shadow:0 4px 18px rgba(13,33,55,.2)}
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand img{height:38px;background:#fff;padding:4px 6px;border-radius:5px}
+    .brand-name{font-family:'Barlow Condensed',sans-serif;color:#fff;font-size:18px;font-weight:800}
+    .brand-sub{font-size:10px;color:#90a4ae;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+    .topbar-right{display:flex;gap:8px}
+    .tbtn{height:34px;padding:0 14px;border-radius:5px;border:none;cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+      letter-spacing:1px;text-transform:uppercase;text-decoration:none;
+      display:inline-flex;align-items:center;gap:6px;transition:.18s}
+    .tbtn-ghost{background:rgba(255,255,255,.08);color:#90a4ae;border:1px solid rgba(255,255,255,.1)}
+    .tbtn-ghost:hover{background:rgba(255,255,255,.15);color:#fff}
+    .tbtn-orange{background:var(--orange);color:#fff}
+    .tbtn-orange:hover{background:#fb8c00}
+
+    /* PAGE */
+    .page{max-width:1280px;margin:0 auto;padding:28px 20px 80px}
+
+    /* PAGE HEADER */
+    .page-header{display:flex;align-items:flex-end;justify-content:space-between;
+      margin-bottom:24px;gap:16px;flex-wrap:wrap}
+    .page-eyebrow{font-size:11px;font-weight:600;letter-spacing:2.5px;
+      text-transform:uppercase;color:var(--orange);margin-bottom:4px}
+    .page-title{font-family:'Barlow Condensed',sans-serif;font-size:36px;
+      font-weight:800;color:var(--navy);letter-spacing:.5px;line-height:1}
+
+    /* STAT CHIPS */
+    .stat-chips{display:flex;gap:10px;flex-wrap:wrap}
+    .stat-chip{background:var(--card);border:1px solid var(--border);border-radius:10px;
+      padding:10px 18px;display:flex;align-items:center;gap:10px;
+      box-shadow:0 2px 8px rgba(10,22,40,.05)}
+    .chip-dot{width:8px;height:8px;border-radius:50%}
+    .chip-label{font-size:11px;font-weight:600;text-transform:uppercase;
+      letter-spacing:1px;color:var(--muted)}
+    .chip-val{font-family:'Barlow Condensed',sans-serif;font-size:18px;
+      font-weight:800;color:var(--navy)}
+
+    /* TOOLBAR */
+    .toolbar{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+    .search-wrap{position:relative;flex:1;min-width:220px;max-width:380px}
+    .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+    .search-input{width:100%;height:40px;border:1px solid var(--border);border-radius:8px;
+      padding:0 14px 0 38px;font-family:'Barlow',sans-serif;font-size:14px;
+      background:var(--card);outline:none;color:var(--text)}
+    .search-input:focus{border-color:var(--blue)}
+    .filter-tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);
+      border-radius:8px;padding:3px}
+    .ftab{height:32px;padding:0 14px;border-radius:5px;border:none;cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+      letter-spacing:.5px;color:var(--muted);background:transparent;transition:.18s}
+    .ftab.active{background:var(--navy);color:#fff}
+
+    /* TABLE CARD */
+    .table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+      overflow:hidden;box-shadow:0 4px 20px rgba(10,22,40,.06)}
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:var(--navy)}
+    thead th{padding:12px 14px;font-family:'Barlow Condensed',sans-serif;font-size:11px;
+      font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#90a4ae;text-align:left}
+    thead th:first-child{padding-left:20px}
+    thead th:last-child{padding-right:20px;text-align:right}
+    tbody tr{border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:#f5f8ff}
+    tbody td{padding:13px 14px;font-size:13px;vertical-align:middle}
+    tbody td:first-child{padding-left:20px}
+    tbody td:last-child{padding-right:20px}
+
+    /* STATUS BADGES */
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+      border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+    .badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+    .b-confirmed{background:#e3f2fd;color:var(--blue)}.b-confirmed::before{background:var(--blue)}
+    .b-in_transit{background:#fff3e0;color:#e65100}.b-in_transit::before{background:#e65100}
+    .b-delivered{background:#e8f5e9;color:var(--green)}.b-delivered::before{background:var(--green)}
+    .b-invoiced{background:#f3e5f5;color:#6a1b9a}.b-invoiced::before{background:#6a1b9a}
+
+    /* REF / Client */
+    .ref-no{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;
+      color:var(--navy);letter-spacing:.3px}
+    .ref-date{font-size:11px;color:var(--muted);margin-top:2px}
+    .client-name{font-size:13px;font-weight:600;color:var(--text)}
+    .client-phone{font-size:11px;color:var(--muted);margin-top:2px}
+    .amount{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:var(--navy)}
+
+    /* ACTION BUTTONS */
+    .actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+    .abt{height:28px;padding:0 10px;border:none;border-radius:5px;cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+      letter-spacing:.5px;text-transform:uppercase;transition:.15s;
+      display:inline-flex;align-items:center;gap:4px}
+    .abt-view{background:#e3f2fd;color:var(--blue)}.abt-view:hover{background:var(--blue);color:#fff}
+    .abt-transit{background:#fff3e0;color:#e65100}.abt-transit:hover{background:#f57c00;color:#fff}
+    .abt-deliver{background:#e8f5e9;color:var(--green)}.abt-deliver:hover{background:var(--green);color:#fff}
+    .abt-invoice{background:#f3e5f5;color:#6a1b9a}.abt-invoice:hover{background:#6a1b9a;color:#fff}
+    .abt-sign{background:#e0f7fa;color:#00796b}.abt-sign:hover{background:var(--teal);color:#fff}
+    .abt-disabled{background:#eceff1;color:#b0bec5;cursor:not-allowed}
+
+    /* SIG INDICATOR */
+    .sig-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px}
+    .sig-yes{background:var(--green)}.sig-no{background:#dce3ec}
+
+    /* EMPTY */
+    .empty-row td{padding:48px;text-align:center}
+    .empty-icon{font-size:36px;margin-bottom:10px}
+    .empty-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;
+      font-weight:800;color:var(--navy);margin-bottom:4px}
+    .empty-sub{font-size:13px;color:var(--muted)}
+
+    /* ── DRAWER OVERLAY ──────────────────────── */
+    .drawer-overlay{display:none;position:fixed;inset:0;background:rgba(13,33,55,.5);
+      z-index:200;justify-content:flex-end}
+    .drawer-overlay.open{display:flex}
+    .drawer{background:#fff;width:520px;max-width:95vw;height:100vh;overflow-y:auto;
+      box-shadow:-8px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+    .drawer-header{background:var(--navy);padding:20px 24px;
+      display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0}
+    .drawer-ref{font-family:'Barlow Condensed',sans-serif;font-size:22px;
+      font-weight:800;color:#fff;letter-spacing:.5px}
+    .drawer-sub{font-size:12px;color:#90a4ae;margin-top:3px}
+    .drawer-close{background:rgba(255,255,255,.1);border:none;color:#fff;
+      width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:18px;
+      display:flex;align-items:center;justify-content:center}
+    .drawer-body{padding:20px 24px;flex:1}
+
+    /* DRAWER SECTIONS */
+    .d-section{margin-bottom:20px}
+    .d-section-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;
+      font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;
+      margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .d-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+    .d-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .d-field{background:#f8fafc;border-radius:8px;padding:10px 14px}
+    .d-field-label{font-size:10px;font-weight:700;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+    .d-field-value{font-size:14px;font-weight:600;color:var(--navy)}
+    .d-field-value.mono{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800}
+
+    /* STATUS STEPPER */
+    .stepper{display:flex;align-items:center;gap:0;margin-bottom:20px}
+    .step{flex:1;text-align:center;position:relative}
+    .step-circle{width:36px;height:36px;border-radius:50%;display:flex;
+      align-items:center;justify-content:center;font-size:14px;
+      margin:0 auto 6px;border:2px solid var(--border);background:#fff;
+      font-weight:700;transition:.3s}
+    .step-line{position:absolute;top:18px;left:50%;right:-50%;height:2px;
+      background:var(--border);z-index:0}
+    .step:last-child .step-line{display:none}
+    .step-label{font-size:10px;font-weight:700;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.8px}
+    .step.done .step-circle{background:var(--green);border-color:var(--green);color:#fff}
+    .step.done .step-line{background:var(--green)}
+    .step.done .step-label{color:var(--green)}
+    .step.active .step-circle{background:var(--orange);border-color:var(--orange);color:#fff}
+    .step.active .step-label{color:var(--orange)}
+
+    /* STATUS BUTTONS */
+    .status-btns{display:flex;gap:8px;margin-bottom:16px}
+    .sts-btn{flex:1;height:38px;border:none;border-radius:7px;cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;
+      letter-spacing:.8px;text-transform:uppercase;transition:.18s;display:flex;
+      align-items:center;justify-content:center;gap:6px}
+    .sts-transit{background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80}
+    .sts-transit:hover{background:#f57c00;color:#fff}
+    .sts-deliver{background:#e8f5e9;color:var(--green);border:1.5px solid #a5d6a7}
+    .sts-deliver:hover{background:var(--green);color:#fff}
+    .sts-disabled{background:#eceff1;color:#b0bec5;cursor:not-allowed;border:1.5px solid #eceff1}
+
+    /* SIGNATURE PAD */
+    .sig-section{margin-bottom:16px}
+    .sig-label{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;
+      display:flex;align-items:center;gap:8px}
+    .sig-saved{display:inline-flex;align-items:center;gap:5px;background:#e8f5e9;
+      color:var(--green);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+    .sig-canvas-wrap{border:2px dashed var(--border);border-radius:10px;
+      background:#fafbfc;position:relative;overflow:hidden}
+    .sig-canvas{width:100%;height:160px;cursor:crosshair;display:block;touch-action:none}
+    .sig-actions{display:flex;gap:8px;margin-top:8px}
+    .sig-name-input{flex:1;height:36px;border:1px solid var(--border);border-radius:6px;
+      padding:0 12px;font-family:'Barlow',sans-serif;font-size:13px;outline:none}
+    .sig-name-input:focus{border-color:var(--blue)}
+    .sig-clear{height:36px;padding:0 14px;background:#eceff1;border:none;border-radius:6px;
+      cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;
+      font-weight:700;letter-spacing:.5px;color:var(--muted)}
+    .sig-save{height:36px;padding:0 18px;background:var(--teal);color:#fff;border:none;
+      border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+      font-size:12px;font-weight:700;letter-spacing:.5px}
+
+    /* SAVED SIG IMAGE */
+    .sig-img-wrap{border:1px solid var(--border);border-radius:8px;padding:8px;
+      background:#fff;margin-top:4px}
+    .sig-img-wrap img{width:100%;height:80px;object-fit:contain}
+    .sig-meta{font-size:11px;color:var(--muted);margin-top:4px}
+
+    /* NOTES */
+    .notes-textarea{width:100%;min-height:80px;border:1px solid var(--border);border-radius:7px;
+      padding:10px 12px;font-family:'Barlow',sans-serif;font-size:13px;
+      outline:none;resize:vertical;color:var(--text)}
+    .notes-textarea:focus{border-color:var(--blue)}
+    .notes-save-btn{margin-top:8px;height:34px;padding:0 16px;background:var(--blue);
+      color:#fff;border:none;border-radius:6px;cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.5px}
+
+    /* INVOICE BUTTON */
+    .invoice-cta{background:linear-gradient(135deg,#4a148c,#6a1b9a);border-radius:10px;
+      padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:16px}
+    .invoice-cta-label{font-family:'Barlow Condensed',sans-serif;font-size:16px;
+      font-weight:800;color:#fff;letter-spacing:.5px}
+    .invoice-cta-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
+    .invoice-cta-btn{height:38px;padding:0 18px;background:#fff;color:#6a1b9a;border:none;
+      border-radius:7px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+      font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+      white-space:nowrap;transition:.18s}
+    .invoice-cta-btn:hover{background:#f3e5f5}
+    .invoice-cta-btn.done{background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);cursor:default}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--navy);
+      color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;
+      box-shadow:0 8px 24px rgba(10,22,40,.3);display:none;align-items:center;gap:10px}
+    .toast.show{display:flex}
+
+    @media(max-width:768px){
+      .topbar{padding:0 16px}
+      .page{padding:16px 12px 60px}
+      table{min-width:860px}
+      .table-card{overflow-x:auto}
+      .drawer{width:100vw}
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/images/mok-logo.png" alt="Mok Transports">
+    <div>
+      <div class="brand-name">Mok Transports Services (Pty) Ltd</div>
+      <div class="brand-sub">Truck Booking Management</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <a class="tbtn tbtn-ghost" href="dashboard.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="tbtn tbtn-orange" href="trucking.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Booking
+    </a>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Fleet Management</div>
+      <div class="page-title">Truck Bookings</div>
+    </div>
+    <div class="stat-chips">
+      <div class="stat-chip">
+        <div class="chip-dot" style="background:#607d8b"></div>
+        <span class="chip-label">Total</span>
+        <span class="chip-val" id="chipTotal">—</span>
+      </div>
+      <div class="stat-chip">
+        <div class="chip-dot" style="background:var(--blue)"></div>
+        <span class="chip-label">Confirmed</span>
+        <span class="chip-val" id="chipConfirmed">—</span>
+      </div>
+      <div class="stat-chip">
+        <div class="chip-dot" style="background:#e65100"></div>
+        <span class="chip-label">In Transit</span>
+        <span class="chip-val" id="chipTransit">—</span>
+      </div>
+      <div class="stat-chip">
+        <div class="chip-dot" style="background:var(--green)"></div>
+        <span class="chip-label">Delivered</span>
+        <span class="chip-val" id="chipDelivered">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <div class="search-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <input class="search-input" id="searchInput" type="text"
+        placeholder="Search ref, client, vehicle, route…" oninput="filterBookings()">
+    </div>
+    <div class="filter-tabs">
+      <button class="ftab active" onclick="setFilter('all',this)">All</button>
+      <button class="ftab" onclick="setFilter('confirmed',this)">Confirmed</button>
+      <button class="ftab" onclick="setFilter('in_transit',this)">In Transit</button>
+      <button class="ftab" onclick="setFilter('delivered',this)">Delivered</button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Booking Ref</th>
+          <th>Client</th>
+          <th>Vehicle / Type</th>
+          <th>Route</th>
+          <th>Shipment Date</th>
+          <th>Amount</th>
+          <th>Signatures</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="bookingsTable">
+        <tr class="empty-row"><td colspan="9">
+          <div class="empty-icon">🚛</div>
+          <div class="empty-title">Loading Bookings…</div>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer(event)">
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-ref" id="drawerRef">TRK-0000</div>
+        <div class="drawer-sub" id="drawerSub">—</div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawerBtn()">✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody">Loading…</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">Done</span>
+</div>
+
+<script>
+const API = 'https://bookings.moktransports.com/api';
+let allBookings  = [];
+let activeFilter = 'all';
+let currentBooking = null;
+
+// ── SIGNATURE PAD STATE ──────────────────────
+let sigCanvases = {};
+let sigCtx      = {};
+let sigDrawing  = {};
+
+// ── LOAD ─────────────────────────────────────
+async function loadBookings() {
+  try {
+    const res  = await fetch(`${API}/truck-bookings`);
+    allBookings = await res.json();
+    updateChips(allBookings);
+    renderTable(applyFilter());
+  } catch(err) {
+    console.error(err);
+    document.getElementById('bookingsTable').innerHTML =
+      `<tr class="empty-row"><td colspan="9">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">Could Not Load</div>
+        <div class="empty-sub">Check connection and try again.</div>
+      </td></tr>`;
+  }
+}
+
+function updateChips(data) {
+  document.getElementById('chipTotal').textContent     = data.length;
+  document.getElementById('chipConfirmed').textContent = data.filter(b=>b.status==='confirmed').length;
+  document.getElementById('chipTransit').textContent   = data.filter(b=>b.status==='in_transit').length;
+  document.getElementById('chipDelivered').textContent = data.filter(b=>b.status==='delivered').length;
+}
+
+function setFilter(f,btn) {
+  activeFilter = f;
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable(applyFilter());
+}
+function filterBookings() { renderTable(applyFilter()) }
+function applyFilter() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  return allBookings.filter(b => {
+    const mFilter = activeFilter==='all' || b.status===activeFilter;
+    const mSearch = !q ||
+      (b.booking_ref||'').toLowerCase().includes(q) ||
+      (b.client_name||'').toLowerCase().includes(q) ||
+      (b.vehicle||'').toLowerCase().includes(q) ||
+      (b.route||'').toLowerCase().includes(q);
+    return mFilter && mSearch;
+  });
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('bookingsTable');
+  if (!data.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">
+      <div class="empty-icon">🚛</div>
+      <div class="empty-title">No Bookings Found</div>
+      <div class="empty-sub">Try adjusting your filter or search.</div>
+    </td></tr>`; return;
+  }
+  tbody.innerHTML = data.map(b => {
+    const statusLabel = {confirmed:'Confirmed',in_transit:'In Transit',delivered:'Delivered'}[b.status]||b.status;
+    const total = Number(b.price||0) + Number(b.toll_cost||0);
+    const shipDate = b.shipment_date
+      ? new Date(b.shipment_date).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})
+      : '—';
+    const pickSig  = b.pickup_signature   ? `<span class="sig-dot sig-yes"></span>` : `<span class="sig-dot sig-no"></span>`;
+    const delSig   = b.delivery_signature ? `<span class="sig-dot sig-yes"></span>` : `<span class="sig-dot sig-no"></span>`;
+    const invoicedBadge = b.invoiced ? `<span class="badge b-invoiced" style="margin-left:4px">Invoiced</span>` : '';
+
+    return `<tr onclick="openDrawer('${b.booking_ref}')">
+      <td>
+        <div class="ref-no">${b.booking_ref}</div>
+        <div class="ref-date">${new Date(b.created_at).toLocaleDateString('en-ZA',{day:'2-digit',month:'short'})}</div>
+      </td>
+      <td>
+        <div class="client-name">${b.client_name||'—'}</div>
+        <div class="client-phone">${b.client_phone||''}</div>
+      </td>
+      <td>
+        <div style="font-weight:600">${b.vehicle||'—'}</div>
+        <div style="font-size:11px;color:var(--muted)">${b.type||''} ${b.delivery_type==='Dedicated'?'· Urgent':''}</div>
+      </td>
+      <td style="font-size:12px;max-width:180px;word-break:break-word">${b.route||'—'}</td>
+      <td style="font-size:12px">${shipDate}</td>
+      <td><span class="amount">R ${total.toLocaleString()}</span></td>
+      <td style="font-size:12px">
+        <div title="Pickup">${pickSig} Pickup</div>
+        <div title="Delivery" style="margin-top:3px">${delSig} Delivery</div>
+      </td>
+      <td><span class="badge b-${b.status}">${statusLabel}</span>${invoicedBadge}</td>
+      <td onclick="event.stopPropagation()">
+        <div class="actions">
+          <button class="abt abt-view" onclick="openDrawer('${b.booking_ref}')">View</button>
+          ${b.status==='confirmed'
+            ? `<button class="abt abt-transit" onclick="updateStatus('${b.booking_ref}','in_transit')">In Transit</button>`
+            : b.status==='in_transit'
+            ? `<button class="abt abt-deliver" onclick="updateStatus('${b.booking_ref}','delivered')">Delivered</button>`
+            : ''}
+          ${!b.invoiced
+            ? `<button class="abt abt-invoice" onclick="openInvoiceFlow('${b.booking_ref}')">Invoice</button>`
+            : `<button class="abt abt-disabled" disabled>Invoiced</button>`}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── DRAWER ────────────────────────────────────
+function openDrawer(ref) {
+  const b = allBookings.find(x => x.booking_ref===ref);
+  if (!b) return;
+  currentBooking = b;
+  document.getElementById('drawerRef').textContent = b.booking_ref;
+  document.getElementById('drawerSub').textContent = `${b.vehicle} · ${b.client_name}`;
+  renderDrawerBody(b);
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+
+function closeDrawer(e) {
+  if (e.target===document.getElementById('drawerOverlay')) closeDrawerBtn();
+}
+function closeDrawerBtn() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  currentBooking = null;
+}
+
+function renderDrawerBody(b) {
+  const statusStep = {confirmed:0,in_transit:1,delivered:2}[b.status]||0;
+  const steps = ['Confirmed','In Transit','Delivered'];
+  const shipDate = b.shipment_date
+    ? new Date(b.shipment_date).toLocaleDateString('en-ZA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})
+    : '—';
+  const total = Number(b.price||0) + Number(b.toll_cost||0);
+
+  document.getElementById('drawerBody').innerHTML = `
+
+    <!-- STEPPER -->
+    <div class="stepper">
+      ${steps.map((s,i)=>`
+        <div class="step ${i<statusStep?'done':i===statusStep?'active':''}">
+          <div style="position:relative">
+            <div class="step-circle">${i<statusStep?'✓':i+1}</div>
+            ${i<steps.length-1?'<div class="step-line"></div>':''}
+          </div>
+          <div class="step-label">${s}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- STATUS BUTTONS -->
+    <div class="status-btns">
+      <button class="sts-btn ${b.status==='confirmed'?'sts-transit':'sts-disabled'}"
+        ${b.status!=='confirmed'?'disabled':''} onclick="updateStatus('${b.booking_ref}','in_transit');closeDrawerBtn()">
+        🚛 Mark In Transit
+      </button>
+      <button class="sts-btn ${b.status==='in_transit'?'sts-deliver':'sts-disabled'}"
+        ${b.status!=='in_transit'?'disabled':''} onclick="updateStatus('${b.booking_ref}','delivered');closeDrawerBtn()">
+        ✅ Mark Delivered
+      </button>
+    </div>
+
+    <!-- DETAILS -->
+    <div class="d-section">
+      <div class="d-section-title">Booking Details</div>
+      <div class="d-grid">
+        <div class="d-field"><div class="d-field-label">Client</div><div class="d-field-value">${b.client_name||'—'}</div></div>
+        <div class="d-field"><div class="d-field-label">Phone</div><div class="d-field-value">${b.client_phone||'—'}</div></div>
+        <div class="d-field"><div class="d-field-label">Vehicle</div><div class="d-field-value">${b.vehicle||'—'}</div></div>
+        <div class="d-field"><div class="d-field-label">Type</div><div class="d-field-value">${b.type||'—'} ${b.delivery_type==='Dedicated'?'(Urgent)':''}</div></div>
+        <div class="d-field" style="grid-column:1/-1"><div class="d-field-label">Route</div><div class="d-field-value">${b.route||'—'}</div></div>
+        <div class="d-field"><div class="d-field-label">Shipment Date</div><div class="d-field-value">${shipDate}</div></div>
+        <div class="d-field"><div class="d-field-label">Processed By</div><div class="d-field-value">${b.processed_by||'—'}</div></div>
+        <div class="d-field"><div class="d-field-label">Commodity</div><div class="d-field-value">${b.commodity||'—'}</div></div>
+        <div class="d-field"><div class="d-field-label">Distance</div><div class="d-field-value">${b.distance_km?b.distance_km+' km':'—'}</div></div>
+      </div>
+    </div>
+
+    <!-- FINANCIALS -->
+    <div class="d-section">
+      <div class="d-section-title">Financials</div>
+      <div class="d-grid">
+        <div class="d-field"><div class="d-field-label">Base Price</div><div class="d-field-value mono">R ${Number(b.price||0).toLocaleString()}</div></div>
+        <div class="d-field"><div class="d-field-label">Tolls</div><div class="d-field-value mono">R ${Number(b.toll_cost||0).toLocaleString()}</div></div>
+        <div class="d-field" style="grid-column:1/-1;background:#f0faf0;border:1px solid #a5d6a7">
+          <div class="d-field-label">Total Excl. VAT</div>
+          <div class="d-field-value mono" style="font-size:20px;color:var(--green)">R ${total.toLocaleString()}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVOICE CTA -->
+    <div class="invoice-cta">
+      <div>
+        <div class="invoice-cta-label">${b.invoiced?'✅ Invoice Created':'Ready to Invoice'}</div>
+        <div class="invoice-cta-sub">${b.invoiced?'Invoice: '+b.invoice_no:'Generate invoice from this truck booking'}</div>
+      </div>
+      <button class="invoice-cta-btn ${b.invoiced?'done':''}"
+        ${b.invoiced?'disabled':''} onclick="openInvoiceFlow('${b.booking_ref}')">
+        ${b.invoiced?'Invoiced':'Create Invoice'}
+      </button>
+    </div>
+
+    <!-- PICKUP SIGNATURE -->
+    <div class="d-section">
+      <div class="d-section-title">
+        Pickup Signature
+        ${b.pickup_signature?'<span class="sig-saved">✓ Signed</span>':''}
+      </div>
+      ${b.pickup_signature
+        ? `<div class="sig-img-wrap">
+            <img src="${b.pickup_signature}" alt="Pickup Signature">
+            <div class="sig-meta">Signed by: ${b.pickup_signed_by||'Unknown'} · ${b.pickup_signed_at?new Date(b.pickup_signed_at).toLocaleString('en-ZA'):''}</div>
+           </div>`
+        : `<div class="sig-canvas-wrap">
+            <canvas id="sigPickup" class="sig-canvas" width="460" height="160"></canvas>
+           </div>
+           <div class="sig-actions">
+             <input class="sig-name-input" id="pickupName" type="text" placeholder="Signer name / driver name">
+             <button class="sig-clear" onclick="clearSig('sigPickup')">Clear</button>
+             <button class="sig-save" onclick="saveSig('${b.booking_ref}','pickup')">Save Signature</button>
+           </div>`}
+    </div>
+
+    <!-- DELIVERY SIGNATURE -->
+    <div class="d-section">
+      <div class="d-section-title">
+        Delivery Signature
+        ${b.delivery_signature?'<span class="sig-saved">✓ Signed</span>':''}
+      </div>
+      ${b.delivery_signature
+        ? `<div class="sig-img-wrap">
+            <img src="${b.delivery_signature}" alt="Delivery Signature">
+            <div class="sig-meta">Signed by: ${b.delivery_signed_by||'Unknown'} · ${b.delivery_signed_at?new Date(b.delivery_signed_at).toLocaleString('en-ZA'):''}</div>
+           </div>`
+        : `<div class="sig-canvas-wrap">
+            <canvas id="sigDelivery" class="sig-canvas" width="460" height="160"></canvas>
+           </div>
+           <div class="sig-actions">
+             <input class="sig-name-input" id="deliveryName" type="text" placeholder="Receiver / client name">
+             <button class="sig-clear" onclick="clearSig('sigDelivery')">Clear</button>
+             <button class="sig-save" onclick="saveSig('${b.booking_ref}','delivery')">Save Signature</button>
+           </div>`}
+    </div>
+
+    <!-- NOTES -->
+    <div class="d-section">
+      <div class="d-section-title">Notes</div>
+      <textarea class="notes-textarea" id="notesArea" placeholder="Add notes, special instructions, or updates…">${b.notes||''}</textarea>
+      <button class="notes-save-btn" onclick="saveNotes('${b.booking_ref}')">Save Notes</button>
+    </div>
+  `;
+
+  // Init signature pads after render
+  setTimeout(() => {
+    ['sigPickup','sigDelivery'].forEach(id => initSigPad(id));
+  }, 100);
+}
+
+// ── SIGNATURE PAD ─────────────────────────────
+function initSigPad(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  // Scale for DPR
+  const dpr = window.devicePixelRatio||1;
+  canvas.width  = canvas.offsetWidth  * dpr;
+  canvas.height = canvas.offsetHeight * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.strokeStyle = '#0d2137';
+  ctx.lineWidth   = 2.5;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+  sigCtx[canvasId]     = ctx;
+  sigDrawing[canvasId] = false;
+
+  const getPos = e => {
+    const rect = canvas.getBoundingClientRect();
+    const src  = e.touches ? e.touches[0] : e;
+    return {x: src.clientX-rect.left, y: src.clientY-rect.top};
+  };
+  canvas.addEventListener('mousedown',  e => { sigDrawing[canvasId]=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); });
+  canvas.addEventListener('mousemove',  e => { if(!sigDrawing[canvasId]) return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); });
+  canvas.addEventListener('mouseup',    () => sigDrawing[canvasId]=false);
+  canvas.addEventListener('mouseleave', () => sigDrawing[canvasId]=false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); sigDrawing[canvasId]=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); }, {passive:false});
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); if(!sigDrawing[canvasId]) return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }, {passive:false});
+  canvas.addEventListener('touchend',   () => sigDrawing[canvasId]=false);
+}
+
+function clearSig(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+async function saveSig(ref, type) {
+  const canvasId = type==='pickup' ? 'sigPickup' : 'sigDelivery';
+  const nameId   = type==='pickup' ? 'pickupName' : 'deliveryName';
+  const canvas   = document.getElementById(canvasId);
+  const name     = document.getElementById(nameId)?.value?.trim() || 'Unknown';
+  if (!canvas) return;
+
+  // Check if anything drawn
+  const ctx  = canvas.getContext('2d');
+  const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  const hasDrawing = data.some(v => v !== 0);
+  if (!hasDrawing) { alert('Please draw a signature first.'); return; }
+
+  const signature = canvas.toDataURL('image/png');
+  const endpoint  = `${API}/truck-bookings/${ref}/${type}-signature`;
+
+  try {
+    const res = await fetch(endpoint, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({signature, signed_by:name})
+    });
+    if (!res.ok) throw new Error();
+    showToast(`${type==='pickup'?'Pickup':'Delivery'} signature saved ✓`);
+    await loadBookings();
+    // Refresh drawer
+    const updated = allBookings.find(x=>x.booking_ref===ref);
+    if (updated) { currentBooking=updated; renderDrawerBody(updated); }
+  } catch {
+    alert('Failed to save signature. Please try again.');
+  }
+}
+
+// ── STATUS UPDATE ─────────────────────────────
+async function updateStatus(ref, status) {
+  try {
+    const res = await fetch(`${API}/truck-bookings/${ref}/status`, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({status})
+    });
+    if (!res.ok) throw new Error();
+    const label = {confirmed:'Confirmed',in_transit:'In Transit',delivered:'Delivered'}[status];
+    showToast(`${ref} → ${label} ✓`);
+    await loadBookings();
+  } catch { alert('Failed to update status.'); }
+}
+
+// ── NOTES ─────────────────────────────────────
+async function saveNotes(ref) {
+  const notes = document.getElementById('notesArea')?.value || '';
+  try {
+    await fetch(`${API}/truck-bookings/${ref}/notes`, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({notes})
+    });
+    showToast('Notes saved ✓');
+  } catch { alert('Failed to save notes.'); }
+}
+
+// ── INVOICE FLOW ──────────────────────────────
+function openInvoiceFlow(ref) {
+  const b = allBookings.find(x=>x.booking_ref===ref);
+  if (!b) return;
+
+  // Package truck booking data as invoiceFromBooking for invoice.html
+  const payload = {
+    isTruckBooking: true,
+    truckRef:       b.booking_ref,
+    waybillNo:      b.booking_ref,
+    service:        `${b.vehicle} — ${b.type}`,
+    price:          Number(b.price||0) + Number(b.toll_cost||0),
+    fromTown:       (b.pickup||'').split(',')[0],
+    toTown:         (b.delivery||b.city||'').split(',')[0],
+    toCompany:      b.client_name,
+    toEmail:        b.client_email||'',
+    date:           b.shipment_date||b.created_at,
+    clientId:       null,
+    clientName:     b.client_name
+  };
+
+  localStorage.setItem('invoiceFromBooking', JSON.stringify(payload));
+  localStorage.setItem('truckBookingRef', ref);
+  window.location.href = 'invoice.html';
+}
+
+// ── TOAST ─────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+loadBookings();
+</script>
+</body>
+</html>
+
+
