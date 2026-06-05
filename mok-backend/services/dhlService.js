@@ -74,14 +74,19 @@ function injectAccount(payload) {
             ? DHL_IMPORT_ACCOUNT
             : DHL_EXPORT_ACCOUNT;
 
-
-    console.log("[DHL DIRECTION]", payload.shipmentDirection);
-    console.log("[DHL ACCOUNT]", selectedAccount);
+    console.log("================================");
+    console.log("DHL Direction:", direction);
+    console.log("DHL Import Account:", DHL_IMPORT_ACCOUNT);
+    console.log("DHL Export Account:", DHL_EXPORT_ACCOUNT);
+    console.log("DHL Selected Account:", selectedAccount);
+    console.log("================================");
 
     if (payload.accounts) {
         payload.accounts = payload.accounts.map(acc => ({
             ...acc,
-            number: acc.number === "SEE_BACKEND" ? selectedAccount : acc.number
+            number: acc.number === "SEE_BACKEND"
+                ? selectedAccount
+                : acc.number
         }));
     }
 
@@ -156,6 +161,8 @@ exports.validateAddress = async (address) => {
         throw new Error(detail?.detail || detail?.message || err.message);
     }
 };
+
+
 
 
 
