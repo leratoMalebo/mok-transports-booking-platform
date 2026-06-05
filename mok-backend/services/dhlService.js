@@ -74,6 +74,10 @@ function injectAccount(payload) {
             ? DHL_IMPORT_ACCOUNT
             : DHL_EXPORT_ACCOUNT;
 
+
+    console.log("[DHL DIRECTION]", payload.shipmentDirection);
+    console.log("[DHL ACCOUNT]", selectedAccount);
+
     if (payload.accounts) {
         payload.accounts = payload.accounts.map(acc => ({
             ...acc,
