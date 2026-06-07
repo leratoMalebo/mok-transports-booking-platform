@@ -1121,6 +1121,8 @@
       const notifyMsg = document.getElementById('notifyMsg').value;
 
       const payload = {
+        shipmentDirection: currentMode.toUpperCase(),
+
         plannedShippingDateAndTime: `${shipDate}T08:00:00 GMT+02:00`,
         pickup: { isRequested: pickup },
         productCode,
@@ -1305,10 +1307,12 @@
       const payload = buildPayload();
 
       try {
+        console.log("Sending DHL Direction:", payload.shipmentDirection);
+
         const res = await fetch(`${API}/dhl/shipments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ payload, mode: currentMode })
+          body: JSON.stringify({ payload })
         });
         const data = await res.json();
 
