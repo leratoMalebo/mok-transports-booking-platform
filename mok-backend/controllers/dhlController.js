@@ -186,4 +186,50 @@ exports.getLabel = async (req, res) => {
     }
 };
 
+exports.downloadLabel = async (req, res) => {
+  try {
+    const { trackingNumber } = req.params;
+
+    const result = await pool.query(
+      `
+      SELECT label_pdf_b64
+      FROM dhl_shipments
+      WHERE tracking_number = $1
+      `,
+      [trackingNumber]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({
+        error: 'Label not found'
+      });
+    }
+
+    const pdfBase64 = result.rows[0].label_pdf_b64;
+
+    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=DHL-${trackingNumber}.pdf`
+    );
+
+    res.setHeader(
+      'Content-Type',
+      'application/pdf'
+    );
+
+    return res.send(pdfBuffer);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: err.message
+    });
+  }
+};
+
+
+
+
 

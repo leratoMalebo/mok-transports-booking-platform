@@ -25,4 +25,8 @@ router.get('/shipments/:trackingNo/label', controller.getLabel);
 // GET  /api/dhl/shipments/:trackingNo        — single shipment from DB
 router.get('/shipments/:trackingNo', controller.getShipmentByTracking);
 
+router.get('/label/:trackingNumber', dhlController.downloadLabel);
+
 module.exports = router;
+
+
