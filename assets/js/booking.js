@@ -188,14 +188,7 @@ function calculatePrice(service, chargeable, fromAddress, toAddress) {
 // ----------------------------------------------------------
 // 4. WAYBILL NUMBER GENERATOR — sequential MOK000001, MOK000002 …
 // ----------------------------------------------------------
-/*
-function generateWaybillNumber() {
-  const current = parseInt(localStorage.getItem("mokWaybillCounter") || "0", 10);
-  const next = current + 1;
-  localStorage.setItem("mokWaybillCounter", String(next));
-  return `MOK${String(next).padStart(6, "0")}`;
-}
-*/
+
 // ----------------------------------------------------------
 // 5. TABLE ROW MANAGEMENT
 // ----------------------------------------------------------
@@ -483,8 +476,8 @@ async function confirmBooking() {
   if (!data) return;
 
   try {
-    const waybillNumber = await generateUniqueWaybillNumber();
-    data.waybillNo = waybillNo;
+    
+      delete data.waybillNo;
 
     const session = JSON.parse(localStorage.getItem("mokSession") || "{}");
 
@@ -547,7 +540,6 @@ async function confirmBooking() {
       },
       body: JSON.stringify({
         booking_id: savedBooking.id,
-        waybill_no: waybillNo,
         weight: parseFloat(data.chargeWeight || 0),
         volumetric_weight: parseFloat(data.volWeight || 0)
       })
@@ -558,6 +550,8 @@ async function confirmBooking() {
     }
 
     const savedWaybill = await waybillResponse.json();
+    data.waybillNo = savedWaybill.waybill_no;
+
     console.log("✅ Waybill saved to database:", savedWaybill);
     console.log("✅ Booking saved to database:", savedBooking);
 
@@ -587,7 +581,7 @@ async function confirmBooking() {
 
     localStorage.setItem("localWaybill", JSON.stringify({
       bookingId: savedBooking.id,
-      waybillNo,
+      waybillNo: data.waybillNo,
       shipFrom: buildAddr(
         data.fromCompany,
         data.fromAddress,
@@ -630,13 +624,13 @@ async function confirmBooking() {
     M.Modal.getInstance(modal).close();
 
     M.toast({
-      html: `✅ Booking confirmed! Waybill: <strong>${waybillNo}</strong>`,
+      html: `✅ Booking confirmed! Waybill: <strong>${data.waybillNo}</strong>`,
       classes: "green darken-2",
       displayLength: 5000
     });
 
     document.getElementById("waybillConfirmBtn").style.display = "inline-flex";
-    document.getElementById("waybillConfirmBtn").setAttribute("data-waybill", waybillNo);
+    document.getElementById("waybillConfirmBtn").setAttribute("data-waybill", data.waybillNo);
 
     window._pendingBooking = null;
 
@@ -697,6 +691,12 @@ function fallbackDistance() {
   document.getElementById("distance").innerText = dist;
   calculateAll();
 }
+
+
+
+
+
+
 
 
 

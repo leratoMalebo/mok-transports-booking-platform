@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Mok Transports | My Truck Bookings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#0d2137;--blue:#1565c0;--green:#2e7d32;
+      --orange:#f57c00;--red:#c62828;--teal:#00796b;
+      --bg:#f0f4f8;--card:#fff;--border:#dce3ec;
+      --text:#1a2535;--muted:#607d8b;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    /* HEADER */
+    header{background:var(--navy);border-bottom:3px solid var(--orange);height:66px;
+      display:flex;align-items:center;justify-content:space-between;padding:0 32px;
+      position:sticky;top:0;z-index:50;box-shadow:0 4px 18px rgba(13,33,55,.18)}
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand img{height:38px;background:#fff;padding:4px 6px;border-radius:5px}
+    .brand-name{font-family:'Barlow Condensed',sans-serif;color:#fff;font-size:18px;font-weight:800}
+    .brand-sub{font-size:10px;color:#90a4ae;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+    .hbtn{height:34px;padding:0 14px;border-radius:5px;border:none;cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+      letter-spacing:1px;text-transform:uppercase;text-decoration:none;
+      display:inline-flex;align-items:center;gap:6px;transition:.18s}
+    .hbtn-ghost{background:rgba(255,255,255,.08);color:#90a4ae;border:1px solid rgba(255,255,255,.1)}
+    .hbtn-ghost:hover{background:rgba(255,255,255,.15);color:#fff}
+    .hbtn-orange{background:var(--orange);color:#fff}
+    .hbtn-orange:hover{background:#fb8c00}
+
+    /* PAGE */
+    .page{max-width:1060px;margin:0 auto;padding:28px 20px 80px}
+
+    /* WELCOME */
+    .welcome{background:linear-gradient(135deg,var(--navy) 0%,#1a3a5c 100%);
+      border-radius:12px;padding:22px 28px;margin-bottom:24px;
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+      box-shadow:0 4px 18px rgba(13,33,55,.12)}
+    .w-greeting{font-size:11px;color:#90a4ae;letter-spacing:1.5px;
+      text-transform:uppercase;margin-bottom:4px}
+    .w-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;
+      font-weight:800;color:#fff;letter-spacing:.5px}
+    .w-sub{font-size:12px;color:#90a4ae;margin-top:4px}
+    .w-badge{background:rgba(245,124,0,.15);border:1px solid rgba(245,124,0,.3);
+      color:var(--orange);padding:5px 14px;border-radius:20px;
+      font-family:'Barlow Condensed',sans-serif;font-size:12px;
+      font-weight:800;letter-spacing:1px;text-transform:uppercase}
+
+    /* STAT CHIPS */
+    .chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+    .chip{background:var(--card);border:1px solid var(--border);border-radius:10px;
+      padding:10px 18px;display:flex;align-items:center;gap:10px;
+      box-shadow:0 2px 8px rgba(10,22,40,.05)}
+    .chip-dot{width:8px;height:8px;border-radius:50%}
+    .chip-label{font-size:11px;font-weight:600;text-transform:uppercase;
+      letter-spacing:1px;color:var(--muted)}
+    .chip-val{font-family:'Barlow Condensed',sans-serif;font-size:18px;
+      font-weight:800;color:var(--navy)}
+
+    /* EMPTY STATE */
+    .empty-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+      padding:56px 24px;text-align:center;box-shadow:0 4px 20px rgba(10,22,40,.06)}
+    .empty-icon{font-size:48px;margin-bottom:16px}
+    .empty-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;
+      font-weight:800;color:var(--navy);margin-bottom:8px}
+    .empty-sub{font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+    .empty-btn{height:44px;padding:0 24px;background:var(--orange);color:#fff;border:none;
+      border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+      font-size:14px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+      text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+
+    /* BOOKING CARDS */
+    .bookings-list{display:flex;flex-direction:column;gap:16px}
+
+    .booking-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+      overflow:hidden;box-shadow:0 4px 16px rgba(10,22,40,.06);transition:.2s}
+    .booking-card:hover{box-shadow:0 6px 24px rgba(10,22,40,.1)}
+
+    .card-top{display:flex;align-items:flex-start;justify-content:space-between;
+      padding:18px 20px;gap:16px;flex-wrap:wrap}
+    .card-ref{font-family:'Barlow Condensed',sans-serif;font-size:20px;
+      font-weight:800;color:var(--navy);letter-spacing:.5px}
+    .card-date{font-size:11px;color:var(--muted);margin-top:3px}
+    .card-vehicle{display:inline-flex;align-items:center;gap:6px;
+      background:#f5f8ff;border:1px solid var(--border);border-radius:20px;
+      padding:4px 12px;font-size:12px;font-weight:700;color:var(--blue);margin-top:6px}
+    .card-right{text-align:right}
+    .card-amount{font-family:'Barlow Condensed',sans-serif;font-size:24px;
+      font-weight:800;color:var(--navy)}
+    .card-amount-label{font-size:10px;color:var(--muted);margin-bottom:3px;
+      text-transform:uppercase;letter-spacing:.8px}
+
+    /* STATUS BADGE */
+    .status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;
+      border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.3px}
+    .status-badge::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .sb-confirmed{background:#e3f2fd;color:var(--blue)}.sb-confirmed::before{background:var(--blue)}
+    .sb-in_transit{background:#fff3e0;color:#e65100}.sb-in_transit::before{background:#e65100;animation:blink 1.2s infinite}
+    .sb-delivered{background:#e8f5e9;color:var(--green)}.sb-delivered::before{background:var(--green)}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+    /* PROGRESS STEPPER */
+    .card-stepper{padding:0 20px 16px;display:flex;align-items:center}
+    .step-item{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+    .step-item:not(:last-child)::after{content:'';position:absolute;
+      top:16px;left:50%;width:100%;height:2px;background:var(--border);z-index:0}
+    .step-item.done:not(:last-child)::after{background:var(--green)}
+    .step-item.active:not(:last-child)::after{background:linear-gradient(90deg,var(--orange),var(--border))}
+    .step-circle{width:32px;height:32px;border-radius:50%;display:flex;
+      align-items:center;justify-content:center;font-size:14px;border:2px solid var(--border);
+      background:#fff;position:relative;z-index:1;transition:.3s;font-weight:700}
+    .step-item.done  .step-circle{background:var(--green);border-color:var(--green);color:#fff}
+    .step-item.active .step-circle{background:var(--orange);border-color:var(--orange);color:#fff;
+      box-shadow:0 0 0 4px rgba(245,124,0,.2)}
+    .step-name{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+      letter-spacing:.6px;margin-top:6px;text-align:center}
+    .step-item.done  .step-name{color:var(--green)}
+    .step-item.active .step-name{color:var(--orange)}
+
+    /* CARD DETAILS */
+    .card-details{display:grid;grid-template-columns:repeat(3,1fr);
+      border-top:1px solid var(--border);background:#fafbfc}
+    .cd-cell{padding:12px 20px;border-right:1px solid var(--border)}
+    .cd-cell:last-child{border-right:none}
+    .cd-label{font-size:10px;font-weight:700;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+    .cd-val{font-size:13px;font-weight:600;color:var(--navy)}
+
+    /* STATUS NOTIFICATION BANNER */
+    .notif-banner{margin:0 20px 16px;padding:12px 16px;border-radius:8px;
+      display:flex;align-items:center;gap:12px;font-size:13px}
+    .nb-confirmed{background:#e3f2fd;border:1px solid #90caf9;color:#1565c0}
+    .nb-in_transit{background:#fff3e0;border:1px solid #ffcc80;color:#e65100}
+    .nb-delivered{background:#e8f5e9;border:1px solid #a5d6a7;color:#2e7d32}
+    .notif-icon{font-size:20px;flex-shrink:0}
+    .notif-title{font-weight:700;margin-bottom:2px}
+    .notif-sub{font-size:12px;opacity:.8}
+
+    /* SIGNATURE STATUS */
+    .sig-bar{padding:10px 20px;border-top:1px solid var(--border);
+      display:flex;gap:16px;background:#fff}
+    .sig-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+    .sig-dot{width:8px;height:8px;border-radius:50%}
+    .sig-yes{background:var(--green)}.sig-no{background:#dce3ec}
+    .sig-label{font-weight:600}
+
+    @media(max-width:640px){
+      header{padding:0 16px}
+      .page{padding:16px 12px 60px}
+      .card-details{grid-template-columns:1fr 1fr}
+      .card-top{flex-direction:column}
+      .card-right{text-align:left}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="assets/images/mok-logo.png" alt="Mok Transports">
+    <div>
+      <div class="brand-name">Mok Transports Services (Pty) Ltd</div>
+      <div class="brand-sub">Client Portal</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a class="hbtn hbtn-ghost" href="clientDashboard.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="hbtn hbtn-orange" href="trucking.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Booking
+    </a>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- WELCOME -->
+  <div class="welcome">
+    <div>
+      <div class="w-greeting">My Truck Bookings</div>
+      <div class="w-title" id="welcomeName">—</div>
+      <div class="w-sub">Track the status of your truck freight bookings in real time</div>
+    </div>
+    <div class="w-badge">Client Portal</div>
+  </div>
+
+  <!-- CHIPS -->
+  <div class="chips">
+    <div class="chip">
+      <div class="chip-dot" style="background:#607d8b"></div>
+      <span class="chip-label">Total</span>
+      <span class="chip-val" id="chipTotal">—</span>
+    </div>
+    <div class="chip">
+      <div class="chip-dot" style="background:var(--blue)"></div>
+      <span class="chip-label">Confirmed</span>
+      <span class="chip-val" id="chipConfirmed">—</span>
+    </div>
+    <div class="chip">
+      <div class="chip-dot" style="background:#e65100"></div>
+      <span class="chip-label">In Transit</span>
+      <span class="chip-val" id="chipTransit">—</span>
+    </div>
+    <div class="chip">
+      <div class="chip-dot" style="background:var(--green)"></div>
+      <span class="chip-label">Delivered</span>
+      <span class="chip-val" id="chipDelivered">—</span>
+    </div>
+  </div>
+
+  <!-- BOOKINGS LIST -->
+  <div id="bookingsList"></div>
+
+</div>
+
+<script>
+  const API = 'https://bookings.moktransports.com/api';
+
+  // Auth
+  const session = JSON.parse(localStorage.getItem('mokSession')||'null');
+  if (!session || session.role !== 'client') window.location.href = 'login.html';
+
+  const clientName  = session?.company || session?.name || '—';
+  const clientEmail = session?.email || '';
+  document.getElementById('welcomeName').textContent = clientName;
+
+  // Status config
+  const statusConfig = {
+    confirmed:  { label:'Confirmed',  cls:'sb-confirmed',  nb:'nb-confirmed',
+      icon:'📋', title:'Booking Confirmed',
+      msg:'Mok Transports has received your booking. A truck will be assigned shortly.' },
+    in_transit: { label:'In Transit', cls:'sb-in_transit', nb:'nb-in_transit',
+      icon:'🚛', title:'Your Load is In Transit!',
+      msg:'Your truck has picked up the load and is on the way to the destination.' },
+    delivered:  { label:'Delivered',  cls:'sb-delivered',  nb:'nb-delivered',
+      icon:'✅', title:'Successfully Delivered',
+      msg:'Your load has been delivered and signed off. Thank you for choosing Mok Transports.' },
+  };
+
+  async function loadBookings() {
+    try {
+      // Fetch all truck bookings and filter by client email/name client-side
+      const res  = await fetch(`${API}/truck-bookings`);
+      const all  = await res.json();
+
+      // Match by client email or name
+      const mine = all.filter(b =>
+        (b.client_email && b.client_email.toLowerCase() === clientEmail.toLowerCase()) ||
+        (b.client_name  && b.client_name.toLowerCase()  === clientName.toLowerCase())
+      );
+
+      // Update chips
+      document.getElementById('chipTotal').textContent     = mine.length;
+      document.getElementById('chipConfirmed').textContent = mine.filter(b=>b.status==='confirmed').length;
+      document.getElementById('chipTransit').textContent   = mine.filter(b=>b.status==='in_transit').length;
+      document.getElementById('chipDelivered').textContent = mine.filter(b=>b.status==='delivered').length;
+
+      const container = document.getElementById('bookingsList');
+
+      if (!mine.length) {
+        container.innerHTML = `
+          <div class="empty-card">
+            <div class="empty-icon">🚛</div>
+            <div class="empty-title">No Truck Bookings Yet</div>
+            <div class="empty-sub">
+              You haven't made any truck freight bookings yet.<br>
+              Click below to request a truck — National or Cross Border.
+            </div>
+            <a class="empty-btn" href="trucking.html">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Book a Truck
+            </a>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<div class="bookings-list">${mine.map(b => renderCard(b)).join('')}</div>`;
+
+    } catch(err) {
+      console.error(err);
+      document.getElementById('bookingsList').innerHTML = `
+        <div class="empty-card">
+          <div class="empty-icon">⚠️</div>
+          <div class="empty-title">Could Not Load</div>
+          <div class="empty-sub">Please check your connection and try again.</div>
+        </div>`;
+    }
+  }
+
+  function renderCard(b) {
+    const cfg   = statusConfig[b.status] || statusConfig.confirmed;
+    const total = Number(b.price||0) + Number(b.toll_cost||0);
+    const stepIdx = {confirmed:0, in_transit:1, delivered:2}[b.status]||0;
+    const steps   = [
+      {label:'Confirmed',  icon:'📋'},
+      {label:'In Transit', icon:'🚛'},
+      {label:'Delivered',  icon:'✅'},
+    ];
+
+    const shipDate = b.shipment_date
+      ? new Date(b.shipment_date).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})
+      : '—';
+    const created  = new Date(b.created_at).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
+
+    return `
+      <div class="booking-card">
+
+        <!-- TOP -->
+        <div class="card-top">
+          <div>
+            <div class="card-ref">${b.booking_ref}</div>
+            <div class="card-date">Booked: ${created}</div>
+            <div class="card-vehicle">🚛 ${b.vehicle} · ${b.type}</div>
+          </div>
+          <div class="card-right">
+            <div class="card-amount-label">Total Excl. VAT</div>
+            <div class="card-amount">R ${total.toLocaleString()}</div>
+            <div style="margin-top:8px">
+              <span class="status-badge ${cfg.cls}">${cfg.label}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATUS NOTIFICATION -->
+        <div class="notif-banner ${cfg.nb}">
+          <div class="notif-icon">${cfg.icon}</div>
+          <div>
+            <div class="notif-title">${cfg.title}</div>
+            <div class="notif-sub">${cfg.msg}</div>
+          </div>
+        </div>
+
+        <!-- PROGRESS STEPPER -->
+        <div class="card-stepper">
+          ${steps.map((s,i) => `
+            <div class="step-item ${i<stepIdx?'done':i===stepIdx?'active':''}">
+              <div class="step-circle">${i<stepIdx?'✓':s.icon}</div>
+              <div class="step-name">${s.label}</div>
+            </div>`).join('')}
+        </div>
+
+        <!-- DETAILS -->
+        <div class="card-details">
+          <div class="cd-cell">
+            <div class="cd-label">Route</div>
+            <div class="cd-val">${b.route||'—'}</div>
+          </div>
+          <div class="cd-cell">
+            <div class="cd-label">Shipment Date</div>
+            <div class="cd-val">${shipDate}</div>
+          </div>
+          <div class="cd-cell">
+            <div class="cd-label">Commodity</div>
+            <div class="cd-val">${b.commodity||'—'}</div>
+          </div>
+        </div>
+
+        <!-- SIGNATURE STATUS -->
+        <div class="sig-bar">
+          <div class="sig-item">
+            <div class="sig-dot ${b.pickup_signature?'sig-yes':'sig-no'}"></div>
+            <span class="sig-label">Pickup Signature</span>
+            <span>${b.pickup_signature?'✓ Signed':'Pending'}</span>
+          </div>
+          <div class="sig-item">
+            <div class="sig-dot ${b.delivery_signature?'sig-yes':'sig-no'}"></div>
+            <span class="sig-label">Delivery Signature</span>
+            <span>${b.delivery_signature?'✓ Signed':'Pending'}</span>
+          </div>
+          ${b.invoiced
+            ? `<div class="sig-item" style="margin-left:auto">
+                <div class="sig-dot" style="background:#6a1b9a"></div>
+                <span class="sig-label" style="color:#6a1b9a">Invoice: ${b.invoice_no}</span>
+               </div>`
+            : ''}
+        </div>
+
+      </div>`;
+  }
+
+  loadBookings();
+  // Auto-refresh every 60 seconds so status updates appear without manual refresh
+  setInterval(loadBookings, 60000);
+</script>
+</body>
+</html>
+
+
+
+

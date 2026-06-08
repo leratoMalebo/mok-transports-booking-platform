@@ -2,27 +2,14 @@ const db = require('../db');
 
 const jkjService = require('../services/jkjService');
 
-
 async function generateWaybillNumber() {
   const result = await db.query(`
-    SELECT waybill_no
-    FROM waybills
-    ORDER BY id DESC
-    LIMIT 1
+    SELECT nextval('waybill_no_seq') AS next_no
   `);
 
-  if (!result.rows.length) {
-    return "MOK000001";
-  }
+  const nextNo = Number(result.rows[0].next_no);
 
-  const lastWaybill = result.rows[0].waybill_no;
-
-  const number = parseInt(
-    lastWaybill.replace("MOK", ""),
-    10
-  );
-
-  return `MOK${String(number + 1).padStart(6, "0")}`;
+  return `MOK${String(nextNo).padStart(6, '0')}`;
 }
 
 

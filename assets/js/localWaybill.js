@@ -4,14 +4,6 @@ function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
 
-function generateLocalWaybillNumber() {
-  const current = parseInt(localStorage.getItem("mokWaybillCounter") || "0", 10);
-  const next = current + 1;
-  localStorage.setItem("mokWaybillCounter", String(next));
-  return `MOK${String(next).padStart(6, "0")}`;
-}
-
-
 function savePDF() {
   const element = document.getElementById("waybillContent");
   html2pdf()
@@ -35,7 +27,8 @@ window.addEventListener("DOMContentLoaded", () => {
   const stored = localStorage.getItem("localWaybill");
 
   if (!stored || stored === "null") {
-    document.getElementById("waybillNumber").innerText = generateLocalWaybillNumber();
+    document.getElementById("waybillNumber").innerText = "WAYBILL NOT GENERATED";
+
     renderBarcode(document.getElementById("waybillNumber").innerText);
     return;
   }
@@ -43,7 +36,12 @@ window.addEventListener("DOMContentLoaded", () => {
   const data = JSON.parse(stored);
 
   // Use waybillNo from booking if present, else generate new
-  const wb = data.waybillNo || generateLocalWaybillNumber();
+  const wb = data.waybillNo;
+
+  if (!wb) {
+    alert("No waybill number returned from server.");
+    return;
+  }
 
   document.getElementById("waybillNumber").innerText = wb;
   document.getElementById("shipFrom").innerHTML = data.shipFrom || "—";
@@ -206,6 +204,11 @@ async function loadWaybillFromDatabase(waybillNo) {
     alert("Could not load saved waybill from database.");
   }
 }
+
+
+
+
+
 
 
 
