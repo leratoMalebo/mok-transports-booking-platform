@@ -1,32 +1,30 @@
 // mok-backend/routes/dhl.js
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/dhlController');
+// Renamed this to dhlController to make the rest of the file safer and more descriptive
+const dhlController = require('../controllers/dhlController');
 
 // ── Specific routes FIRST (before param routes) ──────────────
 // GET  /api/dhl/shipments          — list all DHL shipments
-router.get('/shipments', controller.getShipments);
+router.get('/shipments', dhlController.getShipments);
 
 // POST /api/dhl/shipments          — create new DHL shipment
-router.post('/shipments', controller.createShipment);
+router.post('/shipments', dhlController.createShipment);
 
 // POST /api/dhl/rates              — get rate estimate
-router.post('/rates', controller.getRates);
+router.post('/rates', dhlController.getRates);
 
-router.post('/address-validate',controller.validateAddress);
+router.post('/address-validate', dhlController.validateAddress);
     
 // GET  /api/dhl/track/:trackingNo  — live tracking from DHL API
-router.get('/track/:trackingNo', controller.trackShipment);
+router.get('/track/:trackingNo', dhlController.trackShipment);
 
 // ── Param routes LAST ─────────────────────────────────────────
 // GET  /api/dhl/shipments/:trackingNo/label  — download PDF label
-router.get('/shipments/:trackingNo/label', controller.getLabel);
+router.get('/shipments/:trackingNo/label', dhlController.getLabel);
 
 // GET  /api/dhl/shipments/:trackingNo        — single shipment from DB
-router.get('/shipments/:trackingNo', controller.getShipmentByTracking);
-
-router.get('/label/:trackingNumber', dhlController.downloadLabel);
+router.get('/shipments/:trackingNo', dhlController.getShipmentByTracking);
 
 module.exports = router;
-
 
