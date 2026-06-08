@@ -483,7 +483,7 @@ async function confirmBooking() {
   if (!data) return;
 
   try {
-    const waybillNo = generateWaybillNumber();
+    const waybillNumber = await generateUniqueWaybillNumber();
     data.waybillNo = waybillNo;
 
     const session = JSON.parse(localStorage.getItem("mokSession") || "{}");
