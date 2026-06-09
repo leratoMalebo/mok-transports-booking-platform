@@ -73,6 +73,20 @@ async function makeCall(className, method, params) {
   }
 
   return data;
+
+}
+
+function sanitizeJKJ(value, maxLength = 60) {
+  return String(value || "")
+    .replace(/'/g, "")
+    .replace(/"/g, "")
+    .replace(/,/g, " ")
+    .replace(/\./g, " ")
+    .replace(/\n/g, " ")
+    .replace(/\r/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .substring(0, maxLength);
 }
 
 // ── SUBMIT WAYBILL ────────────────────────────────────────────
@@ -88,27 +102,27 @@ exports.submitWaybillToJKJ = async (waybill) => {
       waydate: todayDDMMYYYY(),
 
       // Consignor (sender)
-      origpers: (waybill.consignor_contact_name || waybill.consignor_name || 'Mok Transports').substring(0, 40),
-      origperadd1: (waybill.consignor_address || '12 Jupiter Road, Crown Mines').substring(0, 60),
-      origplace: (waybill.consignor_suburb || '').substring(0, 40),
-      origtown: (waybill.consignor_town || 'Johannesburg').substring(0, 30),
+      origpers: sanitizeJKJ(waybill.consignor_contact_name || waybill.consignor_name || "Mok Transports", 40),
+      origperadd1: sanitizeJKJ(waybill.consignor_address || "12 Jupiter Road Crown Mines", 60),
+      origplace: sanitizeJKJ(waybill.consignor_suburb || "", 40),
+      origtown: sanitizeJKJ(waybill.consignor_town || "Johannesburg", 30),
       origpercontact: (waybill.consignor_contact || '0118396496').replace(/\D/g, '').substring(0, 15),
 
       // Consignee (receiver)
-      destpers: (waybill.consignee_contact_name || waybill.consignee_name || 'Receiver').substring(0, 40),
-      destperadd1: (waybill.consignee_address || 'Receiver Address').substring(0, 60),
-      destplace: (waybill.consignee_suburb || '').substring(0, 40),
-      desttown: (waybill.consignee_town || 'Johannesburg').substring(0, 30),
+      destpers: sanitizeJKJ(waybill.consignee_contact_name || waybill.consignee_name || "Receiver", 40),
+      destperadd1: sanitizeJKJ(waybill.consignee_address || "Receiver Address", 60),
+      destplace: sanitizeJKJ(waybill.consignee_suburb || "", 40),
+      desttown: sanitizeJKJ(waybill.consignee_town || "Johannesburg", 30),
       destpercontact: (waybill.consignee_contact || '0000000000').replace(/\D/g, '').substring(0, 15),
 
-      reference: waybill.waybill_no,
+      reference: sanitizeJKJ(waybill.waybill_no, 30),
       ppcust: JKJ_PPCUST_ID
     },
 
     contents: [{
       item: 1,
       pieces: pieces,
-      description: (waybill.description || 'General Cargo').substring(0, 40),
+      description: sanitizeJKJ(waybill.description || "General Cargo", 40),
       dim1: Number(waybill.length || 1),
       dim2: Number(waybill.width || 1),
       dim3: Number(waybill.height || 1),
