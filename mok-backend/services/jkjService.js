@@ -111,14 +111,14 @@ exports.submitWaybillToJKJ = async (waybill) => {
       // Consignor (sender)
       origpers: sanitizeJKJ(waybill.consignor_contact_name || waybill.consignor_name || "Mok Transports", 40),
       origperadd1: sanitizeJKJ(waybill.consignor_address || "12 Jupiter Road Crown Mines", 60),
-      origplace: sanitizeJKJPlace(waybill.consignor_suburb || waybill.consignor_town || "Johannesburg", 30),
+      
       origtown: sanitizeJKJ(waybill.consignor_town || "Johannesburg", 30),
       origpercontact: (waybill.consignor_contact || '0118396496').replace(/\D/g, '').substring(0, 15),
 
       // Consignee (receiver)
       destpers: sanitizeJKJ(waybill.consignee_contact_name || waybill.consignee_name || "Receiver", 40),
       destperadd1: sanitizeJKJ(waybill.consignee_address || "Receiver Address", 60),
-      destplace: sanitizeJKJPlace(waybill.consignee_suburb || waybill.consignee_town || "Johannesburg", 30),
+      
       desttown: sanitizeJKJ(waybill.consignee_town || "Johannesburg", 30),
       destpercontact: (waybill.consignee_contact || '0000000000').replace(/\D/g, '').substring(0, 15),
 
@@ -157,6 +157,9 @@ exports.submitWaybillToJKJ = async (waybill) => {
   console.log('✅ [JKJ] Waybill submitted successfully:', waybill.waybill_no);
   return result;
 };
+
+
+
 
 
 
