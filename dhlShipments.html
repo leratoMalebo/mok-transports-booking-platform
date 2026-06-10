@@ -345,11 +345,8 @@
         }
 
         function trackShipment(trackingNo) {
-
-            window.open(
-                `${API_BASE}/dhl/track/${trackingNo}`,
-                "_blank"
-            );
+            window.location.href =
+                `dhlTracking.html?tracking=${trackingNo}`;
         }
 
         document.addEventListener(
@@ -360,4 +357,5 @@
 </body>
 
 </html>
+
 
