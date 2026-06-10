@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>DHL Shipment Tracking | Mok Transports</title>
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+<style>
+
+body{
+    background:#f4f6f9;
+}
+
+.header{
+    background:#0a2342;
+    color:white;
+    padding:20px;
+}
+
+.card-panel{
+    border-radius:12px;
+}
+
+.label{
+    font-size:12px;
+    color:#666;
+    text-transform:uppercase;
+}
+
+.value{
+    font-size:20px;
+    font-weight:600;
+}
+
+.status-success{
+    background:#2e7d32;
+    color:white;
+    padding:8px 15px;
+    border-radius:20px;
+    display:inline-block;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div class="container">
+        <h4>DHL Shipment Tracking</h4>
+        <p>Mok Transports Services (Pty) Ltd</p>
+    </div>
+</div>
+
+<div class="container" style="margin-top:30px;">
+
+    <div class="card-panel">
+
+        <div class="row">
+
+            <div class="col s12 m6">
+                <div class="label">Tracking Number</div>
+                <div id="trackingNo" class="value">Loading...</div>
+            </div>
+
+            <div class="col s12 m6">
+                <div class="label">Status</div>
+                <div id="status"></div>
+            </div>
+
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row" style="margin-top:20px;">
+
+            <div class="col s12 m6">
+                <div class="label">Product Code</div>
+                <div id="productCode" class="value"></div>
+            </div>
+
+            <div class="col s12 m6">
+                <div class="label">Weight</div>
+                <div id="weight" class="value"></div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col s12">
+                <div class="label">Description</div>
+                <div id="description" class="value"></div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col s12 m6">
+                <div class="label">Origin</div>
+                <div id="origin" class="value"></div>
+            </div>
+
+            <div class="col s12 m6">
+                <div class="label">Destination</div>
+                <div id="destination" class="value"></div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col s12">
+                <div class="label">Shipment Date</div>
+                <div id="shipmentDate" class="value"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <a href="dhlShipments.html"
+       class="btn blue darken-4">
+       Back to DHL Shipments
+    </a>
+
+</div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const tracking = params.get("tracking");
+
+fetch(`https://bookings.moktransports.com/api/dhl/track/${tracking}`)
+.then(r => r.json())
+.then(data => {
+
+    const shipment = data.shipments[0];
+
+    document.getElementById("trackingNo").innerText =
+        shipment.shipmentTrackingNumber || "-";
+
+    document.getElementById("status").innerHTML =
+        `<span class="status-success">${shipment.status}</span>`;
+
+    document.getElementById("description").innerText =
+        shipment.description || "-";
+
+    document.getElementById("productCode").innerText =
+        shipment.productCode || "-";
+
+    document.getElementById("weight").innerText =
+        shipment.totalWeight + " kg";
+
+    document.getElementById("shipmentDate").innerText =
+        shipment.shipmentTimestamp || "-";
+
+    document.getElementById("origin").innerText =
+        shipment.shipperDetails?.postalAddress?.countryCode || "-";
+
+    document.getElementById("destination").innerText =
+        shipment.receiverDetails?.postalAddress?.countryCode || "-";
+
+})
+.catch(err => {
+
+    console.error(err);
+
+    document.getElementById("trackingNo").innerText =
+        "Tracking information unavailable";
+
+});
+
+</script>
+
+</body>
+</html>
+
+
+
