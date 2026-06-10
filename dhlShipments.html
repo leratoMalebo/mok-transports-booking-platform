@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mok Transports | DHL Shipments</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+
+    .page {
+      padding: 28px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+      color: #0f2742;
+    }
+
+    .header p {
+      margin: 6px 0 0;
+      color: #64748b;
+    }
+
+    .btn {
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 13px;
+    }
+
+    .btn-primary {
+      background: #0f2742;
+      color: #fff;
+    }
+
+    .btn-dhl {
+      background: #ffcc00;
+      color: #111;
+    }
+
+    .btn-outline {
+      background: #fff;
+      border: 1px solid #d0d7de;
+      color: #0f2742;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(15, 39, 66, 0.08);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .search {
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid #d0d7de;
+      min-width: 280px;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      background: #f8fafc;
+      color: #475569;
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #eef2f7;
+      vertical-align: middle;
+    }
+
+    .badge {
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .export {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .import {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 30px;
+      color: #64748b;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="header">
+      <div>
+        <h1>DHL International Shipments</h1>
+        <p>View DHL shipments, tracking numbers, labels and shipment documents.</p>
+      </div>
+
+      <div>
+        <a href="dashboard.html" class="btn btn-outline">Back to Dashboard</a>
+        <a href="imports.html" class="btn btn-dhl">Create DHL Shipment</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <input
+          id="searchInput"
+          class="search"
+          type="text"
+          placeholder="Search tracking, shipper, receiver or country..."
+          oninput="filterShipments()"
+        />
+
+        <button class="btn btn-primary" onclick="loadDHLShipments()">
+          Refresh
+        </button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Tracking No</th>
+              <th>Mode</th>
+              <th>Product</th>
+              <th>Shipper</th>
+              <th>From</th>
+              <th>Receiver</th>
+              <th>To</th>
+              <th>Weight</th>
+              <th>Declared Value</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody id="dhlShipmentsBody">
+            <tr>
+              <td colspan="11" class="empty">Loading DHL shipments...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const API_BASE = "https://bookings.moktransports.com/api";
+    let DHL_SHIPMENTS = [];
+
+    async function loadDHLShipments() {
+      const tbody = document.getElementById("dhlShipmentsBody");
+
+      try {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="empty">Loading DHL shipments...</td>
+          </tr>
+        `;
+
+        const res = await fetch(`${API_BASE}/dhl/shipments`);
+
+        if (!res.ok) {
+          throw new Error("Failed to load DHL shipments");
+        }
+
+        DHL_SHIPMENTS = await res.json();
+
+        renderShipments(DHL_SHIPMENTS);
+
+      } catch (err) {
+        console.error("DHL shipments error:", err);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="empty">
+              Failed to load DHL shipments.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderShipments(shipments) {
+      const tbody = document.getElementById("dhlShipmentsBody");
+
+      if (!shipments || shipments.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="empty">No DHL shipments found.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = shipments.map(s => {
+        const mode = (s.mode || "EXPORT").toUpperCase();
+        const badgeClass = mode === "IMPORT" ? "import" : "export";
+
+        return `
+          <tr>
+            <td><strong>${s.tracking_number || "—"}</strong></td>
+            <td><span class="badge ${badgeClass}">${mode}</span></td>
+            <td>${s.product_code || "—"}</td>
+            <td>${s.shipper_name || "—"}</td>
+            <td>${s.shipper_country || "—"}</td>
+            <td>${s.receiver_name || "—"}</td>
+            <td>${s.receiver_country || "—"}</td>
+            <td>${s.weight || "—"} kg</td>
+            <td>${s.declared_value || "—"} ${s.declared_currency || ""}</td>
+            <td>${s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}</td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-outline" onclick="trackDHL('${s.tracking_number}')">
+                  Track
+                </button>
+                <button class="btn btn-dhl" onclick="downloadDHLLabel('${s.tracking_number}')">
+                  Download PDF
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function filterShipments() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+
+      const filtered = DHL_SHIPMENTS.filter(s =>
+        String(s.tracking_number || "").toLowerCase().includes(query) ||
+        String(s.shipper_name || "").toLowerCase().includes(query) ||
+        String(s.receiver_name || "").toLowerCase().includes(query) ||
+        String(s.shipper_country || "").toLowerCase().includes(query) ||
+        String(s.receiver_country || "").toLowerCase().includes(query)
+      );
+
+      renderShipments(filtered);
+    }
+
+    function downloadDHLLabel(trackingNumber) {
+      window.open(
+        `${API_BASE}/dhl/shipments/${trackingNumber}/label`,
+        "_blank"
+      );
+    }
+
+    function trackDHL(trackingNumber) {
+      window.open(
+        `${API_BASE}/dhl/track/${trackingNumber}`,
+        "_blank"
+      );
+    }
+
+    document.addEventListener("DOMContentLoaded", loadDHLShipments);
+  </script>
+</body>
+</html>
+
+
