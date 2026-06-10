@@ -141,9 +141,18 @@
     <div class="page">
 
         <div class="header">
-            <div>
-                <h1>DHL International Shipments</h1>
-                <p>View DHL shipments, tracking numbers, labels and shipment documents.</p>
+            <div style="display:flex;align-items:center;gap:15px;">
+
+                <img src="assets/images/mok-logo.png" alt="Mok Transports" style="height:70px;">
+
+                <div>
+                    <h1>DHL International Shipments</h1>
+                    <p>
+                        View DHL shipments, tracking numbers,
+                        labels and shipment documents.
+                    </p>
+                </div>
+
             </div>
 
             <div>
@@ -250,60 +259,62 @@
             body.innerHTML =
                 rows.map(row => `
 
-      <tr>
+<tr>
 
-        <td>
-          ${row.tracking_number}
-        </td>
+<td>${row.tracking_number || ""}</td>
 
-        <td>
-          ${row.mode}
-        </td>
+<td>
+<span class="badge ${row.mode === 'IMPORT' ? 'import' : 'export'}">
+${row.mode || ""}
+</span>
+</td>
 
-        <td>
-          ${row.shipper_name}
-        </td>
+<td>${row.product_code || ""}</td>
 
-        <td>
-          ${row.receiver_name}
-        </td>
+<td>${row.shipper_name || ""}</td>
 
-        <td>
-          ${row.weight} kg
-        </td>
+<td>${row.shipper_country || ""}</td>
 
-        <td>
-          ${row.created_at
-                        ? new Date(
-                            row.created_at
-                        ).toLocaleDateString()
-                        : ""
-                    }
-        </td>
+<td>${row.receiver_name || ""}</td>
 
-        <td>
+<td>${row.receiver_country || ""}</td>
 
-          <button
-            onclick="downloadLabel(
-              '${row.tracking_number}'
-            )"
-          >
-            Label
-          </button>
+<td>${row.weight || 0} kg</td>
 
-          <button
-            onclick="trackShipment(
-              '${row.tracking_number}'
-            )"
-          >
-            Track
-          </button>
+<td>
+${row.declared_value || 0}
+${row.declared_currency || ""}
+</td>
 
-        </td>
+<td>
+${row.created_at
+                        ? new Date(row.created_at).toLocaleDateString()
+                        : ""}
+</td>
 
-      </tr>
+<td>
 
-    `).join("");
+<div class="actions">
+
+<button
+class="btn btn-outline"
+onclick="downloadLabel('${row.tracking_number}')">
+Label
+</button>
+
+<button
+class="btn btn-primary"
+onclick="trackShipment('${row.tracking_number}')">
+Track
+</button>
+
+</div>
+
+</td>
+
+</tr>
+
+`).join("");
         }
 
         function filterShipments() {
