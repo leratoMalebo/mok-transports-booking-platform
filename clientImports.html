@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>International Shipment | Mok Transports</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0d2137;
+            --blue: #1565c0;
+            --sky: #1e88e5;
+            --accent: #f57c00;
+            --green: #2e7d32;
+            --red: #c62828;
+            --bg: #f0f4f8;
+            --card: #fff;
+            --border: #dce3ec;
+            --text: #1a2535;
+            --muted: #607d8b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Barlow', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13px
+        }
+
+        /* TOPBAR */
+        .topbar {
+            background: var(--navy);
+            border-bottom: 3px solid var(--accent);
+            padding: 0 28px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 14px
+        }
+
+        .topbar-left img {
+            height: 36px;
+            background: #fff;
+            padding: 3px;
+            border-radius: 4px
+        }
+
+        .topbar-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .topbar-title span {
+            display: block;
+            font-size: 10px;
+            font-weight: 400;
+            color: #607d8b;
+            letter-spacing: 1.5px;
+            text-transform: uppercase
+        }
+
+        .topbar-right {
+            display: flex;
+            gap: 8px
+        }
+
+        .btn-top {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 14px;
+            height: 36px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: filter .15s
+        }
+
+        .btn-top:hover {
+            filter: brightness(1.1)
+        }
+
+        .btn-grey {
+            background: #546e7a;
+            color: #fff
+        }
+
+        .btn-blue {
+            background: var(--blue);
+            color: #fff
+        }
+
+        .btn-green {
+            background: var(--green);
+            color: #fff
+        }
+
+        .btn-orange {
+            background: var(--accent);
+            color: #fff
+        }
+
+        .btn-red {
+            background: var(--red);
+            color: #fff
+        }
+
+        /* PAGE */
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 28px 20px 80px
+        }
+
+        /* SECTION TABS */
+        .mode-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .05)
+        }
+
+        .mode-btn {
+            padding: 16px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-bottom: 3px solid transparent;
+            transition: all .2s
+        }
+
+        .mode-btn.active {
+            color: var(--navy);
+            border-bottom-color: var(--accent);
+            background: #fafbfc
+        }
+
+        .mode-btn:hover:not(.active) {
+            color: var(--navy);
+            background: #f5f8ff
+        }
+
+        /* CARD */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 18px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .04)
+        }
+
+        .card-header {
+            background: var(--navy);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .card-header-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: .8px
+        }
+
+        .card-body {
+            padding: 20px
+        }
+
+        /* FORM */
+        .form-grid {
+            display: grid;
+            gap: 14px
+        }
+
+        .form-grid.cols-2 {
+            grid-template-columns: 1fr 1fr
+        }
+
+        .form-grid.cols-3 {
+            grid-template-columns: 1fr 1fr 1fr
+        }
+
+        .form-grid.cols-4 {
+            grid-template-columns: 1fr 1fr 1fr 1fr
+        }
+
+        .fg {
+            display: flex;
+            flex-direction: column;
+            gap: 5px
+        }
+
+        .fg label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .8px
+        }
+
+        .fg input,
+        .fg select,
+        .fg textarea {
+            height: 40px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 0 12px;
+            font-family: 'Barlow', sans-serif;
+            font-size: 13px;
+            color: var(--text);
+            background: #fff;
+            outline: none;
+            transition: border-color .15s
+        }
+
+        .fg textarea {
+            height: 72px;
+            padding: 10px 12px;
+            resize: vertical
+        }
+
+        .fg input:focus,
+        .fg select:focus,
+        .fg textarea:focus {
+            border-color: var(--sky)
+        }
+
+        .fg input.required-empty {
+            border-color: var(--red) !important
+        }
+
+        /* RADIO TOGGLE */
+        .radio-group {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden
+        }
+
+        .radio-opt {
+            flex: 1;
+            position: relative
+        }
+
+        .radio-opt input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0
+        }
+
+        .radio-opt label {
+            display: block;
+            padding: 9px 12px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            transition: all .2s;
+            background: #fff
+        }
+
+        .radio-opt input:checked+label {
+            background: var(--navy);
+            color: #fff
+        }
+
+        .radio-opt:not(:last-child) {
+            border-right: 1px solid var(--border)
+        }
+
+        /* CUSTOMS SECTION — only shows for international */
+        .customs-section {
+            display: none
+        }
+
+        .customs-section.visible {
+            display: block
+        }
+
+        /* LINE ITEMS */
+        .line-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-bottom: 12px
+        }
+
+        .line-items-table thead th {
+            background: var(--navy);
+            color: #fff;
+            padding: 8px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            text-align: left
+        }
+
+        .line-items-table tbody td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle
+        }
+
+        .line-items-table tbody tr:last-child td {
+            border-bottom: none
+        }
+
+        .line-items-table input {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: 'Barlow', sans-serif;
+            font-size: 12px;
+            height: 30px;
+            outline: none
+        }
+
+        .line-items-table input:focus {
+            border-color: var(--sky)
+        }
+
+        .btn-del {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ef9a9a;
+            padding: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .btn-del:hover {
+            color: var(--red)
+        }
+
+        /* SUMMARY BOX */
+        .summary-box {
+            background: linear-gradient(135deg, var(--navy) 0%, #1a3a5c 100%);
+            border-radius: 8px;
+            padding: 20px 24px;
+            color: #fff;
+            margin-bottom: 20px
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 14px
+        }
+
+        .sum-item label {
+            font-size: 10px;
+            color: #90a4ae;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 4px
+        }
+
+        .sum-item .val {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .total-price {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: #fff
+        }
+
+        .total-price span {
+            font-size: 16px;
+            color: #90a4ae;
+            vertical-align: super;
+            margin-right: 3px
+        }
+
+        /* PILL */
+        .pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700
+        }
+
+        .pill-domestic {
+            background: #e3f2fd;
+            color: var(--blue)
+        }
+
+        .pill-intl {
+            background: #f3e5f5;
+            color: #6a1b9a
+        }
+
+        /* STEP INDICATOR */
+        .steps {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px
+        }
+
+        .step {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all .2s;
+            border-right: none;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted)
+        }
+
+        .step:first-child {
+            border-radius: 6px 0 0 6px
+        }
+
+        .step:last-child {
+            border-right: 1px solid var(--border);
+            border-radius: 0 6px 6px 0
+        }
+
+        .step.active {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff
+        }
+
+        .step.done {
+            background: #e8f5e9;
+            border-color: #a5d6a7;
+            color: var(--green)
+        }
+
+        .step-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+            color: #fff
+        }
+
+        .step.active .step-num {
+            background: rgba(255, 255, 255, .3)
+        }
+
+        .step.done .step-num {
+            background: var(--green)
+        }
+
+        .step-label {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 13px;
+            letter-spacing: .3px
+        }
+
+        /* ACTIONS */
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px
+        }
+
+        /* DIVIDER */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0
+        }
+
+        /* INFO BOX */
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #1565c0;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px
+        }
+
+        @media(max-width:768px) {
+
+            .form-grid.cols-2,
+            .form-grid.cols-3,
+            .form-grid.cols-4 {
+                grid-template-columns: 1fr
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .topbar {
+                padding: 0 16px
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <img src="assets/images/mok-logo.png" alt="Mok Transports">
+            <div class="topbar-title">DHL International Shipment<span>Mok Transports Services (Pty) Ltd</span></div>
+        </div>
+        <div class="topbar-right">
+            <a class="btn-top btn-grey" href="clientDashboard.html">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6" />
+                </svg>Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="page">
+
+        <!-- MODE TOGGLE -->
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="btnExport" onclick="setMode('export')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Export — Ship Out of South Africa
+            </button>
+            <button class="mode-btn" id="btnImport" onclick="setMode('import')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Import — Ship Into South Africa
+            </button>
+        </div>
+
+        <!-- ══ SHIPPER ══════════════════════════════════════════════ -->
+        <div class="card">
+            <div class="card-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                <div class="card-header-title" id="shipperLabel">Shipper / Sender</div>
+            </div>
+            <div class="card-body">
+                <div class="form-grid cols-2">
+                    <div class="fg"><label>Company / Full Name *</label><input id="shipperCompany"
+                            placeholder="e.g. Mok Transports Services"></div>
+                    <div class="fg"><label>Contact Full Name *</label><input id="shipperFullName"
+                            placeholder="e.g. Lerato Malebo"></div>
+                    <div class="fg"><label>Email Address *</label><input id="shipperEmail" type="email"
+                            placeholder="lerato@company.com"></div>
+                    <div class="fg"><label>Phone *</label><input id="shipperPhone" placeholder="+27 11 839 6496"></div>
+                    <div class="fg"><label>Mobile Phone</label><input id="shipperMobile" placeholder="+27 84 902 2258">
+                    </div>
+                    <div class="fg"><label>Country Code *</label>
+                        <select id="shipperCountry">
+                            <option value="ZA" selected>ZA — South Africa</option>
+                            <option value="ZW">ZW — Zimbabwe</option>
+                            <option value="ZM">ZM — Zambia</option>
+                            <option value="MZ">MZ — Mozambique</option>
+                            <option value="BW">BW — Botswana</option>
+                            <option value="NA">NA — Namibia</option>
+                            <option value="LS">LS — Lesotho</option>
+                            <option value="SZ">SZ — Eswatini</option>
+                            <option value="GB">GB — United Kingdom</option>
+                            <option value="US">US — United States</option>
+                            <option value="DE">DE — Germany</option>
+                            <option value="CN">CN — China</option>
+                            <option value="AU">AU — Australia</option>
+                            <option value="IN">IN — India</option>
+                            <option value="FR">FR — France</option>
+                        </select>
+                    </div>
+                    <div class="fg"><label>City *</label><input id="shipperCity" placeholder="Johannesburg"></div>
+                    <div class="fg"><label>Postal Code *</label><input id="shipperPostal" placeholder="2092"></div>
+                    <div class="fg"><label>Address Line 1 *</label><input id="shipperAddr1"
+                            placeholder="12 Jupiter Road, Crown Mines"></div>
+                    <div class="fg"><label>Address Line 2</label><input id="shipperAddr2" placeholder="Suburb / Area">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ RECEIVER ═════════════════════════════════════════════ -->
+        <div class="card">
+            <div class="card-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+                <div class="card-header-title" id="receiverLabel">Consignee / Receiver</div>
+            </div>
+            <div class="card-body">
+                <div class="form-grid cols-2">
+                    <div class="fg"><label>Company / Full Name *</label><input id="receiverCompany"
+                            placeholder="Receiver Company Name"></div>
+                    <div class="fg"><label>Contact Full Name *</label><input id="receiverFullName"
+                            placeholder="Contact Person Name"></div>
+                    <div class="fg"><label>Email Address *</label><input id="receiverEmail" type="email"
+                            placeholder="receiver@company.com"></div>
+                    <div class="fg"><label>Phone *</label><input id="receiverPhone" placeholder="+XX XXX XXX XXXX">
+                    </div>
+                    <div class="fg"><label>Mobile Phone</label><input id="receiverMobile"
+                            placeholder="+XX XXX XXX XXXX"></div>
+                    <div class="fg"><label>Country Code *</label>
+                        <select id="receiverCountry">
+                            <option value="ZA">ZA — South Africa</option>
+                            <option value="ZW">ZW — Zimbabwe</option>
+                            <option value="ZM">ZM — Zambia</option>
+                            <option value="MZ">MZ — Mozambique</option>
+                            <option value="BW">BW — Botswana</option>
+                            <option value="NA">NA — Namibia</option>
+                            <option value="LS">LS — Lesotho</option>
+                            <option value="SZ">SZ — Eswatini</option>
+                            <option value="GB">GB — United Kingdom</option>
+                            <option value="US">US — United States</option>
+                            <option value="DE">DE — Germany</option>
+                            <option value="CN">CN — China</option>
+                            <option value="AU">AU — Australia</option>
+                            <option value="IN">IN — India</option>
+                            <option value="FR">FR — France</option>
+                        </select>
+                    </div>
+                    <div class="fg"><label>City *</label><input id="receiverCity" placeholder="Destination City"></div>
+                    <div class="fg"><label>Postal Code *</label><input id="receiverPostal" placeholder="Postal Code">
+                    </div>
+                    <div class="fg"><label>Province Code</label><input id="receiverProvince"
+                            placeholder="e.g. QLD (for AU)">
+                    </div>
+                    <div class="fg"><label>Address Line 1 *</label><input id="receiverAddr1"
+                            placeholder="Street Address"></div>
+                    <div class="fg"><label>Address Line 2</label><input id="receiverAddr2"
+                            placeholder="Suite / Floor / Unit">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ SHIPMENT DETAILS ══════════════════════════════════════ -->
+        <div class="card">
+            <div class="card-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="3" width="15" height="13" />
+                    <path d="M16 8h4l3 5v3h-7V8z" />
+                </svg>
+                <div class="card-header-title">Shipment Details</div>
+            </div>
+            <div class="card-body">
+
+                <!-- Content type -->
+                <div class="form-grid cols-2" style="margin-bottom:16px">
+                    <div class="fg">
+                        <label>Content Type *</label>
+                        <div class="radio-group">
+                            <div class="radio-opt"><input type="radio" name="contentType" id="ctDocs"
+                                    value="documents"><label for="ctDocs">Documents</label></div>
+                            <div class="radio-opt"><input type="radio" name="contentType" id="ctPkg" value="packages"
+                                    checked><label for="ctPkg">Packages</label></div>
+                        </div>
+                    </div>
+                    <div class="fg">
+                        <label>DHL Product Code *</label>
+                        <select id="productCode">
+                            <option value="P" selected>P — Express Worldwide (WPX)</option>
+                            <option value="D">D — Express Worldwide (Docs)</option>
+                            <option value="N">N — Domestic Express</option>
+                            <option value="K">K — Express 9:00</option>
+                            <option value="E">E — Express 9:00 Docs</option>
+                            <option value="T">T — Express 12:00</option>
+                            <option value="Y">Y — Express 12:00 Docs</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label>Planned Ship Date *</label>
+                        <input type="date" id="shipDate">
+                    </div>
+                    <div class="fg">
+                        <label>Pickup Requested</label>
+                        <div class="radio-group">
+                            <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupYes" value="true"
+                                    checked><label for="pickupYes">Yes — Request Pickup</label></div>
+                            <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupNo"
+                                    value="false"><label for="pickupNo">No — Drop Off</label></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Package -->
+                <div class="form-grid cols-4">
+                    <div class="fg"><label>Pieces *</label><input type="number" id="pieces" value="1" min="1"
+                            oninput="calcWeights()"></div>
+                    <div class="fg"><label>Actual Weight (kg) *</label><input type="number" id="actualWeight" step="0.1"
+                            oninput="calcWeights()" placeholder="0.00"></div>
+                    <div class="fg"><label>Volumetric Weight</label><input id="volWeight" readonly placeholder="Auto">
+                    </div>
+                    <div class="fg"><label>Chargeable Weight</label><input id="chargeWeight" readonly
+                            placeholder="Auto"></div>
+                    <div class="fg"><label>Length (cm)</label><input type="number" id="dimL" step="0.1"
+                            oninput="calcWeights()" placeholder="0"></div>
+                    <div class="fg"><label>Width (cm)</label><input type="number" id="dimW" step="0.1"
+                            oninput="calcWeights()" placeholder="0"></div>
+                    <div class="fg"><label>Height (cm)</label><input type="number" id="dimH" step="0.1"
+                            oninput="calcWeights()" placeholder="0"></div>
+                    <div class="fg"><label>Package Type Code</label><input id="pkgTypeCode" value="2BP"
+                            placeholder="2BP"></div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Description & ref -->
+                <div class="form-grid cols-2">
+                    <div class="fg"><label>Shipment Description *</label><input id="shipDescription"
+                            placeholder="e.g. Timing Belt, Commercial Goods"></div>
+                    <div class="fg"><label>Customer Reference</label><input id="customerRef"
+                            placeholder="Your order / PO number">
+                    </div>
+                    <div class="fg"><label>Notification Email</label><input id="notifyEmail" type="email"
+                            placeholder="receiver@company.com (gets tracking updates)"></div>
+                    <div class="fg"><label>Notification Message</label><input id="notifyMsg"
+                            placeholder="e.g. Your order is on its way!"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══ CUSTOMS / EXPORT DECLARATION (international only) ════ -->
+        <div class="card customs-section visible" id="customsCard">
+            <div class="card-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <div class="card-header-title">Customs &amp; Export Declaration</div>
+            </div>
+            <div class="card-body">
+
+                <div class="info-box">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    Required for all international shipments. Documents marked as non-customs-declarable
+                    (isCustomsDeclarable =
+                    false) do not need this section.
+                </div>
+
+                <div class="form-grid cols-2" style="margin-bottom:14px">
+                    <div class="fg">
+                        <label>Is Customs Declarable</label>
+                        <div class="radio-group">
+                            <div class="radio-opt"><input type="radio" name="customsDec" id="cdYes" value="true" checked
+                                    onchange="toggleCustomsFields()"><label for="cdYes">Yes — Packages</label></div>
+                            <div class="radio-opt"><input type="radio" name="customsDec" id="cdNo" value="false"
+                                    onchange="toggleCustomsFields()"><label for="cdNo">No — Documents</label></div>
+                        </div>
+                    </div>
+                    <div class="fg"><label>Incoterm</label>
+                        <select id="incoterm">
+                            <option value="DAP" selected>DAP — Delivered at Place</option>
+                            <option value="DDP">DDP — Delivered Duty Paid</option>
+                            <option value="EXW">EXW — Ex Works</option>
+                            <option value="CIF">CIF — Cost Insurance Freight</option>
+                            <option value="FOB">FOB — Free On Board</option>
+                            <option value="CFR">CFR — Cost and Freight</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Customs fields — shown when declarable = true -->
+                <div id="customsFields">
+                    <div class="form-grid cols-3" style="margin-bottom:14px">
+                        <div class="fg"><label>Invoice Number *</label><input id="invNumber"
+                                placeholder="e.g. INV000042"></div>
+                        <div class="fg"><label>Invoice Date *</label><input type="date" id="invDate"></div>
+                        <div class="fg"><label>Export Reason</label>
+                            <select id="exportReason">
+                                <option value="commercial_purpose_or_sale" selected>Commercial Sale</option>
+                                <option value="personal_belongings_or_personal_use">Personal Use</option>
+                                <option value="sample">Sample</option>
+                                <option value="gift">Gift</option>
+                                <option value="return_for_repair">Return for Repair</option>
+                                <option value="intercompany_data">Intercompany Transfer</option>
+                            </select>
+                        </div>
+                        <div class="fg"><label>Declared Value *</label><input type="number" id="declaredValue"
+                                placeholder="0.00" step="0.01"></div>
+                        <div class="fg"><label>Currency</label>
+                            <select id="declaredCurrency">
+                                <option value="ZAR" selected>ZAR — South African Rand</option>
+                                <option value="USD">USD — US Dollar</option>
+                                <option value="EUR">EUR — Euro</option>
+                                <option value="GBP">GBP — British Pound</option>
+                                <option value="AUD">AUD — Australian Dollar</option>
+                                <option value="SGD">SGD — Singapore Dollar</option>
+                                <option value="ZWL">ZWL — Zimbabwe Dollar</option>
+                            </select>
+                        </div>
+                        <div class="fg"><label>Total Gross Weight (kg)</label><input type="number" id="grossWeight"
+                                placeholder="Auto" step="0.01"></div>
+                    </div>
+
+                    <!-- Line Items -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                        <label
+                            style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Line
+                            Items (Goods Description)</label>
+                        <button class="btn-top btn-blue" style="height:30px;font-size:11px" onclick="addLineItem()">+
+                            Add
+                            Item</button>
+                    </div>
+                    <table class="line-items-table" id="lineItemsTable">
+                        <thead>
+                            <tr>
+                                <th style="width:30px">#</th>
+                                <th>Description *</th>
+                                <th style="width:80px">Qty *</th>
+                                <th style="width:80px">Unit</th>
+                                <th style="width:90px">Price (each) *</th>
+                                <th style="width:90px">Net Weight</th>
+                                <th style="width:110px">HS Code (Out)</th>
+                                <th style="width:60px">Country</th>
+                                <th style="width:32px"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lineItemsBody">
+                            <!-- populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ PRICING ══════════════════════════════════════════════ -->
+        <div class="card">
+            <div class="card-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                </svg>
+                <div class="card-header-title">Pricing</div>
+            </div>
+
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="summary-box" id="summaryBox">
+            <div class="summary-grid">
+                <div class="sum-item"><label>Actual Weight</label>
+                    <div class="val" id="sumActual">0 kg</div>
+                </div>
+                <div class="sum-item"><label>Chargeable Weight</label>
+                    <div class="val" id="sumCharge">0 kg</div>
+                </div>
+                <div class="sum-item"><label>DHL Product</label>
+                    <div class="val" id="sumProduct">WPX</div>
+                </div>
+                <div class="sum-item"><label>Direction</label>
+                    <div class="val" id="sumMode">Export</div>
+                </div>
+            </div>
+            <div
+                style="border-top:1px solid rgba(255,255,255,.15);padding-top:14px;display:flex;align-items:flex-end;justify-content:space-between">
+                <div>
+                    <div class="summary-box">
+                        <h3>Shipment Request Summary</h3>
+                        <p>Your shipment request will be reviewed and quoted by Mok Transports.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="action-bar">
+            <button onclick="saveShipment()">
+                Save & Submit to DHL
+            </button>
+            <button class="btn-top btn-grey" style="height:44px;font-size:14px" onclick="previewPayload()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                </svg>
+                Preview DHL Payload
+            </button>
+        </div>
+
+    </div>
+
+    <!-- PAYLOAD PREVIEW MODAL -->
+    <div id="payloadModal"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
+        <div
+            style="background:var(--navy);border-radius:10px;width:90vw;max-width:780px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4)">
+            <div
+                style="padding:16px 20px;border-bottom:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between">
+                <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#fff">DHL
+                    API
+                    Payload Preview</span>
+                <div style="display:flex;gap:8px">
+                    <button class="btn-top btn-blue" style="height:30px;font-size:11px" onclick="copyPayload()">Copy
+                        JSON</button>
+                    <button class="btn-top btn-grey" onclick="previewShipment()">
+                </div>
+            </div>
+            <pre id="payloadPre"
+                style="flex:1;overflow:auto;padding:20px;font-size:12px;color:#e0e0e0;font-family:monospace;line-height:1.6;background:var(--navy)"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000/api'
+            : 'https://bookings.moktransports.com/api';
+
+        // Auth guard
+        const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+        if (!session || !['staff', 'admin', 'office'].includes(session.role)) {
+            window.location.href = 'login.html';
+        }
+
+        let currentMode = 'export';
+        let lineItemId = 0;
+
+        // ── INIT ─────────────────────────────────────────────────────
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('shipDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('invDate').value = new Date().toISOString().split('T')[0];
+            // Pre-fill shipper from Mok Transports defaults
+            document.getElementById('shipperCompany').value = 'Mok Transports Services (Pty) Ltd';
+            document.getElementById('shipperFullName').value = 'Mavis Selomane';
+            document.getElementById('shipperEmail').value = 'mavis@moktransports.com';
+            document.getElementById('shipperPhone').value = '+27118396496';
+            document.getElementById('shipperMobile').value = '+27849022258';
+            document.getElementById('shipperCity').value = 'Johannesburg';
+            document.getElementById('shipperPostal').value = '2092';
+            document.getElementById('shipperAddr1').value = '12 Jupiter Road, Crown Mines';
+            document.getElementById('shipperCountry').value = 'ZA';
+            addLineItem(); // start with one line item
+        });
+
+        // ── MODE ──────────────────────────────────────────────────────
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btnExport').classList.toggle('active', mode === 'export');
+            document.getElementById('btnImport').classList.toggle('active', mode === 'import');
+            document.getElementById('shipperLabel').textContent = mode === 'export' ? 'Shipper / Sender (South Africa)' : 'Shipper / Sender (Overseas)';
+            document.getElementById('receiverLabel').textContent = mode === 'export' ? 'Consignee / Receiver (Destination)' : 'Consignee / Receiver (South Africa)';
+            document.getElementById('sumMode').textContent = mode === 'export' ? 'Export' : 'Import';
+
+            if (mode === 'import') {
+                // Swap defaults: receiver is now ZA
+                document.getElementById('receiverCountry').value = 'ZA';
+                document.getElementById('shipperCountry').value = 'ZW'; // example abroad
+            } else {
+                document.getElementById('shipperCountry').value = 'ZA';
+            }
+        }
+
+        // ── CUSTOMS TOGGLE ────────────────────────────────────────────
+        function toggleCustomsFields() {
+            const dec = document.querySelector('input[name="customsDec"]:checked').value === 'true';
+            document.getElementById('customsFields').style.display = dec ? 'block' : 'none';
+        }
+
+        // ── LINE ITEMS ────────────────────────────────────────────────
+        function addLineItem(prefill = {}) {
+            lineItemId++;
+            const id = lineItemId;
+            const tbody = document.getElementById('lineItemsBody');
+            const tr = document.createElement('tr');
+            tr.id = `li-${id}`;
+            tr.innerHTML = `
+    <td style="text-align:center;color:var(--muted);font-weight:700">${tbody.children.length + 1}</td>
+    <td><input placeholder="e.g. Timing Belt" value="${prefill.description || ''}"></td>
+    <td><input type="number" placeholder="1" value="${prefill.qty || 1}" min="1" style="text-align:center"></td>
+    <td><input placeholder="PCS" value="${prefill.unit || 'PCS'}" style="text-align:center"></td>
+    <td><input type="number" placeholder="0.00" step="0.01" value="${prefill.price || ''}" style="text-align:right"></td>
+    <td><input type="number" placeholder="0.00" step="0.01" value="${prefill.weight || ''}" style="text-align:right"></td>
+    <td><input placeholder="8517.13.0001" value="${prefill.hsCode || ''}" style="text-align:center"></td>
+    <td><input placeholder="ZA" value="${prefill.mfgCountry || 'ZA'}" style="text-align:center;width:40px"></td>
+    <td>
+      <button class="btn-del" onclick="removeLineItem(${id})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+      </button>
+    </td>`;
+            tbody.appendChild(tr);
+        }
+
+        function removeLineItem(id) {
+            const el = document.getElementById(`li-${id}`);
+            if (el) el.remove();
+            // Re-number
+            document.querySelectorAll('#lineItemsBody tr').forEach((tr, i) => {
+                tr.querySelector('td:first-child').textContent = i + 1;
+            });
+        }
+
+        // ── WEIGHT CALC ───────────────────────────────────────────────
+        function calcWeights() {
+            const L = parseFloat(document.getElementById('dimL').value) || 0;
+            const W = parseFloat(document.getElementById('dimW').value) || 0;
+            const H = parseFloat(document.getElementById('dimH').value) || 0;
+            const actual = parseFloat(document.getElementById('actualWeight').value) || 0;
+            const vol = (L * W * H) / 5000;
+            const charge = Math.max(actual, vol);
+            document.getElementById('volWeight').value = vol.toFixed(2);
+            document.getElementById('chargeWeight').value = charge.toFixed(2);
+            document.getElementById('sumActual').textContent = `${actual.toFixed(2)} kg`;
+            document.getElementById('sumCharge').textContent = `${charge.toFixed(2)} kg`;
+            document.getElementById('grossWeight').placeholder = `${(actual || vol || 1).toFixed(2)}`;
+            calcCost();
+        }
+
+        function calcCost() {
+            const charge = parseFloat(document.getElementById('chargeWeight').value) || 0;
+            const rate = parseFloat(document.getElementById('ratePerKg').value) || 0;
+            const fuel = parseFloat(document.getElementById('fuelSurcharge').value) || 0;
+            const other = parseFloat(document.getElementById('otherCharges').value) || 0;
+            const total = (charge * rate) + fuel + other;
+            document.getElementById('sumTotal').textContent = total.toFixed(2);
+            document.getElementById('sumProduct').textContent = document.getElementById('productCode').value;
+        }
+
+        // ── BUILD DHL PAYLOAD ─────────────────────────────────────────
+        function buildPayload() {
+            const shipDate = document.getElementById('shipDate').value;
+            const pickup = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
+            const productCode = document.getElementById('productCode').value;
+            const isDec = document.querySelector('input[name="customsDec"]:checked').value === 'true';
+            const actual = parseFloat(document.getElementById('actualWeight').value) || 1;
+            const L = parseFloat(document.getElementById('dimL').value) || 1;
+            const W = parseFloat(document.getElementById('dimW').value) || 1;
+            const H = parseFloat(document.getElementById('dimH').value) || 1;
+            const notifyEmail = document.getElementById('notifyEmail').value;
+            const notifyMsg = document.getElementById('notifyMsg').value;
+
+            const payload = {
+                shipmentDirection: currentMode.toUpperCase(),
+
+                plannedShippingDateAndTime: `${shipDate}T08:00:00 GMT+02:00`,
+                pickup: { isRequested: pickup },
+                productCode,
+                localProductCode: productCode,
+                getRateEstimates: false,
+                accounts: [{ typeCode: 'shipper', number: process_env_DHL_ACCOUNT || 'YOUR_DHL_ACCOUNT' }],
+                outputImageProperties: {
+                    printerDPI: 300,
+                    encodingFormat: 'pdf',
+                    allDocumentsInOneImage: true,
+                    splitDocumentsByPages: true,
+                    receiptAndLabelsInOneImage: true,
+                    ...(isDec ? {
+                        imageOptions: [
+                            { templateName: 'ECOM26_84_A4_001', typeCode: 'label' },
+                            { templateName: 'ARCH_8X4_A4_002', isRequested: true, typeCode: 'waybillDoc', hideAccountNumber: true },
+                            { typeCode: 'invoice', isRequested: true, invoiceType: 'commercial', languageCode: 'eng', templateName: 'COMMERCIAL_INVOICE_P_10' }
+                        ]
+                    } : {})
+                },
+                customerDetails: {
+                    shipperDetails: {
+                        postalAddress: {
+                            postalCode: document.getElementById('shipperPostal').value,
+                            cityName: document.getElementById('shipperCity').value,
+                            countryCode: document.getElementById('shipperCountry').value,
+                            addressLine1: document.getElementById('shipperAddr1').value,
+                            addressLine2: document.getElementById('shipperAddr2').value || undefined
+                        },
+                        contactInformation: {
+                            email: document.getElementById('shipperEmail').value,
+                            phone: document.getElementById('shipperPhone').value,
+                            mobilePhone: document.getElementById('shipperMobile').value || undefined,
+                            companyName: document.getElementById('shipperCompany').value,
+                            fullName: document.getElementById('shipperFullName').value
+                        },
+                        typeCode: 'business'
+                    },
+                    receiverDetails: {
+                        postalAddress: {
+                            postalCode: document.getElementById('receiverPostal').value,
+                            cityName: document.getElementById('receiverCity').value,
+                            countryCode: document.getElementById('receiverCountry').value,
+                            addressLine1: document.getElementById('receiverAddr1').value,
+                            addressLine2: document.getElementById('receiverAddr2').value || undefined,
+                            provinceCode: document.getElementById('receiverProvince').value || undefined,
+                            countryName: undefined
+                        },
+                        contactInformation: {
+                            email: document.getElementById('receiverEmail').value,
+                            phone: document.getElementById('receiverPhone').value,
+                            mobilePhone: document.getElementById('receiverMobile').value || undefined,
+                            companyName: document.getElementById('receiverCompany').value,
+                            fullName: document.getElementById('receiverFullName').value
+                        },
+                        typeCode: 'business'
+                    }
+                },
+                content: {
+                    packages: [{
+                        typeCode: document.getElementById('pkgTypeCode').value || '2BP',
+                        weight: actual,
+                        dimensions: { length: L, width: W, height: H },
+                        description: document.getElementById('shipDescription').value || 'General Cargo',
+                        customerReferences: document.getElementById('customerRef').value
+                            ? [{ value: document.getElementById('customerRef').value, typeCode: 'CU' }]
+                            : undefined
+                    }],
+                    isCustomsDeclarable: isDec,
+                    description: document.getElementById('shipDescription').value || 'General Cargo',
+                    unitOfMeasurement: 'metric',
+                    ...(isDec ? buildExportDeclaration() : {}),
+                    incoterm: isDec ? document.getElementById('incoterm').value : undefined
+                },
+                getTransliteratedResponse: false,
+                estimatedDeliveryDate: { typeCode: 'QDDF', isRequested: true },
+                getAdditionalInformation: pickup ? [{ typeCode: 'pickupDetails', isRequested: true }] : undefined
+            };
+
+            if (notifyEmail) {
+                payload.shipmentNotification = [{
+                    typeCode: 'email',
+                    receiverId: notifyEmail,
+                    languageCode: 'ENG',
+                    languageCountryCode: 'UK',
+                    bespokeMessage: notifyMsg || `Your shipment from Mok Transports is on its way.`
+                }];
+            }
+
+            // Remove undefined fields recursively
+            return JSON.parse(JSON.stringify(payload));
+        }
+
+        function buildExportDeclaration() {
+            const lineItems = [];
+
+            document.querySelectorAll("#lineItemsBody tr").forEach((tr, idx) => {
+                const inputs = tr.querySelectorAll("input");
+
+                const desc = inputs[0]?.value || document.getElementById("shipDescription").value || "General Goods";
+                const qty = parseFloat(inputs[1]?.value) || 1;
+                const unit = inputs[2]?.value || "PCS";
+                const price = Math.max(parseFloat(inputs[3]?.value) || 1, 0.001);
+                const weight = Math.max(parseFloat(inputs[4]?.value) || parseFloat(document.getElementById("actualWeight").value) || 1, 0.001);
+                const hs = inputs[5]?.value || "";
+                const mfg = inputs[6]?.value || document.getElementById("shipperCountry").value || "ZA";
+
+                const item = {
+                    number: idx + 1,
+                    description: desc,
+                    price: price,
+                    quantity: {
+                        value: qty,
+                        unitOfMeasurement: unit
+                    },
+                    exportReasonType: document.getElementById("exportReason").value,
+                    manufacturerCountry: mfg,
+                    weight: {
+                        netValue: weight,
+                        grossValue: weight
+                    }
+                };
+
+                if (hs) {
+                    item.commodityCodes = [
+                        { typeCode: "outbound", value: hs },
+                        { typeCode: "inbound", value: hs }
+                    ];
+                }
+
+                lineItems.push(item);
+            });
+
+            const totalNet = lineItems.reduce((s, i) => s + (i.weight?.netValue || 0), 0);
+            const declaredValue = Math.max(parseFloat(document.getElementById("declaredValue").value) || 1, 0.001);
+
+            return {
+                declaredValue: declaredValue,
+                declaredValueCurrency: document.getElementById("declaredCurrency").value,
+                exportDeclaration: {
+                    exportReasonType: document.getElementById("exportReason").value,
+                    invoice: {
+                        number: document.getElementById("invNumber").value || `MOK-DHL-${Date.now()}`,
+                        date: document.getElementById("invDate").value,
+                        totalNetWeight: totalNet || 1,
+                        totalGrossWeight: parseFloat(document.getElementById("grossWeight").value) || totalNet || 1
+                    },
+                    lineItems
+                }
+            };
+        }
+
+        // hack: placeholder for env var — backend handles the real account number
+        const process_env_DHL_ACCOUNT = 'SEE_BACKEND';
+
+        // ── PREVIEW ───────────────────────────────────────────────────
+        function previewPayload() {
+            const payload = buildPayload();
+            document.getElementById('payloadPre').textContent = JSON.stringify(payload, null, 2);
+            document.getElementById('payloadModal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('payloadModal').style.display = 'none'; }
+        function copyPayload() {
+            const text = document.getElementById('payloadPre').textContent;
+            navigator.clipboard.writeText(text).then(() => alert('Payload copied to clipboard!'));
+        }
+
+        // ── SAVE & SUBMIT ─────────────────────────────────────────────
+        async function saveShipment() {
+            // Basic validation
+            const required = ['shipperCompany', 'shipperEmail', 'shipperPhone', 'shipperCity', 'shipperAddr1',
+                'receiverCompany', 'receiverEmail', 'receiverPhone', 'receiverCity', 'receiverAddr1',
+                'actualWeight', 'shipDescription'];
+            let valid = true;
+            required.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) { el.classList.add('required-empty'); valid = false; }
+                else el.classList.remove('required-empty');
+            });
+            if (!valid) { alert('Please fill in all required fields (highlighted in red).'); return; }
+
+            const payload = buildPayload();
+
+            try {
+                console.log("Sending DHL Direction:", payload.shipmentDirection);
+
+                const res = await fetch(`${API}/dhl/shipments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ payload })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alert(`DHL submission failed:\n${data.error || JSON.stringify(data.detail || data)}`);
+                    return;
+                }
+
+                const trackingNo = data.shipmentTrackingNumber || data.trackingNumber || '—';
+                alert(`✅ Shipment submitted to DHL successfully!\n\nTracking Number: ${trackingNo}`);
+
+                // Store for invoice
+                localStorage.setItem('dhlShipmentData', JSON.stringify({
+                    trackingNo,
+                    shipper: document.getElementById('shipperCompany').value,
+                    receiver: document.getElementById('receiverCompany').value,
+                    mode: currentMode,
+                    product: document.getElementById('productCode').value,
+                    weight: document.getElementById('chargeWeight').value,
+                    date: document.getElementById('shipDate').value
+                }));
+
+            } catch (err) {
+                alert(`Connection error: ${err.message}`);
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+
+</html>
+
+
+
