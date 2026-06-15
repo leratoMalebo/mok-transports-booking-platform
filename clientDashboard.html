@@ -574,7 +574,7 @@
 
     <div class="tile-grid">
 
-      <div class="tile" onclick="openShipmentServices()" style="cursor:pointer">
+      <a class="tile" href="booking.html">
         <div>
           <div class="tile-text-name">Create Shipment</div>
           <div class="tile-text-desc">Book a new shipment</div>
@@ -584,7 +584,7 @@
             <path d="M12 5v14M5 12h14" />
           </svg>
         </div>
-      </div>
+      </a>
 
       <a class="tile orange" href="clientTracking.html">
         <div>
@@ -854,25 +854,55 @@
       window.location.href = 'login.html';
     }
 
-    function openShipmentServices() {
-      document.getElementById('shipmentModal').style.display = 'flex';
+    // ── INTERNATIONAL SHIPMENTS ──────────────────
+    let allIntl = [];
+
+    async function loadInternationalShipments() {
+      try {
+        const userId = session?.id;
+        const res  = await fetch(`${API_BASE}/api/international-shipments?client_id=${userId}`);
+        const data = await res.json();
+        allIntl = Array.isArray(data) ? data : [];
+        renderIntlTable(allIntl.slice(0,5));
+      } catch(e) {
+        console.error('Intl load error:', e);
+      }
     }
-    function closeShipmentServices() {
-      document.getElementById('shipmentModal').style.display = 'none';
+
+    function renderIntlTable(data) {
+      const tbody = document.getElementById('intlTable');
+      if (!tbody) return;
+      if (!data.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">
+          No international shipments yet. <a href="imports.html" style="color:var(--blue);font-weight:700;text-decoration:none">Submit one →</a>
+        </td></tr>`; return;
+      }
+      tbody.innerHTML = data.map(s => `
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:12px 14px">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:var(--navy)">${s.reference||s.id}</div>
+            <div style="font-size:11px;color:var(--muted)">${s.direction||'Export'}</div>
+          </td>
+          <td style="padding:12px 14px;font-size:13px">${s.receiver_company||'—'}</td>
+          <td style="padding:12px 14px;font-size:12px;color:var(--muted)">${s.receiver_city||'—'}, ${s.receiver_country||'—'}</td>
+          <td style="padding:12px 14px;font-size:12px">${s.ship_date?new Date(s.ship_date).toLocaleDateString('en-ZA',{day:'2-digit',month:'short'}):'—'}</td>
+          <td style="padding:12px 14px">
+            <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;
+              background:${s.status==='submitted'?'#e8f5e9':s.status==='processing'?'#fff3e0':'#e3f2fd'};
+              color:${s.status==='submitted'?'#2e7d32':s.status==='processing'?'#e65100':'#1565c0'}">
+              ${(s.status||'pending').toUpperCase()}
+            </span>
+          </td>
+        </tr>`).join('');
     }
-    // Close on backdrop click
-    document.getElementById('shipmentModal').addEventListener('click', function(e) {
-      if (e.target === this) closeShipmentServices();
-    });
 
     loadStats();
     loadWaybills();
+    loadInternationalShipments();
   </script>
 
 </body>
 
 </html>
-
-
 
 
