@@ -22,6 +22,8 @@ exports.createShipment = async (req, res) => {
             '[DHL PAYLOAD]',
             JSON.stringify(payload, null, 2)
         );
+
+        const shipmentMode = payload.shipmentDirection || 'EXPORT';
         const dhlResult = await dhlService.createShipment(payload);
 
         const trackingNo = dhlResult.shipmentTrackingNumber;
@@ -51,7 +53,7 @@ exports.createShipment = async (req, res) => {
       RETURNING *
     `, [
             trackingNo,
-            payload.shipmentDirection || 'EXPORT',
+            shipmentMode,
             payload.productCode,
             payload.customerDetails?.shipperDetails?.contactInformation?.companyName || '',
             payload.customerDetails?.shipperDetails?.postalAddress?.countryCode || '',
@@ -228,6 +230,11 @@ exports.downloadLabel = async (req, res) => {
     });
   }
 };
+
+
+
+
+
 
 
 
