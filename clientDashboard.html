@@ -2,791 +2,962 @@
 <html lang="en">
 
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mok Transports | Client Portal</title>
-
-<link
-href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap"
-rel="stylesheet">
-
-<style>
-:root {
---navy: #0d2137;
---blue: #1565c0;
---sky: #1e88e5;
---accent: #f57c00;
---green: #2e7d32;
---red: #c62828;
---bg: #f0f4f8;
---card: #ffffff;
---border: #dce3ec;
---text: #1a2535;
---muted: #607d8b;
-}
-
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0
-}
-
-body {
-font-family: 'Barlow', sans-serif;
-background: var(--bg);
-color: var(--text);
-min-height: 100vh
-}
-
-/* HEADER */
-header {
-background: var(--navy);
-border-bottom: 3px solid var(--accent);
-padding: 0 32px;
-height: 66px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-position: sticky;
-top: 0;
-z-index: 100;
-box-shadow: 0 4px 18px rgba(13, 33, 55, .18);
-}
-
-.header-left {
-display: flex;
-align-items: center;
-gap: 14px
-}
-
-.header-left img {
-height: 42px;
-background: #fff;
-padding: 4px;
-border-radius: 6px;
-}
-
-.header-brand {
-font-family: 'Barlow Condensed', sans-serif;
-font-size: 17px;
-font-weight: 700;
-color: #fff;
-letter-spacing: .5px;
-line-height: 1.2;
-}
-
-.header-brand span {
-display: block;
-font-size: 10px;
-font-weight: 400;
-color: #90a4ae;
-letter-spacing: 1.5px;
-text-transform: uppercase;
-}
-
-.header-right {
-display: flex;
-align-items: center;
-gap: 16px
-}
-
-.header-user {
-text-align: right
-}
-
-.header-user-name {
-font-size: 13px;
-font-weight: 600;
-color: #e0e0e0
-}
-
-.header-user-company {
-font-size: 11px;
-color: #90a4ae
-}
-
-.btn-logout-sm {
-padding: 7px 16px;
-background: transparent;
-border: 1px solid rgba(255, 255, 255, .18);
-border-radius: 5px;
-color: #90a4ae;
-font-family: 'Barlow Condensed', sans-serif;
-font-size: 13px;
-font-weight: 700;
-letter-spacing: 1px;
-text-transform: uppercase;
-cursor: pointer;
-}
-
-.btn-logout-sm:hover {
-border-color: rgba(245, 124, 0, .5);
-color: #ffcc80;
-background: rgba(245, 124, 0, .08);
-}
-
-/* PAGE */
-.page {
-max-width: 1180px;
-margin: 0 auto;
-padding: 34px 24px 60px
-}
-
-.welcome-row {
-display: flex;
-align-items: flex-end;
-justify-content: space-between;
-margin-bottom: 28px;
-flex-wrap: wrap;
-gap: 12px;
-}
-
-.welcome-title {
-font-family: 'Barlow Condensed', sans-serif;
-font-size: 32px;
-font-weight: 800;
-color: var(--navy);
-}
-
-.welcome-sub {
-font-size: 13px;
-color: var(--muted);
-margin-top: 3px
-}
-
-.welcome-date {
-font-size: 12px;
-color: var(--muted)
-}
-
-/* STATS */
-.stat-strip {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 16px;
-margin-bottom: 30px;
-}
-
-.stat-chip {
-background: var(--card);
-border: 1px solid var(--border);
-border-radius: 12px;
-padding: 18px 20px;
-border-top: 4px solid var(--blue);
-box-shadow: 0 4px 14px rgba(13, 33, 55, .04);
-}
-
-.stat-chip.orange {
-border-top-color: var(--accent)
-}
-
-.stat-chip.green {
-border-top-color: var(--green)
-}
-
-.stat-chip-label {
-font-size: 11px;
-font-weight: 700;
-letter-spacing: 1.3px;
-text-transform: uppercase;
-color: var(--muted);
-margin-bottom: 6px;
-}
-
-.stat-chip-val {
-font-family: 'Barlow Condensed', sans-serif;
-font-size: 30px;
-font-weight: 800;
-color: var(--navy);
-}
-
-/* LABELS */
-.section-label {
-font-family: 'Barlow Condensed', sans-serif;
-font-size: 12px;
-font-weight: 800;
-letter-spacing: 2px;
-text-transform: uppercase;
-color: var(--muted);
-margin-bottom: 14px;
-}
-
-/* TILES */
-.tile-grid {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 16px;
-margin-bottom: 34px;
-}
-
-.tile {
-background: var(--card);
-border: 1px solid var(--border);
-border-radius: 12px;
-padding: 24px 22px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-cursor: pointer;
-text-decoration: none;
-color: var(--text);
-transition: .2s;
-position: relative;
-overflow: hidden;
-box-shadow: 0 4px 14px rgba(13, 33, 55, .04);
-}
-
-.tile::before {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-right: 0;
-height: 4px;
-background: var(--blue);
-transform: scaleX(0);
-transition: .2s;
-transform-origin: left;
-}
-
-.tile:hover {
-transform: translateY(-2px);
-border-color: var(--blue);
-box-shadow: 0 8px 24px rgba(21, 101, 192, .12);
-}
-
-.tile:hover::before {
-transform: scaleX(1)
-}
-
-.tile.orange::before {
-background: var(--accent)
-}
-
-.tile.green::before {
-background: var(--green)
-}
-
-.tile-text-name {
-font-family: 'Barlow Condensed', sans-serif;
-font-size: 18px;
-font-weight: 800;
-color: var(--navy);
-}
-
-.tile-text-desc {
-font-size: 12px;
-color: var(--muted);
-margin-top: 3px
-}
-
-.tile-icon {
-width: 50px;
-height: 50px;
-display: flex;
-align-items: center;
-justify-content: center;
-border-radius: 12px;
-flex-shrink: 0;
-}
-
-.tile-icon.blue {
-background: #e3f2fd
-}
-
-.tile-icon.orange {
-background: #fff3e0
-}
-
-.tile-icon.green {
-background: #e8f5e9
-}
-
-.tile-icon.purple {
-background: #f3e5f5
-}
-
-/* PANEL */
-.panel-card {
-background: var(--card);
-border: 1px solid var(--border);
-border-radius: 12px;
-overflow: hidden;
-box-shadow: 0 4px 16px rgba(13, 33, 55, .05);
-}
-
-.panel-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 16px 20px;
-border-bottom: 1px solid var(--border);
-background: #fafbfc;
-flex-wrap: wrap;
-gap: 10px;
-}
-
-.panel-title {
-font-family: 'Barlow Condensed', sans-serif;
-font-size: 16px;
-font-weight: 800;
-color: var(--navy);
-letter-spacing: .5px;
-text-transform: uppercase;
-}
-
-.search-row {
-display: flex;
-gap: 10px;
-align-items: center
-}
-
-.search-input {
-height: 36px;
-padding: 0 12px;
-border: 1px solid var(--border);
-border-radius: 6px;
-font-family: 'Barlow', sans-serif;
-font-size: 13px;
-background: #fff;
-color: var(--text);
-outline: none;
-width: 230px;
-}
-
-.search-input:focus {
-border-color: var(--sky)
-}
-
-.table-scroll {
-overflow-x: auto
-}
-
-.data-table {
-width: 100%;
-border-collapse: collapse;
-font-size: 13px;
-min-width: 920px;
-}
-
-.data-table thead th {
-background: var(--navy);
-color: #fff;
-padding: 12px 14px;
-font-size: 11px;
-font-weight: 700;
-letter-spacing: 1px;
-text-transform: uppercase;
-text-align: left;
-}
-
-.data-table tbody tr {
-border-bottom: 1px solid var(--border);
-transition: background .15s;
-}
-
-.data-table tbody tr:hover {
-background: #f5f8ff
-}
-
-.data-table tbody td {
-padding: 13px 14px;
-vertical-align: middle;
-}
-
-.waybill-no {
-font-family: 'Barlow Condensed', sans-serif;
-font-size: 15px;
-font-weight: 800;
-color: var(--blue);
-}
-
-.jkj-ref {
-font-weight: 700;
-color: var(--navy);
-}
-
-.small-muted {
-font-size: 11px;
-color: #78909c;
-margin-top: 2px;
-}
-
-.status-badge {
-display: inline-block;
-padding: 6px 12px;
-border-radius: 20px;
-font-size: 11px;
-font-weight: 800;
-text-transform: uppercase;
-letter-spacing: .4px;
-}
-
-.status-pending {
-background: #fff4d6;
-color: #9a6a00
-}
-
-.status-transit {
-background: #e3f7ec;
-color: #177245
-}
-
-.status-delivered {
-background: #e8f5e9;
-color: #2e7d32
-}
-
-.actions {
-display: flex;
-gap: 6px;
-flex-wrap: wrap;
-}
-
-.btn-mini {
-border: none;
-border-radius: 5px;
-padding: 7px 12px;
-font-size: 12px;
-font-weight: 800;
-cursor: pointer;
-font-family: 'Barlow Condensed', sans-serif;
-letter-spacing: .6px;
-text-transform: uppercase;
-}
-
-.btn-view {
-background: var(--blue);
-color: #fff
-}
-
-.btn-pdf {
-background: var(--red);
-color: #fff
-}
-
-.btn-track {
-background: #546e7a;
-color: #fff
-}
-
-.empty-state {
-padding: 48px;
-text-align: center;
-color: var(--muted);
-font-size: 13px;
-}
-
-.skeleton {
-background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-background-size: 200% 100%;
-animation: shimmer 1.2s infinite;
-border-radius: 4px;
-}
-
-@keyframes shimmer {
-0% {
-background-position: 200% 0
-}
-
-100% {
-background-position: -200% 0
-}
-}
-
-@media(max-width:768px) {
-header {
-padding: 0 16px
-}
-
-.tile-grid {
-grid-template-columns: repeat(2, 1fr)
-}
-
-.stat-strip {
-grid-template-columns: 1fr 1fr
-}
-}
-
-@media(max-width:480px) {
-.tile-grid {
-grid-template-columns: 1fr
-}
-
-.stat-strip {
-grid-template-columns: 1fr
-}
-
-.welcome-title {
-font-size: 26px
-}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mok Transports | Client Portal</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --navy: #0d2137;
+      --blue: #1565c0;
+      --sky: #1e88e5;
+      --accent: #f57c00;
+      --green: #2e7d32;
+      --red: #c62828;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --border: #dce3ec;
+      --text: #1a2535;
+      --muted: #607d8b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh
+    }
+
+    /* HEADER */
+    header {
+      background: var(--navy);
+      border-bottom: 3px solid var(--accent);
+      padding: 0 32px;
+      height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 18px rgba(13, 33, 55, .18);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
+
+    .header-left img {
+      height: 42px;
+      background: #fff;
+      padding: 4px;
+      border-radius: 6px;
+    }
+
+    .header-brand {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: .5px;
+      line-height: 1.2;
+    }
+
+    .header-brand span {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: #90a4ae;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px
+    }
+
+    .header-user {
+      text-align: right
+    }
+
+    .header-user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e0e0e0
+    }
+
+    .header-user-company {
+      font-size: 11px;
+      color: #90a4ae
+    }
+
+    .btn-logout-sm {
+      padding: 7px 16px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 5px;
+      color: #90a4ae;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .btn-logout-sm:hover {
+      border-color: rgba(245, 124, 0, .5);
+      color: #ffcc80;
+      background: rgba(245, 124, 0, .08);
+    }
+
+    /* PAGE */
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 24px 60px
+    }
+
+    .welcome-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .welcome-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .welcome-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 3px
+    }
+
+    .welcome-date {
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    /* STATS */
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .stat-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      border-top: 4px solid var(--blue);
+      box-shadow: 0 4px 14px rgba(13, 33, 55, .04);
+    }
+
+    .stat-chip.orange {
+      border-top-color: var(--accent)
+    }
+
+    .stat-chip.green {
+      border-top-color: var(--green)
+    }
+
+    .stat-chip-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-chip-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    /* LABELS */
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* TILES */
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 34px;
+    }
+
+    .tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
+      transition: .2s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(13, 33, 55, .04);
+    }
+
+    .tile::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--blue);
+      transform: scaleX(0);
+      transition: .2s;
+      transform-origin: left;
+    }
+
+    .tile:hover {
+      transform: translateY(-2px);
+      border-color: var(--blue);
+      box-shadow: 0 8px 24px rgba(21, 101, 192, .12);
+    }
+
+    .tile:hover::before {
+      transform: scaleX(1)
+    }
+
+    .tile.orange::before {
+      background: var(--accent)
+    }
+
+    .tile.green::before {
+      background: var(--green)
+    }
+
+    .tile-text-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .tile-text-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px
+    }
+
+    .tile-icon {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+
+    .tile-icon.blue {
+      background: #e3f2fd
+    }
+
+    .tile-icon.orange {
+      background: #fff3e0
+    }
+
+    .tile-icon.green {
+      background: #e8f5e9
+    }
+
+    .tile-icon.purple {
+      background: #f3e5f5
+    }
+
+    /* PANEL */
+    .panel-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(13, 33, 55, .05);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #fafbfc;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .panel-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .search-input {
+      height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      width: 230px;
+    }
+
+    .search-input:focus {
+      border-color: var(--sky)
+    }
+
+    .table-scroll {
+      overflow-x: auto
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 920px;
+    }
+
+    .data-table thead th {
+      background: var(--navy);
+      color: #fff;
+      padding: 12px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .data-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+
+    .data-table tbody tr:hover {
+      background: #f5f8ff
+    }
+
+    .data-table tbody td {
+      padding: 13px 14px;
+      vertical-align: middle;
+    }
+
+    .waybill-no {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--blue);
+    }
+
+    .jkj-ref {
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .small-muted {
+      font-size: 11px;
+      color: #78909c;
+      margin-top: 2px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+
+    .status-pending {
+      background: #fff4d6;
+      color: #9a6a00
+    }
+
+    .status-transit {
+      background: #e3f7ec;
+      color: #177245
+    }
+
+    .status-delivered {
+      background: #e8f5e9;
+      color: #2e7d32
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-mini {
+      border: none;
+      border-radius: 5px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+
+    .btn-view {
+      background: var(--blue);
+      color: #fff
+    }
+
+    .btn-pdf {
+      background: var(--red);
+      color: #fff
+    }
+
+    .btn-track {
+      background: #546e7a;
+      color: #fff
+    }
+
+    .empty-state {
+      padding: 48px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* Shipment Modal */
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modal-card {
+      background: #fff;
+      width: 95%;
+      max-width: 1050px;
+      border-radius: 14px;
+      padding: 30px;
+    }
+
+    .modal-card h2 {
+      margin-bottom: 25px;
+      color: #0d2137;
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .service-card {
+      padding: 25px;
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .service-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .service-card.local {
+      border-top: 5px solid #f57c00;
+    }
+
+    .service-card.international {
+      border-top: 5px solid #1565c0;
+    }
+
+    .service-card.truck {
+      border-top: 5px solid #2e7d32;
+    }
+
+    .service-card h3 {
+      margin-bottom: 10px;
+    }
+
+    .service-card p {
+      color: #607d8b;
+    }
+
+    @media(max-width:768px) {
+      .service-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0
+      }
+
+      100% {
+        background-position: -200% 0
+      }
+    }
+
+    @media(max-width:768px) {
+      header {
+        padding: 0 16px
+      }
+
+      .tile-grid {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .stat-strip {
+        grid-template-columns: 1fr 1fr
+      }
+    }
+
+    @media(max-width:480px) {
+      .tile-grid {
+        grid-template-columns: 1fr
+      }
+
+      .stat-strip {
+        grid-template-columns: 1fr
+      }
+
+      .welcome-title {
+        font-size: 26px
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-<div class="header-left">
-<img src="assets/images/mok-logo.png" alt="Mok Transports">
-<div class="header-brand">
-Mok Transports Services (Pty) Ltd
-<span>Client Portal</span>
-</div>
-</div>
+  <header>
+    <div class="header-left">
+      <img src="assets/images/mok-logo.png" alt="Mok Transports">
+      <div class="header-brand">
+        Mok Transports Services (Pty) Ltd
+        <span>Client Portal</span>
+      </div>
+    </div>
 
-<div class="header-right">
-<div class="header-user">
-<div class="header-user-name" id="clientName">—</div>
-<div class="header-user-company" id="clientCompany">—</div>
-</div>
+    <div class="header-right">
+      <div class="header-user">
+        <div class="header-user-name" id="clientName">—</div>
+        <div class="header-user-company" id="clientCompany">—</div>
+      </div>
 
-<button class="btn-logout-sm" onclick="logout()">Logout</button>
-</div>
-</header>
+      <button class="btn-logout-sm" onclick="logout()">Logout</button>
+    </div>
+  </header>
 
-<div class="page">
+  <div class="page">
 
-<div class="welcome-row">
-<div>
-<div class="welcome-title">Welcome back, <span id="welcomeName">—</span></div>
-<div class="welcome-sub">Manage your shipments, waybills and tracking references.</div>
-</div>
-<div class="welcome-date" id="welcomeDate"></div>
-</div>
+    <div class="welcome-row">
+      <div>
+        <div class="welcome-title">Welcome back, <span id="welcomeName">—</span></div>
+        <div class="welcome-sub">Manage your shipments, waybills and tracking references.</div>
+      </div>
+      <div class="welcome-date" id="welcomeDate"></div>
+    </div>
 
-<div class="stat-strip">
-<div class="stat-chip">
-<div class="stat-chip-label">My Shipments</div>
-<div class="stat-chip-val" id="statMyTotal">—</div>
-</div>
-<div class="stat-chip orange">
-<div class="stat-chip-label">In Transit</div>
-<div class="stat-chip-val" id="statMyTransit">—</div>
-</div>
-<div class="stat-chip green">
-<div class="stat-chip-label">Delivered</div>
-<div class="stat-chip-val" id="statMyDelivered">—</div>
-</div>
-</div>
+    <div class="stat-strip">
+      <div class="stat-chip">
+        <div class="stat-chip-label">My Shipments</div>
+        <div class="stat-chip-val" id="statMyTotal">—</div>
+      </div>
+      <div class="stat-chip orange">
+        <div class="stat-chip-label">In Transit</div>
+        <div class="stat-chip-val" id="statMyTransit">—</div>
+      </div>
+      <div class="stat-chip green">
+        <div class="stat-chip-label">Delivered</div>
+        <div class="stat-chip-val" id="statMyDelivered">—</div>
+      </div>
+    </div>
 
-<div class="section-label">Quick Access</div>
+    <div class="section-label">Quick Access</div>
 
-<div class="tile-grid">
+    <div class="tile-grid">
 
-<a class="tile" href="booking.html">
-<div>
-<div class="tile-text-name">Create Shipment</div>
-<div class="tile-text-desc">Book a new shipment</div>
-</div>
-<div class="tile-icon blue">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="1.8">
-<path d="M12 5v14M5 12h14" />
-</svg>
-</div>
-</a>
+      <a class="tile" href="#" onclick="openShipmentModal(); return false;">
+        <div>
+          <div class="tile-text-name">Create Shipment</div>
+          <div class="tile-text-desc">Book a new shipment</div>
+        </div>
+        <div class="tile-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="1.8">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </div>
+      </a>
 
-<a class="tile orange" href="clientTracking.html">
-<div>
-<div class="tile-text-name">Track Shipments</div>
-<div class="tile-text-desc">View active deliveries</div>
-</div>
-<div class="tile-icon orange">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="1.8">
-<circle cx="12" cy="12" r="10" />
-<circle cx="12" cy="12" r="3" />
-</svg>
-</div>
-</a>
+      <a class="tile orange" href="clientTracking.html">
+        <div>
+          <div class="tile-text-name">Track Shipments</div>
+          <div class="tile-text-desc">View active deliveries</div>
+        </div>
+        <div class="tile-icon orange">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </div>
+      </a>
 
-<a class="tile green" href="clientShipments.html">
-<div>
-<div class="tile-text-name">My Waybills</div>
-<div class="tile-text-desc">View, print and download</div>
-</div>
-<div class="tile-icon green">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="1.8">
-<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-<polyline points="14 2 14 8 20 8" />
-</svg>
-</div>
-</a>
+      <a class="tile green" href="clientShipments.html">
+        <div>
+          <div class="tile-text-name">My Waybills</div>
+          <div class="tile-text-desc">View, print and download</div>
+        </div>
+        <div class="tile-icon green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+        </div>
+      </a>
 
-<a class="tile" style="border-top:3px solid #00796b" href="clientStatement.html">
-<div>
-<div class="tile-text-name">My Statement</div>
-<div class="tile-text-desc">Invoices &amp; outstanding balance</div>
-</div>
-<div class="tile-icon" style="background:#e0f2f1">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="1.8">
-<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-<line x1="8" y1="9" x2="16" y2="9"/>
-<line x1="8" y1="13" x2="16" y2="13"/>
-<line x1="8" y1="17" x2="12" y2="17"/>
-</svg>
-</div>
-</a>
+      <a class="tile" href="clientShipments.html">
+        <div>
+          <div class="tile-text-name">Local Shipments</div>
+          <div class="tile-text-desc">View local waybills</div>
+        </div>
+      </a>
 
-</div>
+      <a class="tile" href="internationalShipments.html">
+        <div>
+          <div class="tile-text-name">International Shipments</div>
+          <div class="tile-text-desc">View DHL shipments</div>
+        </div>
+      </a>
 
-<div class="section-label">Recent Shipments</div>
+      <a class="tile" href="clientTruckBookings.html">
+        <div>
+          <div class="tile-text-name">Truck Freight</div>
+          <div class="tile-text-desc">View truck bookings</div>
+        </div>
+      </a>
 
-<div class="panel-card">
-<div class="panel-header">
-<div class="panel-title">Your Recent Shipments</div>
+      <a class="tile" style="border-top:3px solid #00796b" href="clientStatement.html">
+        <div>
+          <div class="tile-text-name">My Statement</div>
+          <div class="tile-text-desc">Invoices &amp; outstanding balance</div>
+        </div>
+        <div class="tile-icon" style="background:#e0f2f1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <line x1="8" y1="9" x2="16" y2="9" />
+            <line x1="8" y1="13" x2="16" y2="13" />
+            <line x1="8" y1="17" x2="12" y2="17" />
+          </svg>
+        </div>
+      </a>
 
-<div class="search-row">
-<input class="search-input" type="text" id="searchInput" placeholder="Search waybill, JKJ ref, company…"
-oninput="filterTable()">
-<a href="clientShipments.html"
-style="font-size:12px;color:var(--blue);text-decoration:none;font-weight:700;white-space:nowrap;">View All
-→</a>
-</div>
-</div>
+    </div>
 
-<div class="table-scroll">
-<table class="data-table">
-<thead>
-<tr>
-<th>Waybill No</th>
-<th>JKJ Reference</th>
-<th>Service</th>
-<th>Route</th>
-<th>Date</th>
-<th>Status</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="clientTable"></tbody>
-</table>
-</div>
-</div>
 
-</div>
 
-<script>
-const API_BASE = 'https://bookings.moktransports.com/api';
+    <div id="shipmentModal" class="modal-overlay" style="display:none;">
+      <div class="modal-card">
+        <h2>Select Shipment Service</h2>
 
-const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+        <div class="service-grid">
 
-if (!session || session.role !== 'client') {
-window.location.href = 'login.html';
-}
+          <div class="service-card local" onclick="window.location.href='booking.html'">
+            <h3>📦 Local Shipments</h3>
+            <p>JKJ Express Courier Services</p>
+          </div>
 
-const clientId = session?.user?.id || session?.id;
+          <div class="service-card international" onclick="window.location.href='imports.html'">
+            <h3>🌍 International Shipments</h3>
+            <p>DHL Express International</p>
+          </div>
 
-document.getElementById('clientName').textContent = session.name || session?.user?.name || '—';
-document.getElementById('clientCompany').textContent = session.company || session?.user?.company || '—';
-document.getElementById('welcomeName').textContent = ((session.name || session?.user?.name || '').split(' ')[0]) || '—';
-document.getElementById('welcomeDate').textContent = new Date().toLocaleDateString('en-ZA', {
-weekday: 'long',
-year: 'numeric',
-month: 'long',
-day: 'numeric'
-});
+          <div class="service-card truck" onclick="window.location.href='trucking.html'">
+            <h3>🚚 Truck Freight</h3>
+            <p>Mok Fleet Operations</p>
+          </div>
 
-let allWaybills = [];
+        </div>
 
-async function loadStats() {
-try {
-const res = await fetch(`${API_BASE}/client/${clientId}/stats`);
-if (!res.ok) return;
+        <button onclick="closeShipmentModal()" style="
+margin-top:20px;
+padding:10px 18px;
+border:none;
+border-radius:8px;
+background:#0d2137;
+color:white;
+font-weight:600;
+cursor:pointer;
+">
+          Close
+        </button>
+      </div>
+    </div>
 
-const data = await res.json();
+    <div class="section-label">Recent Shipments</div>
 
-document.getElementById('statMyTotal').textContent = data.total || 0;
-document.getElementById('statMyTransit').textContent = data.in_transit || 0;
-document.getElementById('statMyDelivered').textContent = data.delivered || 0;
-} catch (err) {
-console.error('Stats fetch error:', err);
-}
-}
+    <div class="panel-card">
+      <div class="panel-header">
+        <div class="panel-title">Your Recent Shipments</div>
 
-async function loadWaybills(search = '') {
-renderSkeleton();
+        <div class="search-row">
+          <input class="search-input" type="text" id="searchInput" placeholder="Search waybill, JKJ ref, company…"
+            oninput="filterTable()">
+          <a href="clientShipments.html"
+            style="font-size:12px;color:var(--blue);text-decoration:none;font-weight:700;white-space:nowrap;">View All
+            →</a>
+        </div>
 
-try {
-const params = new URLSearchParams({ search });
-const res = await fetch(`${API_BASE}/client/${clientId}/waybills?${params}`);
 
-if (!res.ok) throw new Error('Server error');
 
-allWaybills = await res.json();
-renderTable(allWaybills.slice(0, 8));
+      </div>
 
-} catch (err) {
-console.error('Waybill fetch error:', err);
-document.getElementById('clientTable').innerHTML = `
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Waybill No</th>
+              <th>JKJ Reference</th>
+              <th>Service</th>
+              <th>Route</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="clientTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INTERNATIONAL SHIPMENTS PANEL -->
+
+  <div class="section-label">International Shipments</div>
+
+  <div class="panel-header">
+    <div class="panel-title">
+      Recent International Shipments
+    </div>
+
+    <a href="internationalShipments.html" style="font-size:12px;color:var(--blue);
+      text-decoration:none;font-weight:700;">
+      View All →
+    </a>
+  </div>
+
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Receiver</th>
+          <th>Destination</th>
+          <th>Ship Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody id="intlTable"></tbody>
+    </table>
+  </div>
+  </div>
+
+
+
+
+  <script>
+    const API_BASE = 'https://bookings.moktransports.com/api';
+
+    const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+
+    if (!session || session.role !== 'client') {
+      window.location.href = 'login.html';
+    }
+
+    const clientId = session?.user?.id || session?.id;
+
+    document.getElementById('clientName').textContent = session.name || session?.user?.name || '—';
+    document.getElementById('clientCompany').textContent = session.company || session?.user?.company || '—';
+    document.getElementById('welcomeName').textContent = ((session.name || session?.user?.name || '').split(' ')[0]) || '—';
+    document.getElementById('welcomeDate').textContent = new Date().toLocaleDateString('en-ZA', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    let allWaybills = [];
+
+    async function loadStats() {
+      try {
+        const res = await fetch(`${API_BASE}/client/${clientId}/stats`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        document.getElementById('statMyTotal').textContent = data.total || 0;
+        document.getElementById('statMyTransit').textContent = data.in_transit || 0;
+        document.getElementById('statMyDelivered').textContent = data.delivered || 0;
+      } catch (err) {
+        console.error('Stats fetch error:', err);
+      }
+    }
+
+    async function loadWaybills(search = '') {
+      renderSkeleton();
+
+      try {
+        const params = new URLSearchParams({ search });
+        const res = await fetch(`${API_BASE}/client/${clientId}/waybills?${params}`);
+
+        if (!res.ok) throw new Error('Server error');
+
+        allWaybills = await res.json();
+        renderTable(allWaybills.slice(0, 8));
+
+      } catch (err) {
+        console.error('Waybill fetch error:', err);
+        document.getElementById('clientTable').innerHTML = `
 <tr>
 <td colspan="7">
 <div class="empty-state">Could not load shipments. Please try again.</div>
 </td>
 </tr>
 `;
-}
-}
+      }
+    }
 
-function renderSkeleton() {
-document.getElementById('clientTable').innerHTML = [1, 2, 3].map(() => `
+    function renderSkeleton() {
+      document.getElementById('clientTable').innerHTML = [1, 2, 3].map(() => `
 <tr>
 ${[1, 2, 3, 4, 5, 6, 7].map(() => `<td><div class="skeleton" style="height:14px;width:80%">&nbsp;</div></td>`).join('')}
 </tr>
 `).join('');
-}
+    }
 
-function getStatusBadge(w) {
-const status = String(w.status || w.waybill_status || '').toLowerCase();
+    function getStatusBadge(w) {
+      const status = String(w.status || w.waybill_status || '').toLowerCase();
 
-if (status === 'delivered') {
-return `<span class="status-badge status-delivered">Delivered</span>`;
-}
+      if (status === 'delivered') {
+        return `<span class="status-badge status-delivered">Delivered</span>`;
+      }
 
-if (w.sent_to_jkj || w.jkj_reference || status === 'sent_to_jkj' || status === 'in_transit') {
-return `<span class="status-badge status-transit">In Transit</span>`;
-}
+      if (w.sent_to_jkj || w.jkj_reference || status === 'sent_to_jkj' || status === 'in_transit') {
+        return `<span class="status-badge status-transit">In Transit</span>`;
+      }
 
-return `<span class="status-badge status-pending">Pending Dispatch</span>`;
-}
+      return `<span class="status-badge status-pending">Pending Dispatch</span>`;
+    }
 
-function formatService(service) {
-const map = {
-SAMEDAY: 'SameDay Express Air',
-ONX: 'Overnight Express',
-NDD: 'NextDay Express',
-ECO: 'Economy Service'
-};
+    function formatService(service) {
+      const map = {
+        SAMEDAY: 'SameDay Express Air',
+        ONX: 'Overnight Express',
+        NDD: 'NextDay Express',
+        ECO: 'Economy Service'
+      };
 
-return map[service] || service || '—';
-}
+      return map[service] || service || '—';
+    }
 
-function formatDate(value) {
-if (!value) return '—';
+    function formatDate(value) {
+      if (!value) return '—';
 
-return new Date(value).toLocaleDateString('en-ZA', {
-year: 'numeric',
-month: 'short',
-day: '2-digit'
-});
-}
+      return new Date(value).toLocaleDateString('en-ZA', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit'
+      });
+    }
 
-function renderTable(data) {
-const tbody = document.getElementById('clientTable');
+    function renderTable(data) {
+      const tbody = document.getElementById('clientTable');
 
-if (!Array.isArray(data) || !data.length) {
-tbody.innerHTML = `
+      if (!Array.isArray(data) || !data.length) {
+        tbody.innerHTML = `
 <tr>
 <td colspan="7">
 <div class="empty-state">
 No shipments found.
-<a href="booking.html" style="color:var(--blue);font-weight:700;text-decoration:none;">Create your first shipment →</a>
+<a href="#" onclick="openShipmentModal();return false;">
+Create your first shipment →
+</a>
 </div>
 </td>
 </tr>
 `;
-return;
-}
+        return;
+      }
 
-tbody.innerHTML = data.map(w => `
+      tbody.innerHTML = data.map(w => `
 <tr>
 <td>
 <div class="waybill-no">${w.waybill_no || '—'}</div>
@@ -818,91 +989,106 @@ tbody.innerHTML = data.map(w => `
 </td>
 </tr>
 `).join('');
-}
+    }
 
-function filterTable() {
-const q = document.getElementById('searchInput').value.toLowerCase();
+    function filterTable() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
 
-const filtered = allWaybills.filter(w =>
-(w.waybill_no || '').toLowerCase().includes(q) ||
-(w.jkj_reference || '').toLowerCase().includes(q) ||
-(w.consignor_name || '').toLowerCase().includes(q) ||
-(w.consignee_name || '').toLowerCase().includes(q) ||
-(w.service || '').toLowerCase().includes(q)
-);
+      const filtered = allWaybills.filter(w =>
+        (w.waybill_no || '').toLowerCase().includes(q) ||
+        (w.jkj_reference || '').toLowerCase().includes(q) ||
+        (w.consignor_name || '').toLowerCase().includes(q) ||
+        (w.consignee_name || '').toLowerCase().includes(q) ||
+        (w.service || '').toLowerCase().includes(q)
+      );
 
-renderTable(filtered.slice(0, 8));
-}
+      renderTable(filtered.slice(0, 8));
+    }
 
-function viewWaybill(waybillNo) {
-if (!waybillNo || waybillNo === 'undefined') return;
-window.location.href = `localWaybill.html?waybill=${encodeURIComponent(waybillNo)}&mode=view`;
-}
+    function viewWaybill(waybillNo) {
+      if (!waybillNo || waybillNo === 'undefined') return;
+      window.location.href = `localWaybill.html?waybill=${encodeURIComponent(waybillNo)}&mode=view`;
+    }
 
-function downloadWaybill(waybillNo) {
-if (!waybillNo || waybillNo === 'undefined') return;
-window.location.href = `localWaybill.html?waybill=${encodeURIComponent(waybillNo)}&download=true`;
-}
+    function downloadWaybill(waybillNo) {
+      if (!waybillNo || waybillNo === 'undefined') return;
+      window.location.href = `localWaybill.html?waybill=${encodeURIComponent(waybillNo)}&download=true`;
+    }
 
-function trackShipment(ref) {
-alert(`Tracking module will be connected next. Reference: ${ref || '—'}`);
-}
+    function trackShipment(ref) {
+      window.location.href =
+        `clientTracking.html?ref=${encodeURIComponent(ref)}`;
+    }
 
-function logout() {
-localStorage.removeItem('mokSession');
-localStorage.removeItem('mokLoginRole');
-window.location.href = 'login.html';
-}
+    function openShipmentModal() {
+      document.getElementById("shipmentModal").style.display = "flex";
+    }
 
-// ── INTERNATIONAL SHIPMENTS ──────────────────
-let allIntl = [];
+    function closeShipmentModal() {
+      document.getElementById("shipmentModal").style.display = "none";
+    }
 
-async function loadInternationalShipments() {
-try {
-const userId = session?.id;
-const res = await fetch(`${API_BASE}/api/international-shipments?client_id=${userId}`);
-const data = await res.json();
-allIntl = Array.isArray(data) ? data : [];
-renderIntlTable(allIntl.slice(0,5));
-} catch(e) {
-console.error('Intl load error:', e);
-}
-}
+    function logout() {
+      localStorage.removeItem('mokSession');
+      localStorage.removeItem('mokLoginRole');
+      window.location.href = 'login.html';
+    }
 
-function renderIntlTable(data) {
-const tbody = document.getElementById('intlTable');
-if (!tbody) return;
-if (!data.length) {
-tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">
+    // ── INTERNATIONAL SHIPMENTS ──────────────────
+    let allIntl = [];
+
+    async function loadInternationalShipments() {
+      try {
+        const userId = clientId;
+        const res = await fetch(`${API_BASE}/international-shipments?client_id=${userId}`)
+
+        if (!res.ok) {
+          throw new Error('Failed to load international shipments');
+        }
+
+        const data = await res.json();
+        allIntl = Array.isArray(data) ? data : [];
+        renderIntlTable(allIntl.slice(0, 5));
+      } catch (e) {
+        console.error('Intl load error:', e);
+      }
+    }
+
+    function renderIntlTable(data) {
+      const tbody = document.getElementById('intlTable');
+      if (!tbody) return;
+      if (!data.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">
 No international shipments yet. <a href="imports.html" style="color:var(--blue);font-weight:700;text-decoration:none">Submit one →</a>
 </td></tr>`; return;
-}
-tbody.innerHTML = data.map(s => `
+      }
+      tbody.innerHTML = data.map(s => `
 <tr style="border-bottom:1px solid var(--border)">
 <td style="padding:12px 14px">
-<div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:var(--navy)">${s.reference||s.id}</div>
-<div style="font-size:11px;color:var(--muted)">${s.direction||'Export'}</div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:var(--navy)">${s.reference || s.id}</div>
+<div style="font-size:11px;color:var(--muted)">${s.direction || 'Export'}</div>
 </td>
-<td style="padding:12px 14px;font-size:13px">${s.receiver_company||'—'}</td>
-<td style="padding:12px 14px;font-size:12px;color:var(--muted)">${s.receiver_city||'—'}, ${s.receiver_country||'—'}</td>
-<td style="padding:12px 14px;font-size:12px">${s.ship_date?new Date(s.ship_date).toLocaleDateString('en-ZA',{day:'2-digit',month:'short'}):'—'}</td>
+<td style="padding:12px 14px;font-size:13px">${s.receiver_company || '—'}</td>
+<td style="padding:12px 14px;font-size:12px;color:var(--muted)">${s.receiver_city || '—'}, ${s.receiver_country || '—'}</td>
+<td style="padding:12px 14px;font-size:12px">${s.ship_date ? new Date(s.ship_date).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short' }) : '—'}</td>
 <td style="padding:12px 14px">
 <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;
-background:${s.status==='submitted'?'#e8f5e9':s.status==='processing'?'#fff3e0':'#e3f2fd'};
-color:${s.status==='submitted'?'#2e7d32':s.status==='processing'?'#e65100':'#1565c0'}">
-${(s.status||'pending').toUpperCase()}
+background:${s.status === 'submitted' ? '#e8f5e9' : s.status === 'processing' ? '#fff3e0' : '#e3f2fd'};
+color:${s.status === 'submitted' ? '#2e7d32' : s.status === 'processing' ? '#e65100' : '#1565c0'}">
+${(s.status || 'pending').toUpperCase()}
 </span>
 </td>
 </tr>`).join('');
-}
+    }
 
-loadStats();
-loadWaybills();
-loadInternationalShipments();
-</script>
+    loadStats();
+    loadWaybills();
+    loadInternationalShipments();
+  </script>
 
 </body>
 
 </html>
+
 
 
