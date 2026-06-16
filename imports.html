@@ -1,1351 +1,919 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>International Shipment | Mok Transports</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap"
-    rel="stylesheet">
-  <style>
-    :root {
-      --navy: #0d2137;
-      --blue: #1565c0;
-      --sky: #1e88e5;
-      --accent: #f57c00;
-      --green: #2e7d32;
-      --red: #c62828;
-      --bg: #f0f4f8;
-      --card: #fff;
-      --border: #dce3ec;
-      --text: #1a2535;
-      --muted: #607d8b;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0
-    }
-
-    body {
-      font-family: 'Barlow', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 13px
-    }
-
-    /* TOPBAR */
-    .topbar {
-      background: var(--navy);
-      border-bottom: 3px solid var(--accent);
-      padding: 0 28px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100
-    }
-
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 14px
-    }
-
-    .topbar-left img {
-      height: 36px;
-      background: #fff;
-      padding: 3px;
-      border-radius: 4px
-    }
-
-    .topbar-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 17px;
-      font-weight: 700;
-      color: #fff
-    }
-
-    .topbar-title span {
-      display: block;
-      font-size: 10px;
-      font-weight: 400;
-      color: #607d8b;
-      letter-spacing: 1.5px;
-      text-transform: uppercase
-    }
-
-    .topbar-right {
-      display: flex;
-      gap: 8px
-    }
-
-    .btn-top {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 14px;
-      height: 36px;
-      border-radius: 5px;
-      border: none;
-      cursor: pointer;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      text-decoration: none;
-      transition: filter .15s
-    }
-
-    .btn-top:hover {
-      filter: brightness(1.1)
-    }
-
-    .btn-grey {
-      background: #546e7a;
-      color: #fff
-    }
-
-    .btn-blue {
-      background: var(--blue);
-      color: #fff
-    }
-
-    .btn-green {
-      background: var(--green);
-      color: #fff
-    }
-
-    .btn-orange {
-      background: var(--accent);
-      color: #fff
-    }
-
-    .btn-red {
-      background: var(--red);
-      color: #fff
-    }
-
-    /* PAGE */
-    .page {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 28px 20px 80px
-    }
-
-    /* SECTION TABS */
-    .mode-toggle {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 24px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .05)
-    }
-
-    .mode-btn {
-      padding: 16px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      border-bottom: 3px solid transparent;
-      transition: all .2s
-    }
-
-    .mode-btn.active {
-      color: var(--navy);
-      border-bottom-color: var(--accent);
-      background: #fafbfc
-    }
-
-    .mode-btn:hover:not(.active) {
-      color: var(--navy);
-      background: #f5f8ff
-    }
-
-    /* CARD */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 18px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .04)
-    }
-
-    .card-header {
-      background: var(--navy);
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px
-    }
-
-    .card-header-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: .8px
-    }
-
-    .card-body {
-      padding: 20px
-    }
-
-    /* FORM */
-    .form-grid {
-      display: grid;
-      gap: 14px
-    }
-
-    .form-grid.cols-2 {
-      grid-template-columns: 1fr 1fr
-    }
-
-    .form-grid.cols-3 {
-      grid-template-columns: 1fr 1fr 1fr
-    }
-
-    .form-grid.cols-4 {
-      grid-template-columns: 1fr 1fr 1fr 1fr
-    }
-
-    .fg {
-      display: flex;
-      flex-direction: column;
-      gap: 5px
-    }
-
-    .fg label {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .8px
-    }
-
-    .fg input,
-    .fg select,
-    .fg textarea {
-      height: 40px;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      padding: 0 12px;
-      font-family: 'Barlow', sans-serif;
-      font-size: 13px;
-      color: var(--text);
-      background: #fff;
-      outline: none;
-      transition: border-color .15s
-    }
-
-    .fg textarea {
-      height: 72px;
-      padding: 10px 12px;
-      resize: vertical
-    }
-
-    .fg input:focus,
-    .fg select:focus,
-    .fg textarea:focus {
-      border-color: var(--sky)
-    }
-
-    .fg input.required-empty {
-      border-color: var(--red) !important
-    }
-
-    /* RADIO TOGGLE */
-    .radio-group {
-      display: flex;
-      gap: 0;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden
-    }
-
-    .radio-opt {
-      flex: 1;
-      position: relative
-    }
-
-    .radio-opt input {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0
-    }
-
-    .radio-opt label {
-      display: block;
-      padding: 9px 12px;
-      text-align: center;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      transition: all .2s;
-      background: #fff
-    }
-
-    .radio-opt input:checked+label {
-      background: var(--navy);
-      color: #fff
-    }
-
-    .radio-opt:not(:last-child) {
-      border-right: 1px solid var(--border)
-    }
-
-    /* CUSTOMS SECTION — only shows for international */
-    .customs-section {
-      display: none
-    }
-
-    .customs-section.visible {
-      display: block
-    }
-
-    /* LINE ITEMS */
-    .line-items-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      margin-bottom: 12px
-    }
-
-    .line-items-table thead th {
-      background: var(--navy);
-      color: #fff;
-      padding: 8px 10px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .8px;
-      text-transform: uppercase;
-      text-align: left
-    }
-
-    .line-items-table tbody td {
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle
-    }
-
-    .line-items-table tbody tr:last-child td {
-      border-bottom: none
-    }
-
-    .line-items-table input {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 4px 8px;
-      font-family: 'Barlow', sans-serif;
-      font-size: 12px;
-      height: 30px;
-      outline: none
-    }
-
-    .line-items-table input:focus {
-      border-color: var(--sky)
-    }
-
-    .btn-del {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #ef9a9a;
-      padding: 3px;
-      display: flex;
-      align-items: center;
-      justify-content: center
-    }
-
-    .btn-del:hover {
-      color: var(--red)
-    }
-
-    /* SUMMARY BOX */
-    .summary-box {
-      background: linear-gradient(135deg, var(--navy) 0%, #1a3a5c 100%);
-      border-radius: 8px;
-      padding: 20px 24px;
-      color: #fff;
-      margin-bottom: 20px
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 14px
-    }
-
-    .sum-item label {
-      font-size: 10px;
-      color: #90a4ae;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      display: block;
-      margin-bottom: 4px
-    }
-
-    .sum-item .val {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: #fff
-    }
-
-    .total-price {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 32px;
-      font-weight: 800;
-      color: #fff
-    }
-
-    .total-price span {
-      font-size: 16px;
-      color: #90a4ae;
-      vertical-align: super;
-      margin-right: 3px
-    }
-
-    /* PILL */
-    .pill {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 700
-    }
-
-    .pill-domestic {
-      background: #e3f2fd;
-      color: var(--blue)
-    }
-
-    .pill-intl {
-      background: #f3e5f5;
-      color: #6a1b9a
-    }
-
-    /* STEP INDICATOR */
-    .steps {
-      display: flex;
-      gap: 0;
-      margin-bottom: 24px
-    }
-
-    .step {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: all .2s;
-      border-right: none;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted)
-    }
-
-    .step:first-child {
-      border-radius: 6px 0 0 6px
-    }
-
-    .step:last-child {
-      border-right: 1px solid var(--border);
-      border-radius: 0 6px 6px 0
-    }
-
-    .step.active {
-      background: var(--blue);
-      border-color: var(--blue);
-      color: #fff
-    }
-
-    .step.done {
-      background: #e8f5e9;
-      border-color: #a5d6a7;
-      color: var(--green)
-    }
-
-    .step-num {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: currentColor;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      flex-shrink: 0;
-      color: #fff
-    }
-
-    .step.active .step-num {
-      background: rgba(255, 255, 255, .3)
-    }
-
-    .step.done .step-num {
-      background: var(--green)
-    }
-
-    .step-label {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 13px;
-      letter-spacing: .3px
-    }
-
-    /* ACTIONS */
-    .action-bar {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 20px
-    }
-
-    /* DIVIDER */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 16px 0
-    }
-
-    /* INFO BOX */
-    .info-box {
-      background: #e3f2fd;
-      border: 1px solid #90caf9;
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 12px;
-      color: #1565c0;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px
-    }
-
-    @media(max-width:768px) {
-
-      .form-grid.cols-2,
-      .form-grid.cols-3,
-      .form-grid.cols-4 {
-        grid-template-columns: 1fr
-      }
-
-      .summary-grid {
-        grid-template-columns: 1fr 1fr
-      }
-
-      .topbar {
-        padding: 0 16px
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>International Shipment | Mok Transports</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0d2137; --blue:#1565c0; --sky:#1e88e5; --accent:#f57c00;
+  --green:#2e7d32; --red:#c62828; --bg:#f0f4f8; --card:#fff;
+  --border:#dce3ec; --text:#1a2535; --muted:#607d8b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+
+/* TOPBAR */
+.topbar{background:var(--navy);border-bottom:3px solid var(--accent);padding:0 28px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.topbar-left img{height:36px;background:#fff;padding:3px;border-radius:4px}
+.topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff}
+.topbar-title span{display:block;font-size:10px;font-weight:400;color:#607d8b;letter-spacing:1.5px;text-transform:uppercase}
+.topbar-right{display:flex;gap:8px}
+.btn-top{display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:36px;border-radius:5px;
+  border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;text-decoration:none;transition:filter .15s}
+.btn-top:hover{filter:brightness(1.1)}
+.btn-grey{background:#546e7a;color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-orange{background:var(--accent);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+
+/* PAGE */
+.page{max-width:980px;margin:0 auto;padding:28px 20px 80px}
+
+/* SECTION TABS */
+.mode-toggle{display:grid;grid-template-columns:1fr 1fr;gap:0;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.mode-btn{padding:16px;background:transparent;border:none;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);display:flex;align-items:center;justify-content:center;gap:10px;
+  border-bottom:3px solid transparent;transition:all .2s}
+.mode-btn.active{color:var(--navy);border-bottom-color:var(--accent);background:#fafbfc}
+.mode-btn:hover:not(.active){color:var(--navy);background:#f5f8ff}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  margin-bottom:18px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.card-header{background:var(--navy);padding:12px 20px;display:flex;align-items:center;gap:10px}
+.card-header-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;
+  color:#fff;text-transform:uppercase;letter-spacing:.8px}
+.card-body{padding:20px}
+
+/* FORM */
+.form-grid{display:grid;gap:14px}
+.form-grid.cols-2{grid-template-columns:1fr 1fr}
+.form-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.fg input,.fg select,.fg textarea{height:40px;border:1px solid var(--border);border-radius:5px;
+  padding:0 12px;font-family:'Barlow',sans-serif;font-size:13px;color:var(--text);
+  background:#fff;outline:none;transition:border-color .15s}
+.fg textarea{height:72px;padding:10px 12px;resize:vertical}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--sky)}
+.fg input.required-empty{border-color:var(--red)!important}
+
+/* RADIO TOGGLE */
+.radio-group{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.radio-opt{flex:1;position:relative}
+.radio-opt input{position:absolute;opacity:0;width:0;height:0}
+.radio-opt label{display:block;padding:9px 12px;text-align:center;cursor:pointer;
+  font-size:12px;font-weight:600;color:var(--muted);transition:all .2s;background:#fff}
+.radio-opt input:checked+label{background:var(--navy);color:#fff}
+.radio-opt:not(:last-child){border-right:1px solid var(--border)}
+
+/* CUSTOMS SECTION — only shows for international */
+.customs-section{display:none}
+.customs-section.visible{display:block}
+
+/* LINE ITEMS */
+.line-items-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+.line-items-table thead th{background:var(--navy);color:#fff;padding:8px 10px;
+  font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;text-align:left}
+.line-items-table tbody td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.line-items-table tbody tr:last-child td{border-bottom:none}
+.line-items-table input{width:100%;border:1px solid var(--border);border-radius:4px;
+  padding:4px 8px;font-family:'Barlow',sans-serif;font-size:12px;height:30px;outline:none}
+.line-items-table input:focus{border-color:var(--sky)}
+.btn-del{background:none;border:none;cursor:pointer;color:#ef9a9a;padding:3px;
+  display:flex;align-items:center;justify-content:center}
+.btn-del:hover{color:var(--red)}
+
+/* SUMMARY BOX */
+.summary-box{background:linear-gradient(135deg,var(--navy) 0%,#1a3a5c 100%);
+  border-radius:8px;padding:20px 24px;color:#fff;margin-bottom:20px}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:14px}
+.sum-item label{font-size:10px;color:#90a4ae;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px}
+.sum-item .val{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#fff}
+.total-price{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:#fff}
+.total-price span{font-size:16px;color:#90a4ae;vertical-align:super;margin-right:3px}
+
+/* PILL */
+.pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.pill-domestic{background:#e3f2fd;color:var(--blue)}
+.pill-intl{background:#f3e5f5;color:#6a1b9a}
+
+/* STEP INDICATOR */
+.steps{display:flex;gap:0;margin-bottom:24px}
+.step{flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;
+  background:var(--card);border:1px solid var(--border);cursor:pointer;transition:all .2s;
+  border-right:none;font-size:12px;font-weight:600;color:var(--muted)}
+.step:first-child{border-radius:6px 0 0 6px}
+.step:last-child{border-right:1px solid var(--border);border-radius:0 6px 6px 0}
+.step.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.step.done{background:#e8f5e9;border-color:#a5d6a7;color:var(--green)}
+.step-num{width:22px;height:22px;border-radius:50%;background:currentColor;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+  flex-shrink:0;color:#fff}
+.step.active .step-num{background:rgba(255,255,255,.3)}
+.step.done .step-num{background:var(--green)}
+.step-label{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.3px}
+
+/* ACTIONS */
+.action-bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* INFO BOX */
+.info-box{background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;
+  padding:10px 14px;font-size:12px;color:#1565c0;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px}
+
+@media(max-width:768px){
+  .form-grid.cols-2,.form-grid.cols-3,.form-grid.cols-4{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:1fr 1fr}
+  .topbar{padding:0 16px}
+}
+</style>
 </head>
-
 <body>
 
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <img src="assets/images/mok-logo.png" alt="Mok Transports">
-      <div class="topbar-title">DHL International Shipment<span>Mok Transports Services (Pty) Ltd</span></div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <img src="assets/images/mok-logo.png" alt="Mok Transports">
+    <div class="topbar-title">DHL International Shipment<span>Mok Transports Services (Pty) Ltd</span></div>
+  </div>
+  <div class="topbar-right">
+    <a class="btn-top btn-grey" href="dashboard.html">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Dashboard
+    </a>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- MODE TOGGLE -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btnExport" onclick="setMode('export')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Export — Ship Out of South Africa
+    </button>
+    <button class="mode-btn" id="btnImport" onclick="setMode('import')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Import — Ship Into South Africa
+    </button>
+  </div>
+
+  <!-- ══ SHIPPER ══════════════════════════════════════════════ -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div class="card-header-title" id="shipperLabel">Shipper / Sender</div>
     </div>
-    <div class="topbar-right">
-      <a class="btn-top btn-grey" href="dashboard.html">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>Dashboard
-      </a>
+    <div class="card-body">
+      <div class="form-grid cols-2">
+        <div class="fg"><label>Company / Full Name *</label><input id="shipperCompany" placeholder="e.g. Mok Transports Services"></div>
+        <div class="fg"><label>Contact Full Name *</label><input id="shipperFullName" placeholder="e.g. Lerato Malebo"></div>
+        <div class="fg"><label>Email Address *</label><input id="shipperEmail" type="email" placeholder="lerato@company.com"></div>
+        <div class="fg"><label>Phone *</label><input id="shipperPhone" placeholder="+27 11 839 6496"></div>
+        <div class="fg"><label>Mobile Phone</label><input id="shipperMobile" placeholder="+27 84 902 2258"></div>
+        <div class="fg"><label>Country Code *</label>
+          <select id="shipperCountry">
+            <option value="ZA" selected>ZA — South Africa</option>
+            <option value="ZW">ZW — Zimbabwe</option>
+            <option value="ZM">ZM — Zambia</option>
+            <option value="MZ">MZ — Mozambique</option>
+            <option value="BW">BW — Botswana</option>
+            <option value="NA">NA — Namibia</option>
+            <option value="LS">LS — Lesotho</option>
+            <option value="SZ">SZ — Eswatini</option>
+            <option value="GB">GB — United Kingdom</option>
+            <option value="US">US — United States</option>
+            <option value="DE">DE — Germany</option>
+            <option value="CN">CN — China</option>
+            <option value="AU">AU — Australia</option>
+            <option value="IN">IN — India</option>
+            <option value="FR">FR — France</option>
+          </select>
+        </div>
+        <div class="fg"><label>City *</label><input id="shipperCity" placeholder="Johannesburg"></div>
+        <div class="fg"><label>Postal Code *</label><input id="shipperPostal" placeholder="2092"></div>
+        <div class="fg"><label>Address Line 1 *</label><input id="shipperAddr1" placeholder="12 Jupiter Road, Crown Mines"></div>
+        <div class="fg"><label>Address Line 2</label><input id="shipperAddr2" placeholder="Suburb / Area"></div>
+      </div>
     </div>
   </div>
 
-  <div class="page">
-
-    <!-- MODE TOGGLE -->
-    <div class="mode-toggle">
-      <button class="mode-btn active" id="btnExport" onclick="setMode('export')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-          <polyline points="17 8 12 3 7 8" />
-          <line x1="12" y1="3" x2="12" y2="15" />
-        </svg>
-        Export — Ship Out of South Africa
-      </button>
-      <button class="mode-btn" id="btnImport" onclick="setMode('import')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-        Import — Ship Into South Africa
-      </button>
+  <!-- ══ RECEIVER ═════════════════════════════════════════════ -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <div class="card-header-title" id="receiverLabel">Consignee / Receiver</div>
     </div>
-
-    <!-- ══ SHIPPER ══════════════════════════════════════════════ -->
-    <div class="card">
-      <div class="card-header">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-        <div class="card-header-title" id="shipperLabel">Shipper / Sender</div>
+    <div class="card-body">
+      <div class="form-grid cols-2">
+        <div class="fg"><label>Company / Full Name *</label><input id="receiverCompany" placeholder="Receiver Company Name"></div>
+        <div class="fg"><label>Contact Full Name *</label><input id="receiverFullName" placeholder="Contact Person Name"></div>
+        <div class="fg"><label>Email Address *</label><input id="receiverEmail" type="email" placeholder="receiver@company.com"></div>
+        <div class="fg"><label>Phone *</label><input id="receiverPhone" placeholder="+XX XXX XXX XXXX"></div>
+        <div class="fg"><label>Mobile Phone</label><input id="receiverMobile" placeholder="+XX XXX XXX XXXX"></div>
+        <div class="fg"><label>Country Code *</label>
+          <select id="receiverCountry">
+            <option value="ZA">ZA — South Africa</option>
+            <option value="ZW">ZW — Zimbabwe</option>
+            <option value="ZM">ZM — Zambia</option>
+            <option value="MZ">MZ — Mozambique</option>
+            <option value="BW">BW — Botswana</option>
+            <option value="NA">NA — Namibia</option>
+            <option value="LS">LS — Lesotho</option>
+            <option value="SZ">SZ — Eswatini</option>
+            <option value="GB">GB — United Kingdom</option>
+            <option value="US">US — United States</option>
+            <option value="DE">DE — Germany</option>
+            <option value="CN">CN — China</option>
+            <option value="AU">AU — Australia</option>
+            <option value="IN">IN — India</option>
+            <option value="FR">FR — France</option>
+          </select>
+        </div>
+        <div class="fg"><label>City *</label><input id="receiverCity" placeholder="Destination City"></div>
+        <div class="fg"><label>Postal Code *</label><input id="receiverPostal" placeholder="Postal Code"></div>
+        <div class="fg"><label>Province Code</label><input id="receiverProvince" placeholder="e.g. QLD (for AU)"></div>
+        <div class="fg"><label>Address Line 1 *</label><input id="receiverAddr1" placeholder="Street Address"></div>
+        <div class="fg"><label>Address Line 2</label><input id="receiverAddr2" placeholder="Suite / Floor / Unit"></div>
       </div>
-      <div class="card-body">
-        <div class="form-grid cols-2">
-          <div class="fg"><label>Company / Full Name *</label><input id="shipperCompany"
-              placeholder="e.g. Mok Transports Services"></div>
-          <div class="fg"><label>Contact Full Name *</label><input id="shipperFullName"
-              placeholder="e.g. Lerato Malebo"></div>
-          <div class="fg"><label>Email Address *</label><input id="shipperEmail" type="email"
-              placeholder="lerato@company.com"></div>
-          <div class="fg"><label>Phone *</label><input id="shipperPhone" placeholder="+27 11 839 6496"></div>
-          <div class="fg"><label>Mobile Phone</label><input id="shipperMobile" placeholder="+27 84 902 2258"></div>
-          <div class="fg"><label>Country Code *</label>
-            <select id="shipperCountry">
-              <option value="ZA" selected>ZA — South Africa</option>
-              <option value="ZW">ZW — Zimbabwe</option>
-              <option value="ZM">ZM — Zambia</option>
-              <option value="MZ">MZ — Mozambique</option>
-              <option value="BW">BW — Botswana</option>
-              <option value="NA">NA — Namibia</option>
-              <option value="LS">LS — Lesotho</option>
-              <option value="SZ">SZ — Eswatini</option>
-              <option value="GB">GB — United Kingdom</option>
-              <option value="US">US — United States</option>
-              <option value="DE">DE — Germany</option>
-              <option value="CN">CN — China</option>
-              <option value="AU">AU — Australia</option>
-              <option value="IN">IN — India</option>
-              <option value="FR">FR — France</option>
-            </select>
-          </div>
-          <div class="fg"><label>City *</label><input id="shipperCity" placeholder="Johannesburg"></div>
-          <div class="fg"><label>Postal Code *</label><input id="shipperPostal" placeholder="2092"></div>
-          <div class="fg"><label>Address Line 1 *</label><input id="shipperAddr1"
-              placeholder="12 Jupiter Road, Crown Mines"></div>
-          <div class="fg"><label>Address Line 2</label><input id="shipperAddr2" placeholder="Suburb / Area"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ RECEIVER ═════════════════════════════════════════════ -->
-    <div class="card">
-      <div class="card-header">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-          <circle cx="12" cy="10" r="3" />
-        </svg>
-        <div class="card-header-title" id="receiverLabel">Consignee / Receiver</div>
-      </div>
-      <div class="card-body">
-        <div class="form-grid cols-2">
-          <div class="fg"><label>Company / Full Name *</label><input id="receiverCompany"
-              placeholder="Receiver Company Name"></div>
-          <div class="fg"><label>Contact Full Name *</label><input id="receiverFullName"
-              placeholder="Contact Person Name"></div>
-          <div class="fg"><label>Email Address *</label><input id="receiverEmail" type="email"
-              placeholder="receiver@company.com"></div>
-          <div class="fg"><label>Phone *</label><input id="receiverPhone" placeholder="+XX XXX XXX XXXX"></div>
-          <div class="fg"><label>Mobile Phone</label><input id="receiverMobile" placeholder="+XX XXX XXX XXXX"></div>
-          <div class="fg"><label>Country Code *</label>
-            <select id="receiverCountry">
-              <option value="ZA">ZA — South Africa</option>
-              <option value="ZW">ZW — Zimbabwe</option>
-              <option value="ZM">ZM — Zambia</option>
-              <option value="MZ">MZ — Mozambique</option>
-              <option value="BW">BW — Botswana</option>
-              <option value="NA">NA — Namibia</option>
-              <option value="LS">LS — Lesotho</option>
-              <option value="SZ">SZ — Eswatini</option>
-              <option value="GB">GB — United Kingdom</option>
-              <option value="US">US — United States</option>
-              <option value="DE">DE — Germany</option>
-              <option value="CN">CN — China</option>
-              <option value="AU">AU — Australia</option>
-              <option value="IN">IN — India</option>
-              <option value="FR">FR — France</option>
-            </select>
-          </div>
-          <div class="fg"><label>City *</label><input id="receiverCity" placeholder="Destination City"></div>
-          <div class="fg"><label>Postal Code *</label><input id="receiverPostal" placeholder="Postal Code"></div>
-          <div class="fg"><label>Province Code</label><input id="receiverProvince" placeholder="e.g. QLD (for AU)">
-          </div>
-          <div class="fg"><label>Address Line 1 *</label><input id="receiverAddr1" placeholder="Street Address"></div>
-          <div class="fg"><label>Address Line 2</label><input id="receiverAddr2" placeholder="Suite / Floor / Unit">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ SHIPMENT DETAILS ══════════════════════════════════════ -->
-    <div class="card">
-      <div class="card-header">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="1" y="3" width="15" height="13" />
-          <path d="M16 8h4l3 5v3h-7V8z" />
-        </svg>
-        <div class="card-header-title">Shipment Details</div>
-      </div>
-      <div class="card-body">
-
-        <!-- Content type -->
-        <div class="form-grid cols-2" style="margin-bottom:16px">
-          <div class="fg">
-            <label>Content Type *</label>
-            <div class="radio-group">
-              <div class="radio-opt"><input type="radio" name="contentType" id="ctDocs" value="documents"><label
-                  for="ctDocs">Documents</label></div>
-              <div class="radio-opt"><input type="radio" name="contentType" id="ctPkg" value="packages" checked><label
-                  for="ctPkg">Packages</label></div>
-            </div>
-          </div>
-          <div class="fg">
-            <label>DHL Product Code *</label>
-            <select id="productCode">
-              <option value="P" selected>P — Express Worldwide (WPX)</option>
-              <option value="D">D — Express Worldwide (Docs)</option>
-              <option value="N">N — Domestic Express</option>
-              <option value="K">K — Express 9:00</option>
-              <option value="E">E — Express 9:00 Docs</option>
-              <option value="T">T — Express 12:00</option>
-              <option value="Y">Y — Express 12:00 Docs</option>
-            </select>
-          </div>
-          <div class="fg">
-            <label>Planned Ship Date *</label>
-            <input type="date" id="shipDate">
-          </div>
-          <div class="fg">
-            <label>Pickup Requested</label>
-            <div class="radio-group">
-              <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupYes" value="true" checked><label
-                  for="pickupYes">Yes — Request Pickup</label></div>
-              <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupNo" value="false"><label
-                  for="pickupNo">No — Drop Off</label></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- Package -->
-        <div class="form-grid cols-4">
-          <div class="fg"><label>Pieces *</label><input type="number" id="pieces" value="1" min="1"
-              oninput="calcWeights()"></div>
-          <div class="fg"><label>Actual Weight (kg) *</label><input type="number" id="actualWeight" step="0.1"
-              oninput="calcWeights()" placeholder="0.00"></div>
-          <div class="fg"><label>Volumetric Weight</label><input id="volWeight" readonly placeholder="Auto"></div>
-          <div class="fg"><label>Chargeable Weight</label><input id="chargeWeight" readonly placeholder="Auto"></div>
-          <div class="fg"><label>Length (cm)</label><input type="number" id="dimL" step="0.1" oninput="calcWeights()"
-              placeholder="0"></div>
-          <div class="fg"><label>Width (cm)</label><input type="number" id="dimW" step="0.1" oninput="calcWeights()"
-              placeholder="0"></div>
-          <div class="fg"><label>Height (cm)</label><input type="number" id="dimH" step="0.1" oninput="calcWeights()"
-              placeholder="0"></div>
-          <div class="fg"><label>Package Type Code</label><input id="pkgTypeCode" value="2BP" placeholder="2BP"></div>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- Description & ref -->
-        <div class="form-grid cols-2">
-          <div class="fg"><label>Shipment Description *</label><input id="shipDescription"
-              placeholder="e.g. Timing Belt, Commercial Goods"></div>
-          <div class="fg"><label>Customer Reference</label><input id="customerRef" placeholder="Your order / PO number">
-          </div>
-          <div class="fg"><label>Notification Email</label><input id="notifyEmail" type="email"
-              placeholder="receiver@company.com (gets tracking updates)"></div>
-          <div class="fg"><label>Notification Message</label><input id="notifyMsg"
-              placeholder="e.g. Your order is on its way!"></div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ══ CUSTOMS / EXPORT DECLARATION (international only) ════ -->
-    <div class="card customs-section visible" id="customsCard">
-      <div class="card-header">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-        <div class="card-header-title">Customs &amp; Export Declaration</div>
-      </div>
-      <div class="card-body">
-
-        <div class="info-box">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          Required for all international shipments. Documents marked as non-customs-declarable (isCustomsDeclarable =
-          false) do not need this section.
-        </div>
-
-        <div class="form-grid cols-2" style="margin-bottom:14px">
-          <div class="fg">
-            <label>Is Customs Declarable</label>
-            <div class="radio-group">
-              <div class="radio-opt"><input type="radio" name="customsDec" id="cdYes" value="true" checked
-                  onchange="toggleCustomsFields()"><label for="cdYes">Yes — Packages</label></div>
-              <div class="radio-opt"><input type="radio" name="customsDec" id="cdNo" value="false"
-                  onchange="toggleCustomsFields()"><label for="cdNo">No — Documents</label></div>
-            </div>
-          </div>
-          <div class="fg"><label>Incoterm</label>
-            <select id="incoterm">
-              <option value="DAP" selected>DAP — Delivered at Place</option>
-              <option value="DDP">DDP — Delivered Duty Paid</option>
-              <option value="EXW">EXW — Ex Works</option>
-              <option value="CIF">CIF — Cost Insurance Freight</option>
-              <option value="FOB">FOB — Free On Board</option>
-              <option value="CFR">CFR — Cost and Freight</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Customs fields — shown when declarable = true -->
-        <div id="customsFields">
-          <div class="form-grid cols-3" style="margin-bottom:14px">
-            <div class="fg"><label>Invoice Number *</label><input id="invNumber" placeholder="e.g. INV000042"></div>
-            <div class="fg"><label>Invoice Date *</label><input type="date" id="invDate"></div>
-            <div class="fg"><label>Export Reason</label>
-              <select id="exportReason">
-                <option value="commercial_purpose_or_sale" selected>Commercial Sale</option>
-                <option value="personal_belongings_or_personal_use">Personal Use</option>
-                <option value="sample">Sample</option>
-                <option value="gift">Gift</option>
-                <option value="return_for_repair">Return for Repair</option>
-                <option value="intercompany_data">Intercompany Transfer</option>
-              </select>
-            </div>
-            <div class="fg"><label>Declared Value *</label><input type="number" id="declaredValue" placeholder="0.00"
-                step="0.01"></div>
-            <div class="fg"><label>Currency</label>
-              <select id="declaredCurrency">
-                <option value="ZAR" selected>ZAR — South African Rand</option>
-                <option value="USD">USD — US Dollar</option>
-                <option value="EUR">EUR — Euro</option>
-                <option value="GBP">GBP — British Pound</option>
-                <option value="AUD">AUD — Australian Dollar</option>
-                <option value="SGD">SGD — Singapore Dollar</option>
-                <option value="ZWL">ZWL — Zimbabwe Dollar</option>
-              </select>
-            </div>
-            <div class="fg"><label>Total Gross Weight (kg)</label><input type="number" id="grossWeight"
-                placeholder="Auto" step="0.01"></div>
-          </div>
-
-          <!-- Line Items -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <label
-              style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Line
-              Items (Goods Description)</label>
-            <button class="btn-top btn-blue" style="height:30px;font-size:11px" onclick="addLineItem()">+ Add
-              Item</button>
-          </div>
-          <table class="line-items-table" id="lineItemsTable">
-            <thead>
-              <tr>
-                <th style="width:30px">#</th>
-                <th>Description *</th>
-                <th style="width:80px">Qty *</th>
-                <th style="width:80px">Unit</th>
-                <th style="width:90px">Price (each) *</th>
-                <th style="width:90px">Net Weight</th>
-                <th style="width:110px">HS Code (Out)</th>
-                <th style="width:60px">Country</th>
-                <th style="width:32px"></th>
-              </tr>
-            </thead>
-            <tbody id="lineItemsBody">
-              <!-- populated by JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ PRICING ══════════════════════════════════════════════ -->
-    <div class="card">
-      <div class="card-header">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="1" x2="12" y2="23" />
-          <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-        </svg>
-        <div class="card-header-title">Pricing</div>
-      </div>
-      <div class="card-body">
-        <div class="form-grid cols-3">
-          <div class="fg"><label>Rate per kg (ZAR)</label><input type="number" id="ratePerKg" value="0" step="0.01"
-              oninput="calcCost()"></div>
-          <div class="fg"><label>Fuel Surcharge (ZAR)</label><input type="number" id="fuelSurcharge" value="0"
-              step="0.01" oninput="calcCost()"></div>
-          <div class="fg"><label>Other Charges (ZAR)</label><input type="number" id="otherCharges" value="0" step="0.01"
-              oninput="calcCost()"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUMMARY -->
-    <div class="summary-box" id="summaryBox">
-      <div class="summary-grid">
-        <div class="sum-item"><label>Actual Weight</label>
-          <div class="val" id="sumActual">0 kg</div>
-        </div>
-        <div class="sum-item"><label>Chargeable Weight</label>
-          <div class="val" id="sumCharge">0 kg</div>
-        </div>
-        <div class="sum-item"><label>DHL Product</label>
-          <div class="val" id="sumProduct">WPX</div>
-        </div>
-        <div class="sum-item"><label>Direction</label>
-          <div class="val" id="sumMode">Export</div>
-        </div>
-      </div>
-      <div
-        style="border-top:1px solid rgba(255,255,255,.15);padding-top:14px;display:flex;align-items:flex-end;justify-content:space-between">
-        <div>
-          <div style="font-size:11px;color:#90a4ae;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Total
-            Cost (excl. VAT)</div>
-          <div class="total-price"><span>R</span><span id="sumTotal">0.00</span></div>
-        </div>
-        <div style="text-align:right;font-size:11px;color:#78909c;max-width:200px">
-          Rate calculated on chargeable weight. VAT and DHL surcharges may apply.
-        </div>
-      </div>
-    </div>
-
-    <!-- ACTIONS -->
-    <div class="action-bar">
-      <button class="btn-top btn-orange" style="height:44px;font-size:14px" onclick="saveShipment()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-          <polyline points="17 21 17 13 7 13 7 21" />
-          <polyline points="7 3 7 8 15 8" />
-        </svg>
-        Save &amp; Submit to DHL
-      </button>
-      <button class="btn-top btn-grey" style="height:44px;font-size:14px" onclick="previewPayload()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-        Preview DHL Payload
-      </button>
-      <a class="btn-top btn-green" href="invoice.html" style="height:44px;font-size:14px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-          <line x1="2" y1="10" x2="22" y2="10" />
-        </svg>
-        Create Invoice
-      </a>
-    </div>
-
-  </div>
-
-  <!-- PAYLOAD PREVIEW MODAL -->
-  <div id="payloadModal"
-    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
-    <div
-      style="background:var(--navy);border-radius:10px;width:90vw;max-width:780px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4)">
-      <div
-        style="padding:16px 20px;border-bottom:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#fff">DHL API
-          Payload Preview</span>
-        <div style="display:flex;gap:8px">
-          <button class="btn-top btn-blue" style="height:30px;font-size:11px" onclick="copyPayload()">Copy JSON</button>
-          <button onclick="closeModal()"
-            style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;padding:6px 14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600">✕
-            Close</button>
-        </div>
-      </div>
-      <pre id="payloadPre"
-        style="flex:1;overflow:auto;padding:20px;font-size:12px;color:#e0e0e0;font-family:monospace;line-height:1.6;background:var(--navy)"></pre>
     </div>
   </div>
 
-  <script>
-    const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'http://localhost:5000/api'
-      : 'https://bookings.moktransports.com/api';
+  <!-- ══ SHIPMENT DETAILS ══════════════════════════════════════ -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 5v3h-7V8z"/></svg>
+      <div class="card-header-title">Shipment Details</div>
+    </div>
+    <div class="card-body">
 
-    // Auth guard
-    const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
-    if (!session || !['staff', 'admin', 'office'].includes(session.role)) {
-      window.location.href = 'login.html';
-    }
+      <!-- Content type -->
+      <div class="form-grid cols-2" style="margin-bottom:16px">
+        <div class="fg">
+          <label>Content Type *</label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" name="contentType" id="ctDocs" value="documents"><label for="ctDocs">Documents</label></div>
+            <div class="radio-opt"><input type="radio" name="contentType" id="ctPkg" value="packages" checked><label for="ctPkg">Packages</label></div>
+          </div>
+        </div>
+        <div class="fg">
+          <label>DHL Product Code *</label>
+          <select id="productCode">
+            <option value="P" selected>P — Express Worldwide (WPX)</option>
+            <option value="D">D — Express Worldwide (Docs)</option>
+            <option value="N">N — Domestic Express</option>
+            <option value="K">K — Express 9:00</option>
+            <option value="E">E — Express 9:00 Docs</option>
+            <option value="T">T — Express 12:00</option>
+            <option value="Y">Y — Express 12:00 Docs</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Planned Ship Date *</label>
+          <input type="date" id="shipDate">
+        </div>
+        <div class="fg">
+          <label>Pickup Requested</label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupYes" value="true" checked><label for="pickupYes">Yes — Request Pickup</label></div>
+            <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupNo" value="false"><label for="pickupNo">No — Drop Off</label></div>
+          </div>
+        </div>
+      </div>
 
-    let currentMode = 'export';
-    let lineItemId = 0;
+      <div class="divider"></div>
 
-    // ── INIT ─────────────────────────────────────────────────────
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('shipDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('invDate').value = new Date().toISOString().split('T')[0];
-      // Pre-fill shipper from Mok Transports defaults
-      document.getElementById('shipperCompany').value = 'Mok Transports Services (Pty) Ltd';
-      document.getElementById('shipperFullName').value = 'Mavis Selomane';
-      document.getElementById('shipperEmail').value = 'mavis@moktransports.com';
-      document.getElementById('shipperPhone').value = '+27118396496';
-      document.getElementById('shipperMobile').value = '+27849022258';
-      document.getElementById('shipperCity').value = 'Johannesburg';
-      document.getElementById('shipperPostal').value = '2092';
-      document.getElementById('shipperAddr1').value = '12 Jupiter Road, Crown Mines';
-      document.getElementById('shipperCountry').value = 'ZA';
-      addLineItem(); // start with one line item
-    });
+      <!-- Package -->
+      <div class="form-grid cols-4">
+        <div class="fg"><label>Pieces *</label><input type="number" id="pieces" value="1" min="1" oninput="calcWeights()"></div>
+        <div class="fg"><label>Actual Weight (kg) *</label><input type="number" id="actualWeight" step="0.1" oninput="calcWeights()" placeholder="0.00"></div>
+        <div class="fg"><label>Volumetric Weight</label><input id="volWeight" readonly placeholder="Auto"></div>
+        <div class="fg"><label>Chargeable Weight</label><input id="chargeWeight" readonly placeholder="Auto"></div>
+        <div class="fg"><label>Length (cm)</label><input type="number" id="dimL" step="0.1" oninput="calcWeights()" placeholder="0"></div>
+        <div class="fg"><label>Width (cm)</label><input type="number" id="dimW" step="0.1" oninput="calcWeights()" placeholder="0"></div>
+        <div class="fg"><label>Height (cm)</label><input type="number" id="dimH" step="0.1" oninput="calcWeights()" placeholder="0"></div>
+        <div class="fg"><label>Package Type Code</label><input id="pkgTypeCode" value="2BP" placeholder="2BP"></div>
+      </div>
 
-    // ── MODE ──────────────────────────────────────────────────────
-    function setMode(mode) {
-      currentMode = mode;
-      document.getElementById('btnExport').classList.toggle('active', mode === 'export');
-      document.getElementById('btnImport').classList.toggle('active', mode === 'import');
-      document.getElementById('shipperLabel').textContent = mode === 'export' ? 'Shipper / Sender (South Africa)' : 'Shipper / Sender (Overseas)';
-      document.getElementById('receiverLabel').textContent = mode === 'export' ? 'Consignee / Receiver (Destination)' : 'Consignee / Receiver (South Africa)';
-      document.getElementById('sumMode').textContent = mode === 'export' ? 'Export' : 'Import';
+      <div class="divider"></div>
 
-      if (mode === 'import') {
-        // Swap defaults: receiver is now ZA
-        document.getElementById('receiverCountry').value = 'ZA';
-        document.getElementById('shipperCountry').value = 'ZW'; // example abroad
-      } else {
-        document.getElementById('shipperCountry').value = 'ZA';
-      }
-    }
+      <!-- Description & ref -->
+      <div class="form-grid cols-2">
+        <div class="fg"><label>Shipment Description *</label><input id="shipDescription" placeholder="e.g. Timing Belt, Commercial Goods"></div>
+        <div class="fg"><label>Customer Reference</label><input id="customerRef" placeholder="Your order / PO number"></div>
+        <div class="fg"><label>Notification Email</label><input id="notifyEmail" type="email" placeholder="receiver@company.com (gets tracking updates)"></div>
+        <div class="fg"><label>Notification Message</label><input id="notifyMsg" placeholder="e.g. Your order is on its way!"></div>
+      </div>
 
-    // ── CUSTOMS TOGGLE ────────────────────────────────────────────
-    function toggleCustomsFields() {
-      const dec = document.querySelector('input[name="customsDec"]:checked').value === 'true';
-      document.getElementById('customsFields').style.display = dec ? 'block' : 'none';
-    }
+    </div>
+  </div>
 
-    // ── LINE ITEMS ────────────────────────────────────────────────
-    function addLineItem(prefill = {}) {
-      lineItemId++;
-      const id = lineItemId;
-      const tbody = document.getElementById('lineItemsBody');
-      const tr = document.createElement('tr');
-      tr.id = `li-${id}`;
-      tr.innerHTML = `
+  <!-- ══ CUSTOMS / EXPORT DECLARATION (international only) ════ -->
+  <div class="card customs-section visible" id="customsCard">
+    <div class="card-header">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div class="card-header-title">Customs &amp; Export Declaration</div>
+    </div>
+    <div class="card-body">
+
+      <div class="info-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Required for all international shipments. Documents marked as non-customs-declarable (isCustomsDeclarable = false) do not need this section.
+      </div>
+
+      <div class="form-grid cols-2" style="margin-bottom:14px">
+        <div class="fg">
+          <label>Is Customs Declarable</label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" name="customsDec" id="cdYes" value="true" checked onchange="toggleCustomsFields()"><label for="cdYes">Yes — Packages</label></div>
+            <div class="radio-opt"><input type="radio" name="customsDec" id="cdNo" value="false" onchange="toggleCustomsFields()"><label for="cdNo">No — Documents</label></div>
+          </div>
+        </div>
+        <div class="fg"><label>Incoterm</label>
+          <select id="incoterm">
+            <option value="DAP" selected>DAP — Delivered at Place</option>
+            <option value="DDP">DDP — Delivered Duty Paid</option>
+            <option value="EXW">EXW — Ex Works</option>
+            <option value="CIF">CIF — Cost Insurance Freight</option>
+            <option value="FOB">FOB — Free On Board</option>
+            <option value="CFR">CFR — Cost and Freight</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Customs fields — shown when declarable = true -->
+      <div id="customsFields">
+        <div class="form-grid cols-3" style="margin-bottom:14px">
+          <div class="fg"><label>Invoice Number *</label><input id="invNumber" placeholder="e.g. INV000042"></div>
+          <div class="fg"><label>Invoice Date *</label><input type="date" id="invDate"></div>
+          <div class="fg"><label>Export Reason</label>
+            <select id="exportReason">
+              <option value="commercial_purpose_or_sale" selected>Commercial Sale</option>
+              <option value="personal_belongings_or_personal_use">Personal Use</option>
+              <option value="sample">Sample</option>
+              <option value="gift">Gift</option>
+              <option value="return_for_repair">Return for Repair</option>
+              <option value="intercompany_data">Intercompany Transfer</option>
+            </select>
+          </div>
+          <div class="fg"><label>Declared Value *</label><input type="number" id="declaredValue" placeholder="0.00" step="0.01"></div>
+          <div class="fg"><label>Currency</label>
+            <select id="declaredCurrency">
+              <option value="ZAR" selected>ZAR — South African Rand</option>
+              <option value="USD">USD — US Dollar</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="GBP">GBP — British Pound</option>
+              <option value="AUD">AUD — Australian Dollar</option>
+              <option value="SGD">SGD — Singapore Dollar</option>
+              <option value="ZWL">ZWL — Zimbabwe Dollar</option>
+            </select>
+          </div>
+          <div class="fg"><label>Total Gross Weight (kg)</label><input type="number" id="grossWeight" placeholder="Auto" step="0.01"></div>
+        </div>
+
+        <!-- Line Items -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Line Items (Goods Description)</label>
+          <button class="btn-top btn-blue" style="height:30px;font-size:11px" onclick="addLineItem()">+ Add Item</button>
+        </div>
+        <table class="line-items-table" id="lineItemsTable">
+          <thead>
+            <tr>
+              <th style="width:30px">#</th>
+              <th>Description *</th>
+              <th style="width:80px">Qty *</th>
+              <th style="width:80px">Unit</th>
+              <th style="width:90px">Price (each) *</th>
+              <th style="width:90px">Net Weight</th>
+              <th style="width:110px">HS Code (Out)</th>
+              <th style="width:60px">Country</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="lineItemsBody">
+            <!-- populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PRICING ══════════════════════════════════════════════ -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      <div class="card-header-title">Pricing — Auto-calculated from Mok Transports Rate Matrix</div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid cols-4" style="margin-bottom:14px">
+        <div class="fg">
+          <label>Detected Zone</label>
+          <input id="detectedZone" readonly placeholder="Select destination country" style="background:#f8fafc;font-weight:700;color:var(--blue)">
+        </div>
+        <div class="fg">
+          <label>Base Rate (ZAR)</label>
+          <input id="baseRate" readonly placeholder="Auto" style="background:#f8fafc;font-weight:700">
+        </div>
+        <div class="fg">
+          <label>Other Charges (ZAR)</label>
+          <input type="number" id="otherCharges" value="0" step="0.01" oninput="calcCost()" placeholder="0.00">
+        </div>
+        <div class="fg">
+          <label>Override Price (ZAR)</label>
+          <input type="number" id="priceOverride" step="0.01" placeholder="Leave blank to use matrix rate" oninput="calcCost()">
+        </div>
+      </div>
+      <div class="info-box" id="rateInfo" style="display:none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="rateInfoText"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-box" id="summaryBox">
+    <div class="summary-grid">
+      <div class="sum-item"><label>Actual Weight</label><div class="val" id="sumActual">0 kg</div></div>
+      <div class="sum-item"><label>Chargeable Weight</label><div class="val" id="sumCharge">0 kg</div></div>
+      <div class="sum-item"><label>DHL Product</label><div class="val" id="sumProduct">WPX</div></div>
+      <div class="sum-item"><label>Direction</label><div class="val" id="sumMode">Export</div></div>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,.15);padding-top:14px;display:flex;align-items:flex-end;justify-content:space-between">
+      <div>
+        <div style="font-size:11px;color:#90a4ae;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Total Cost (excl. VAT)</div>
+        <div class="total-price"><span>R</span><span id="sumTotal">0.00</span></div>
+      </div>
+      <div style="text-align:right;font-size:11px;color:#78909c;max-width:200px">
+        Rate calculated on chargeable weight. VAT and DHL surcharges may apply.
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="action-bar">
+    <button class="btn-top btn-orange" style="height:44px;font-size:14px" onclick="saveShipment()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save &amp; Submit to DHL
+    </button>
+    <button class="btn-top btn-grey" style="height:44px;font-size:14px" onclick="previewPayload()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Preview DHL Payload
+    </button>
+    <a class="btn-top btn-green" href="invoice.html" style="height:44px;font-size:14px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      Create Invoice
+    </a>
+  </div>
+
+</div>
+
+<!-- PAYLOAD PREVIEW MODAL -->
+<div id="payloadModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
+  <div style="background:var(--navy);border-radius:10px;width:90vw;max-width:780px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4)">
+    <div style="padding:16px 20px;border-bottom:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#fff">DHL API Payload Preview</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-top btn-blue" style="height:30px;font-size:11px" onclick="copyPayload()">Copy JSON</button>
+        <button onclick="closeModal()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;padding:6px 14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600">✕ Close</button>
+      </div>
+    </div>
+    <pre id="payloadPre" style="flex:1;overflow:auto;padding:20px;font-size:12px;color:#e0e0e0;font-family:monospace;line-height:1.6;background:var(--navy)"></pre>
+  </div>
+</div>
+
+<script>
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : 'https://bookings.moktransports.com/api';
+
+// Auth guard
+const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+if (!session || !['staff','admin','office'].includes(session.role)) {
+  window.location.href = 'login.html';
+}
+
+let currentMode = 'export';
+let lineItemId  = 0;
+
+// ── INIT ─────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('shipDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('invDate').value  = new Date().toISOString().split('T')[0];
+  // Pre-fill shipper from Mok Transports defaults
+  document.getElementById('shipperCompany').value  = 'Mok Transports Services (Pty) Ltd';
+  document.getElementById('shipperFullName').value = 'Mok Transports';
+  document.getElementById('shipperEmail').value    = 'accounts@moktransports.com';
+  document.getElementById('shipperPhone').value    = '+27118396496';
+  document.getElementById('shipperMobile').value   = '+27849022258';
+  document.getElementById('shipperCity').value     = 'Johannesburg';
+  document.getElementById('shipperPostal').value   = '2092';
+  document.getElementById('shipperAddr1').value    = '12 Jupiter Road, Crown Mines';
+  document.getElementById('shipperCountry').value  = 'ZA';
+  addLineItem(); // start with one line item
+
+  // Trigger pricing recalc when country or content type changes
+  ['receiverCountry','shipperCountry'].forEach(id => {
+    document.getElementById(id).addEventListener('change', calcCost);
+  });
+  document.querySelectorAll('input[name="contentType"]').forEach(el => {
+    el.addEventListener('change', calcCost);
+  });
+});
+
+// ── MODE ──────────────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btnExport').classList.toggle('active', mode === 'export');
+  document.getElementById('btnImport').classList.toggle('active', mode === 'import');
+  document.getElementById('shipperLabel').textContent  = mode === 'export' ? 'Shipper / Sender (South Africa)' : 'Shipper / Sender (Overseas)';
+  document.getElementById('receiverLabel').textContent = mode === 'export' ? 'Consignee / Receiver (Destination)' : 'Consignee / Receiver (South Africa)';
+  document.getElementById('sumMode').textContent = mode === 'export' ? 'Export' : 'Import';
+
+  if (mode === 'import') {
+    // Swap defaults: receiver is now ZA
+    document.getElementById('receiverCountry').value = 'ZA';
+    document.getElementById('shipperCountry').value  = 'ZW'; // example overseas
+  } else {
+    document.getElementById('shipperCountry').value  = 'ZA';
+  }
+}
+
+// ── CUSTOMS TOGGLE ────────────────────────────────────────────
+function toggleCustomsFields() {
+  const dec = document.querySelector('input[name="customsDec"]:checked').value === 'true';
+  document.getElementById('customsFields').style.display = dec ? 'block' : 'none';
+}
+
+// ── LINE ITEMS ────────────────────────────────────────────────
+function addLineItem(prefill = {}) {
+  lineItemId++;
+  const id   = lineItemId;
+  const tbody = document.getElementById('lineItemsBody');
+  const tr   = document.createElement('tr');
+  tr.id = `li-${id}`;
+  tr.innerHTML = `
     <td style="text-align:center;color:var(--muted);font-weight:700">${tbody.children.length + 1}</td>
-    <td><input placeholder="e.g. Timing Belt" value="${prefill.description || ''}"></td>
-    <td><input type="number" placeholder="1" value="${prefill.qty || 1}" min="1" style="text-align:center"></td>
-    <td><input placeholder="PCS" value="${prefill.unit || 'PCS'}" style="text-align:center"></td>
-    <td><input type="number" placeholder="0.00" step="0.01" value="${prefill.price || ''}" style="text-align:right"></td>
-    <td><input type="number" placeholder="0.00" step="0.01" value="${prefill.weight || ''}" style="text-align:right"></td>
-    <td><input placeholder="8517.13.0001" value="${prefill.hsCode || ''}" style="text-align:center"></td>
-    <td><input placeholder="ZA" value="${prefill.mfgCountry || 'ZA'}" style="text-align:center;width:40px"></td>
+    <td><input placeholder="e.g. Timing Belt" value="${prefill.description||''}"></td>
+    <td><input type="number" placeholder="1" value="${prefill.qty||1}" min="1" style="text-align:center"></td>
+    <td><input placeholder="PCS" value="${prefill.unit||'PCS'}" style="text-align:center"></td>
+    <td><input type="number" placeholder="0.00" step="0.01" value="${prefill.price||''}" style="text-align:right"></td>
+    <td><input type="number" placeholder="0.00" step="0.01" value="${prefill.weight||''}" style="text-align:right"></td>
+    <td><input placeholder="8517.13.0001" value="${prefill.hsCode||''}" style="text-align:center"></td>
+    <td><input placeholder="ZA" value="${prefill.mfgCountry||'ZA'}" style="text-align:center;width:40px"></td>
     <td>
       <button class="btn-del" onclick="removeLineItem(${id})">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
       </button>
     </td>`;
-      tbody.appendChild(tr);
+  tbody.appendChild(tr);
+}
+
+function removeLineItem(id) {
+  const el = document.getElementById(`li-${id}`);
+  if (el) el.remove();
+  // Re-number
+  document.querySelectorAll('#lineItemsBody tr').forEach((tr, i) => {
+    tr.querySelector('td:first-child').textContent = i + 1;
+  });
+}
+
+
+// ================================================================
+// DHL RATES MATRIX — Mok Transports (incl. 50% markup)
+// Source: Mok_Transports_Rates_Exports/Imports_Increased_by_50%
+// ================================================================
+
+// ── WEIGHT BRACKETS ──────────────────────────────────────────
+const DHL_WEIGHTS = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0, 13.5, 14.0, 14.5, 15.0, 15.5, 16.0, 16.5, 17.0, 17.5, 18.0, 18.5, 19.0, 19.5, 20.0, 20.5, 21.0, 21.5, 22.0, 22.5, 23.0, 23.5, 24.0, 24.5, 25.0, 25.5, 26.0, 26.5, 27.0, 27.5, 28.0, 28.5, 29.0, 29.5, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0];
+
+// ── EXPORT RATES ─────────────────────────────────────────────
+const EXP_DOC_W = [0.5, 1.0, 1.5, 2.0];
+const EXP_DOC = [[326.43, 458.96, 574.74, 690.53],[357.12, 534.28, 692.38, 850.49],[368.28, 678.9, 943.49, 1208.07],[427.8, 840.25, 1303.86, 1178.31],[440.82, 882.11, 1378.26, 1249.61],[458.03, 905.36, 1426.62, 1298.59],[512.43, 977.43, 1021.45, 1391.28],[585.9, 1128.56, 1122.2, 1492.03],[713.31, 1379.19, 1341.68, 1763.9]];
+const EXP_PKG = [[375.25, 527.31, 620.31, 713.31, 791.89, 834.21, 876.53, 918.84, 961.15, 1003.47, 1044.86, 1086.24, 1127.62, 1169.01, 1210.39, 1251.78, 1293.16, 1334.55, 1375.93, 1417.32, 1450.8, 1484.28, 1011.84, 1034.16, 1056.48, 1078.8, 1101.12, 1123.44, 1145.76, 1168.08, 1190.4, 1212.72, 1235.04, 1257.36, 1279.68, 1302.0, 1324.32, 1346.64, 1368.96, 1391.28, 1412.36, 1433.44, 1454.52, 1475.6, 1496.68, 1517.76, 1538.84, 1559.92, 1581.0, 1602.08, 1623.16, 1644.24, 1665.32, 1686.4, 1707.48, 1728.56, 1749.64, 1770.72, 1791.8, 1812.88, 1864.96, 1917.04, 1969.12, 2021.2, 2073.28, 2125.36, 2177.44, 2229.52, 2281.6, 2333.68, 2385.76, 2437.84, 2489.92, 2542.0, 2594.08, 2646.16, 2698.24, 2750.32, 2802.4, 2854.48, 2906.56, 2958.64, 3010.72, 3062.8, 3114.88, 3166.96, 3219.04, 3271.12, 3323.2, 3375.28, 3427.36, 3479.44, 3531.52, 3583.6, 3635.68, 3687.76, 3739.84, 3791.92, 3844.0, 3896.08],[411.99, 610.08, 759.81, 909.54, 1017.42, 1085.78, 1154.13, 1222.49, 1290.84, 1359.19, 1409.41, 1459.63, 1006.57, 1040.05, 1073.53, 1107.01, 1140.49, 1173.97, 1207.45, 1240.93, 1269.76, 1298.59, 1327.42, 1356.25, 1385.08, 1413.91, 1442.74, 1471.57, 1500.4, 1529.23, 1558.06, 1586.89, 1615.72, 1644.55, 1673.38, 1702.21, 1731.04, 1759.87, 1788.7, 1817.53, 1843.26, 1868.99, 1894.72, 1920.45, 1946.18, 1971.91, 1997.64, 2023.37, 2049.1, 2074.83, 2100.56, 2126.29, 2152.02, 2177.75, 2203.48, 2229.21, 2254.94, 2280.67, 2306.4, 2332.13, 2390.1, 2448.07, 2506.04, 2564.01, 2621.98, 2679.95, 2737.92, 2795.89, 2853.86, 2911.83, 2969.8, 3027.77, 3085.74, 3143.71, 3201.68, 3259.65, 3317.62, 3375.59, 3433.56, 3491.53, 3549.5, 3607.47, 3665.44, 3723.41, 3781.38, 3839.35, 3897.32, 3955.29, 4013.26, 4071.23, 4129.2, 4187.17, 4245.14, 4303.11, 4361.08, 4419.05, 4477.02, 4534.99, 4592.96, 4650.93],[424.08, 780.74, 1036.02, 1291.31, 1477.77, 1057.41, 1129.64, 1201.87, 1274.1, 1346.33, 1387.56, 1428.79, 1470.02, 1511.25, 1552.48, 1593.71, 1634.94, 1676.17, 1717.4, 1758.63, 1792.11, 1825.59, 1859.07, 1892.55, 1926.03, 1959.51, 1992.99, 2026.47, 2059.95, 2093.43, 2126.91, 2160.39, 2193.87, 2227.35, 2260.83, 2294.31, 2327.79, 2361.27, 2394.75, 2428.23, 2456.44, 2484.65, 2512.86, 2541.07, 2569.28, 2597.49, 2625.7, 2653.91, 2682.12, 2710.33, 2738.54, 2766.75, 2794.96, 2823.17, 2851.38, 2879.59, 2907.8, 2936.01, 2964.22, 2992.43, 3059.08, 3125.73, 3192.38, 3259.03, 3325.68, 3392.33, 3458.98, 3525.63, 3592.28, 3658.93, 3725.58, 3792.23, 3858.88, 3925.53, 3992.18, 4058.83, 4125.48, 4192.13, 4258.78, 4325.43, 4392.08, 4458.73, 4525.38, 4592.03, 4658.68, 4725.33, 4791.98, 4858.63, 4925.28, 4991.93, 5058.58, 5125.23, 5191.88, 5258.53, 5325.18, 5391.83, 5458.48, 5525.13, 5591.78, 5658.43],[492.9, 964.41, 1463.82, 1308.82, 1497.3, 1609.52, 1721.74, 1833.96, 1946.18, 2058.4, 2123.5, 2188.6, 2253.7, 2318.8, 2383.9, 2449.0, 2514.1, 2579.2, 2644.3, 2709.4, 2771.09, 2832.78, 2894.47, 2956.16, 3017.85, 3079.54, 3141.23, 3202.92, 3264.61, 3326.3, 3387.99, 3449.68, 3511.37, 3573.06, 3634.75, 3696.44, 3758.13, 3819.82, 3881.51, 3943.2, 4004.27, 4065.34, 4126.41, 4187.48, 4248.55, 4309.62, 4370.69, 4431.76, 4492.83, 4553.9, 4614.97, 4676.04, 4737.11, 4798.18, 4859.25, 4920.32, 4981.39, 5042.46, 5103.53, 5164.6, 5305.03, 5445.46, 5585.89, 5726.32, 5866.75, 6007.18, 6147.61, 6288.04, 6428.47, 6568.9, 6709.33, 6849.76, 6990.19, 7130.62, 7271.05, 7411.48, 7551.91, 7692.34, 7832.77, 7973.2, 8113.63, 8254.06, 8394.49, 8534.92, 8675.35, 8815.78, 8956.21, 9096.64, 9237.07, 9377.5, 9517.93, 9658.36, 9798.79, 9939.22, 10079.65, 10220.08, 10360.51, 10500.94, 10641.37, 10781.8],[507.31, 1011.84, 1030.75, 1386.94, 1588.75, 1708.72, 1828.69, 1948.66, 2068.63, 2188.6, 2253.7, 2318.8, 2383.9, 2449.0, 2514.1, 2579.2, 2644.3, 2709.4, 2774.5, 2839.6, 2901.6, 2963.6, 3025.6, 3087.6, 3149.6, 3211.6, 3273.6, 3335.6, 3397.6, 3459.6, 3521.6, 3583.6, 3645.6, 3707.6, 3769.6, 3831.6, 3893.6, 3955.6, 4017.6, 4079.6, 4140.67, 4201.74, 4262.81, 4323.88, 4384.95, 4446.02, 4507.09, 4568.16, 4629.23, 4690.3, 4751.37, 4812.44, 4873.51, 4934.58, 4995.65, 5056.72, 5117.79, 5178.86, 5239.93, 5301.0, 5441.43, 5581.86, 5722.29, 5862.72, 6003.15, 6143.58, 6284.01, 6424.44, 6564.87, 6705.3, 6845.73, 6986.16, 7126.59, 7267.02, 7407.45, 7547.88, 7688.31, 7828.74, 7969.17, 8109.6, 8250.03, 8390.46, 8530.89, 8671.32, 8811.75, 8952.18, 9092.61, 9233.04, 9373.47, 9513.9, 9654.33, 9794.76, 9935.19, 10075.62, 10216.05, 10356.48, 10496.91, 10637.34, 10777.77, 10918.2],[525.91, 1038.35, 1061.75, 1431.27, 1640.52, 1766.69, 1892.86, 2019.03, 2145.2, 2271.37, 2343.91, 2416.45, 2488.99, 2561.53, 2634.07, 2706.61, 2779.15, 2851.69, 2924.23, 2996.77, 3065.28, 3133.79, 3202.3, 3270.81, 3339.32, 3407.83, 3476.34, 3544.85, 3613.36, 3681.87, 3750.38, 3818.89, 3887.4, 3955.91, 4024.42, 4092.93, 4161.44, 4229.95, 4298.46, 4366.97, 4433.31, 4499.65, 4565.99, 4632.33, 4698.67, 4765.01, 4831.35, 4897.69, 4964.03, 5030.37, 5096.71, 5163.05, 5229.39, 5295.73, 5362.07, 5428.41, 5494.75, 5561.09, 5627.43, 5693.77, 5850.32, 6006.87, 6163.42, 6319.97, 6476.52, 6633.07, 6789.62, 6946.17, 7102.72, 7259.27, 7415.82, 7572.37, 7728.92, 7885.47, 8042.02, 8198.57, 8355.12, 8511.67, 8668.22, 8824.77, 8981.32, 9137.87, 9294.42, 9450.97, 9607.52, 9764.07, 9920.62, 10077.17, 10233.72, 10390.27, 10546.82, 10703.37, 10859.92, 11016.47, 11173.02, 11329.57, 11486.12, 11642.67, 11799.22, 11955.77],[590.55, 1125.3, 1142.04, 1533.88, 1759.25, 1892.24, 2025.23, 2158.22, 2291.21, 2424.2, 2506.66, 2589.12, 2671.58, 2754.04, 2836.5, 2918.96, 3001.42, 3083.88, 3166.34, 3248.8, 3321.34, 3393.88, 3466.42, 3538.96, 3611.5, 3684.04, 3756.58, 3829.12, 3901.66, 3974.2, 4046.74, 4119.28, 4191.82, 4264.36, 4336.9, 4409.44, 4481.98, 4554.52, 4627.06, 4699.6, 4769.66, 4839.72, 4909.78, 4979.84, 5049.9, 5119.96, 5190.02, 5260.08, 5330.14, 5400.2, 5470.26, 5540.32, 5610.38, 5680.44, 5750.5, 5820.56, 5890.62, 5960.68, 6030.74, 6100.8, 6262.93, 6425.06, 6587.19, 6749.32, 6911.45, 7073.58, 7235.71, 7397.84, 7559.97, 7722.1, 7884.23, 8046.36, 8208.49, 8370.62, 8532.75, 8694.88, 8857.01, 9019.14, 9181.27, 9343.4, 9505.53, 9667.66, 9829.79, 9991.92, 10154.05, 10316.18, 10478.31, 10640.44, 10802.57, 10964.7, 11126.83, 11288.96, 11451.09, 11613.22, 11775.35, 11937.48, 12099.61, 12261.74, 12423.87, 12586.0],[675.18, 1298.75, 1246.2, 1626.57, 1851.32, 1992.06, 2132.8, 2273.54, 2414.28, 2555.02, 2637.48, 2719.94, 2802.4, 2884.86, 2967.32, 3049.78, 3132.24, 3214.7, 3297.16, 3379.62, 3458.05, 3536.48, 3614.91, 3693.34, 3771.77, 3850.2, 3928.63, 4007.06, 4085.49, 4163.92, 4242.35, 4320.78, 4399.21, 4477.64, 4556.07, 4634.5, 4712.93, 4791.36, 4869.79, 4948.22, 5025.41, 5102.6, 5179.79, 5256.98, 5334.17, 5411.36, 5488.55, 5565.74, 5642.93, 5720.12, 5797.31, 5874.5, 5951.69, 6028.88, 6106.07, 6183.26, 6260.45, 6337.64, 6414.83, 6492.02, 6667.79, 6843.56, 7019.33, 7195.1, 7370.87, 7546.64, 7722.41, 7898.18, 8073.95, 8249.72, 8425.49, 8601.26, 8777.03, 8952.8, 9128.57, 9304.34, 9480.11, 9655.88, 9831.65, 10007.42, 10183.19, 10358.96, 10534.73, 10710.5, 10886.27, 11062.04, 11237.81, 11413.58, 11589.35, 11765.12, 11940.89, 12116.66, 12292.43, 12468.2, 12643.97, 12819.74, 12995.51, 13171.28, 13347.05, 13522.82],[819.79, 1055.24, 1487.38, 1919.52, 2184.88, 2357.24, 2529.6, 2701.96, 2874.32, 3046.68, 3147.74, 3248.8, 3349.86, 3450.92, 3551.98, 3653.04, 3754.1, 3855.16, 3956.22, 4057.28, 4150.9, 4244.52, 4338.14, 4431.76, 4525.38, 4619.0, 4712.62, 4806.24, 4899.86, 4993.48, 5087.1, 5180.72, 5274.34, 5367.96, 5461.58, 5555.2, 5648.82, 5742.44, 5836.06, 5929.68, 6021.13, 6112.58, 6204.03, 6295.48, 6386.93, 6478.38, 6569.83, 6661.28, 6752.73, 6844.18, 6935.63, 7027.08, 7118.53, 7209.98, 7301.43, 7392.88, 7484.33, 7575.78, 7667.23, 7758.68, 7970.72, 8182.76, 8394.8, 8606.84, 8818.88, 9030.92, 9242.96, 9455.0, 9667.04, 9879.08, 10091.12, 10303.16, 10515.2, 10727.24, 10939.28, 11151.32, 11363.36, 11575.4, 11787.44, 11999.48, 12211.52, 12423.56, 12635.6, 12847.64, 13059.68, 13271.72, 13483.76, 13695.8, 13907.84, 14119.88, 14331.92, 14543.96, 14756.0, 14968.04, 15180.08, 15392.12, 15604.16, 15816.2, 16028.24, 16240.28]];
+
+// ── IMPORT RATES ─────────────────────────────────────────────
+const IMP_DOC_W = [0.5, 1.0, 1.5, 2.0];
+const IMP_DOC = [[359.44, 505.92, 632.4, 758.88],[392.46, 585.44, 759.81, 934.18],[405.48, 746.79, 1039.28, 1331.76],[471.97, 926.28, 1434.99, 1295.8],[486.39, 941.16, 1449.87, 1305.72],[504.53, 995.57, 1044.08, 1424.45],[565.9, 1077.4, 1126.85, 1535.43],[644.96, 1243.41, 1237.52, 1646.1],[783.53, 1009.67, 1474.67, 1939.67]];
+const IMP_PKG = [[411.06, 579.86, 682.62, 785.38, 872.34, 920.24, 968.13, 1016.03, 1063.92, 1111.82, 1158.78, 1205.75, 1252.71, 1299.68, 1346.64, 1393.61, 1440.57, 1487.54, 1023.0, 1054.31, 1078.8, 1103.29, 1127.78, 1152.27, 1176.76, 1201.25, 1225.74, 1250.23, 1274.72, 1299.21, 1323.7, 1348.19, 1372.68, 1397.17, 1421.66, 1446.15, 1470.64, 1495.13, 1519.62, 1544.11, 1567.98, 1591.85, 1615.72, 1639.59, 1663.46, 1687.33, 1711.2, 1735.07, 1758.94, 1782.81, 1806.68, 1830.55, 1854.42, 1878.29, 1902.16, 1926.03, 1949.9, 1973.77, 1997.64, 2021.51, 2077.31, 2133.11, 2188.91, 2244.71, 2300.51, 2356.31, 2412.11, 2467.91, 2523.71, 2579.51, 2635.31, 2691.11, 2746.91, 2802.71, 2858.51, 2914.31, 2970.11, 3025.91, 3081.71, 3137.51, 3193.31, 3249.11, 3304.91, 3360.71, 3416.51, 3472.31, 3528.11, 3583.91, 3639.71, 3695.51, 3751.31, 3807.11, 3862.91, 3918.71, 3974.51, 4030.31, 4086.11, 4141.91, 4197.71, 4253.51],[447.79, 671.92, 836.54, 1001.14, 1119.25, 1192.72, 1266.19, 1339.66, 1413.13, 1486.61, 1028.89, 1066.71, 1104.53, 1142.35, 1180.17, 1217.99, 1255.81, 1293.63, 1331.45, 1369.27, 1401.2, 1433.13, 1465.06, 1496.99, 1528.92, 1560.85, 1592.78, 1624.71, 1656.64, 1688.57, 1720.5, 1752.43, 1784.36, 1816.29, 1848.22, 1880.15, 1912.08, 1944.01, 1975.94, 2007.87, 2036.08, 2064.29, 2092.5, 2120.71, 2148.92, 2177.13, 2205.34, 2233.55, 2261.76, 2289.97, 2318.18, 2346.39, 2374.6, 2402.81, 2431.02, 2459.23, 2487.44, 2515.65, 2543.86, 2572.07, 2633.76, 2695.45, 2757.14, 2818.83, 2880.52, 2942.21, 3003.9, 3065.59, 3127.28, 3188.97, 3250.66, 3312.35, 3374.04, 3435.73, 3497.42, 3559.11, 3620.8, 3682.49, 3744.18, 3805.87, 3867.56, 3929.25, 3990.94, 4052.63, 4114.32, 4176.01, 4237.7, 4299.39, 4361.08, 4422.77, 4484.46, 4546.15, 4607.84, 4669.53, 4731.22, 4792.91, 4854.6, 4916.29, 4977.98, 5039.67],[465.0, 857.93, 1140.18, 1422.43, 1085.0, 1163.74, 1242.48, 1321.22, 1399.96, 1478.7, 1524.27, 1569.84, 1615.41, 1660.98, 1706.55, 1752.12, 1797.69, 1843.26, 1888.83, 1934.4, 1969.12, 2003.84, 2038.56, 2073.28, 2108.0, 2142.72, 2177.44, 2212.16, 2246.88, 2281.6, 2316.32, 2351.04, 2385.76, 2420.48, 2455.2, 2489.92, 2524.64, 2559.36, 2594.08, 2628.8, 2660.73, 2692.66, 2724.59, 2756.52, 2788.45, 2820.38, 2852.31, 2884.24, 2916.17, 2948.1, 2980.03, 3011.96, 3043.89, 3075.82, 3107.75, 3139.68, 3171.61, 3203.54, 3235.47, 3267.4, 3334.05, 3400.7, 3467.35, 3534.0, 3600.65, 3667.3, 3733.95, 3800.6, 3867.25, 3933.9, 4000.55, 4067.2, 4133.85, 4200.5, 4267.15, 4333.8, 4400.45, 4467.1, 4533.75, 4600.4, 4667.05, 4733.7, 4800.35, 4867.0, 4933.65, 5000.3, 5066.95, 5133.6, 5200.25, 5266.9, 5333.55, 5400.2, 5466.85, 5533.5, 5600.15, 5666.8, 5733.45, 5800.1, 5866.75, 5933.4],[541.26, 1062.53, 1073.53, 1438.71, 1645.79, 1770.1, 1894.41, 2018.72, 2143.03, 2267.34, 2333.68, 2400.02, 2466.36, 2532.7, 2599.04, 2665.38, 2731.72, 2798.06, 2864.4, 2930.74, 2994.91, 3059.08, 3123.25, 3187.42, 3251.59, 3315.76, 3379.93, 3444.1, 3508.27, 3572.44, 3636.61, 3700.78, 3764.95, 3829.12, 3893.29, 3957.46, 4021.63, 4085.8, 4149.97, 4214.14, 4276.14, 4338.14, 4400.14, 4462.14, 4524.14, 4586.14, 4648.14, 4710.14, 4772.14, 4834.14, 4896.14, 4958.14, 5020.14, 5082.14, 5144.14, 5206.14, 5268.14, 5330.14, 5392.14, 5454.14, 5590.23, 5726.32, 5862.41, 5998.5, 6134.59, 6270.68, 6406.77, 6542.86, 6678.95, 6815.04, 6951.13, 7087.22, 7223.31, 7359.4, 7495.49, 7631.58, 7767.67, 7903.76, 8039.85, 8175.94, 8312.03, 8448.12, 8584.21, 8720.3, 8856.39, 8992.48, 9128.57, 9264.66, 9400.75, 9536.84, 9672.93, 9809.02, 9945.11, 10081.2, 10217.29, 10353.38, 10489.47, 10625.56, 10761.65, 10897.74],[557.53, 1115.07, 1133.98, 1524.58, 1746.23, 1879.22, 2012.21, 2145.2, 2278.19, 2411.18, 2482.17, 2553.16, 2624.15, 2695.14, 2766.13, 2837.12, 2908.11, 2979.1, 3050.09, 3121.08, 3189.59, 3258.1, 3326.61, 3395.12, 3463.63, 3532.14, 3600.65, 3669.16, 3737.67, 3806.18, 3874.69, 3943.2, 4011.71, 4080.22, 4148.73, 4217.24, 4285.75, 4354.26, 4422.77, 4491.28, 4557.93, 4624.58, 4691.23, 4757.88, 4824.53, 4891.18, 4957.83, 5024.48, 5091.13, 5157.78, 5224.43, 5291.08, 5357.73, 5424.38, 5491.03, 5557.68, 5624.33, 5690.98, 5757.63, 5824.28, 5970.29, 6116.3, 6262.31, 6408.32, 6554.33, 6700.34, 6846.35, 6992.36, 7138.37, 7284.38, 7430.39, 7576.4, 7722.41, 7868.42, 8014.43, 8160.44, 8306.45, 8452.46, 8598.47, 8744.48, 8890.49, 9036.5, 9182.51, 9328.52, 9474.53, 9620.54, 9766.55, 9912.56, 10058.57, 10204.58, 10350.59, 10496.6, 10642.61, 10788.62, 10934.63, 11080.64, 11226.65, 11372.66, 11518.67, 11664.68],[578.46, 1144.37, 1169.94, 1576.97, 1807.3, 1944.32, 2081.34, 2218.36, 2355.38, 2492.4, 2572.38, 2652.36, 2732.34, 2812.32, 2892.3, 2972.28, 3052.26, 3132.24, 3212.22, 3292.2, 3367.53, 3442.86, 3518.19, 3593.52, 3668.85, 3744.18, 3819.51, 3894.84, 3970.17, 4045.5, 4120.83, 4196.16, 4271.49, 4346.82, 4422.15, 4497.48, 4572.81, 4648.14, 4723.47, 4798.8, 4871.34, 4943.88, 5016.42, 5088.96, 5161.5, 5234.04, 5306.58, 5379.12, 5451.66, 5524.2, 5596.74, 5669.28, 5741.82, 5814.36, 5886.9, 5959.44, 6031.98, 6104.52, 6177.06, 6249.6, 6414.83, 6580.06, 6745.29, 6910.52, 7075.75, 7240.98, 7406.21, 7571.44, 7736.67, 7901.9, 8067.13, 8232.36, 8397.59, 8562.82, 8728.05, 8893.28, 9058.51, 9223.74, 9388.97, 9554.2, 9719.43, 9884.66, 10049.89, 10215.12, 10380.35, 10545.58, 10710.81, 10876.04, 11041.27, 11206.5, 11371.73, 11536.96, 11702.19, 11867.42, 12032.65, 12197.88, 12363.11, 12528.34, 12693.57, 12858.8],[647.28, 1235.04, 1253.95, 1684.54, 1931.61, 2077.93, 2224.25, 2370.57, 2516.89, 2663.21, 2754.04, 2844.87, 2935.7, 3026.53, 3117.36, 3208.19, 3299.02, 3389.85, 3480.68, 3571.51, 3651.49, 3731.47, 3811.45, 3891.43, 3971.41, 4051.39, 4131.37, 4211.35, 4291.33, 4371.31, 4451.29, 4531.27, 4611.25, 4691.23, 4771.21, 4851.19, 4931.17, 5011.15, 5091.13, 5171.11, 5248.3, 5325.49, 5402.68, 5479.87, 5557.06, 5634.25, 5711.44, 5788.63, 5865.82, 5943.01, 6020.2, 6097.39, 6174.58, 6251.77, 6328.96, 6406.15, 6483.34, 6560.53, 6637.72, 6714.91, 6880.76, 7046.61, 7212.46, 7378.31, 7544.16, 7710.01, 7875.86, 8041.71, 8207.56, 8373.41, 8539.26, 8705.11, 8870.96, 9036.81, 9202.66, 9368.51, 9534.36, 9700.21, 9866.06, 10031.91, 10197.76, 10363.61, 10529.46, 10695.31, 10861.16, 11027.01, 11192.86, 11358.71, 11524.56, 11690.41, 11856.26, 12022.11, 12187.96, 12353.81, 12519.66, 12685.51, 12851.36, 13017.21, 13183.06, 13348.91],[740.28, 1427.09, 1369.27, 1787.15, 2034.53, 2189.84, 2345.15, 2500.46, 2655.77, 2811.08, 2901.91, 2992.74, 3083.57, 3174.4, 3265.23, 3356.06, 3446.89, 3537.72, 3628.55, 3719.38, 3805.87, 3892.36, 3978.85, 4065.34, 4151.83, 4238.32, 4324.81, 4411.3, 4497.79, 4584.28, 4670.77, 4757.26, 4843.75, 4930.24, 5016.73, 5103.22, 5189.71, 5276.2, 5362.69, 5449.18, 5533.5, 5617.82, 5702.14, 5786.46, 5870.78, 5955.1, 6039.42, 6123.74, 6208.06, 6292.38, 6376.7, 6461.02, 6545.34, 6629.66, 6713.98, 6798.3, 6882.62, 6966.94, 7051.26, 7135.58, 7320.03, 7504.48, 7688.93, 7873.38, 8057.83, 8242.28, 8426.73, 8611.18, 8795.63, 8980.08, 9164.53, 9348.98, 9533.43, 9717.88, 9902.33, 10086.78, 10271.23, 10455.68, 10640.13, 10824.58, 11009.03, 11193.48, 11377.93, 11562.38, 11746.83, 11931.28, 12115.73, 12300.18, 12484.63, 12669.08, 12853.53, 13037.98, 13222.43, 13406.88, 13591.33, 13775.78, 13960.23, 14144.68, 14329.13, 14513.58],[901.63, 1160.64, 1636.49, 2112.34, 2404.36, 2595.01, 2785.66, 2976.31, 3166.96, 3357.61, 3469.21, 3580.81, 3692.41, 3804.01, 3915.61, 4027.21, 4138.81, 4250.41, 4362.01, 4473.61, 4578.08, 4682.55, 4787.02, 4891.49, 4995.96, 5100.43, 5204.9, 5309.37, 5413.84, 5518.31, 5622.78, 5727.25, 5831.72, 5936.19, 6040.66, 6145.13, 6249.6, 6354.07, 6458.54, 6563.01, 6663.14, 6763.27, 6863.4, 6963.53, 7063.66, 7163.79, 7263.92, 7364.05, 7464.18, 7564.31, 7664.44, 7764.57, 7864.7, 7964.83, 8064.96, 8165.09, 8265.22, 8365.35, 8465.48, 8565.61, 8784.78, 9003.95, 9223.12, 9442.29, 9661.46, 9880.63, 10099.8, 10318.97, 10538.14, 10757.31, 10976.48, 11195.65, 11414.82, 11633.99, 11853.16, 12072.33, 12291.5, 12510.67, 12729.84, 12949.01, 13168.18, 13387.35, 13606.52, 13825.69, 14044.86, 14264.03, 14483.2, 14702.37, 14921.54, 15140.71, 15359.88, 15579.05, 15798.22, 16017.39, 16236.56, 16455.73, 16674.9, 16894.07, 17113.24, 17332.41]];
+
+// ── ZONE MAP: country code → zone index (0-based for array) ──
+const COUNTRY_ZONE = {"ZW":1,"ZM":1,"MW":1,"MZ":1,"BW":1,"NA":1,"LS":1,"SZ":1,"TZ":1,"KE":1,"UG":1,"RW":1,"BI":1,"ET":1,"SD":1,"SS":1,"EG":1,"LY":1,"TN":1,"DZ":1,"MA":1,"MU":1,"RE":1,"SC":1,"MG":1,"AO":1,"CG":1,"CD":1,"GA":1,"GH":1,"NG":1,"SN":1,"CI":1,"AE":2,"SA":2,"QA":2,"KW":2,"BH":2,"OM":2,"JO":2,"LB":2,"IL":2,"IQ":2,"IR":2,"YE":2,"SY":2,"IN":3,"PK":3,"LK":3,"BD":3,"NP":3,"AF":3,"SG":4,"MY":4,"TH":4,"ID":4,"PH":4,"VN":4,"KH":4,"MM":4,"HK":4,"MO":4,"TW":4,"CN":5,"JP":6,"KR":6,"MN":6,"AU":7,"NZ":7,"PG":7,"FJ":7,"GB":8,"DE":8,"FR":8,"IT":8,"ES":8,"NL":8,"BE":8,"SE":8,"NO":8,"DK":8,"FI":8,"PT":8,"AT":8,"CH":8,"PL":8,"CZ":8,"HU":8,"RO":8,"GR":8,"TR":8,"IE":8,"SK":8,"HR":8,"BG":8,"LT":8,"LV":8,"EE":8,"SI":8,"LU":8,"MT":8,"CY":8,"IS":8,"US":9,"CA":9,"MX":9,"BR":9,"AR":9,"CL":9,"CO":9,"PE":9,"VE":9,"UY":9,"PY":9,"BO":9,"EC":9,"CR":9,"PA":9,"GT":9,"SV":9,"HN":9,"NI":9,"CU":9,"DO":9,"JM":9,"TT":9,"BB":9,"BS":9};
+
+const ZONE_NAMES = ['','Zone 1 — Africa / SADC','Zone 2 — Middle East','Zone 3 — Indian Subcontinent','Zone 4 — South East Asia','Zone 5 — China','Zone 6 — Japan / Korea','Zone 7 — Oceania / Australia','Zone 8 — Europe','Zone 9 — Americas'];
+
+// ── INTERPOLATION ─────────────────────────────────────────────
+function interpolateRate(weights, rates, kg) {
+  if (kg <= weights[0]) return rates[0];
+  if (kg >= weights[weights.length-1]) {
+    const n = weights.length-1;
+    const slope = (rates[n]-rates[n-1])/(weights[n]-weights[n-1]);
+    return rates[n] + slope*(kg-weights[n]);
+  }
+  for (let i=1;i<weights.length;i++) {
+    if (kg<=weights[i]) {
+      const t=(kg-weights[i-1])/(weights[i]-weights[i-1]);
+      return rates[i-1]+t*(rates[i]-rates[i-1]);
     }
+  }
+  return 0;
+}
 
-    function removeLineItem(id) {
-      const el = document.getElementById(`li-${id}`);
-      if (el) el.remove();
-      // Re-number
-      document.querySelectorAll('#lineItemsBody tr').forEach((tr, i) => {
-        tr.querySelector('td:first-child').textContent = i + 1;
-      });
-    }
+// ── GET RATE ──────────────────────────────────────────────────
+function getDHLRate(mode, contentType, destCountry, chargeableKg) {
+  const zoneNum = COUNTRY_ZONE[destCountry] || 9; // default Zone 9 if unknown
+  const zoneIdx = zoneNum - 1; // 0-based index into arrays
+  const isDoc   = contentType === 'documents';
 
-    // ── WEIGHT CALC ───────────────────────────────────────────────
-    function calcWeights() {
-      const L = parseFloat(document.getElementById('dimL').value) || 0;
-      const W = parseFloat(document.getElementById('dimW').value) || 0;
-      const H = parseFloat(document.getElementById('dimH').value) || 0;
-      const actual = parseFloat(document.getElementById('actualWeight').value) || 0;
-      const vol = (L * W * H) / 5000;
-      const charge = Math.max(actual, vol);
-      document.getElementById('volWeight').value = vol.toFixed(2);
-      document.getElementById('chargeWeight').value = charge.toFixed(2);
-      document.getElementById('sumActual').textContent = `${actual.toFixed(2)} kg`;
-      document.getElementById('sumCharge').textContent = `${charge.toFixed(2)} kg`;
-      document.getElementById('grossWeight').placeholder = `${(actual || vol || 1).toFixed(2)}`;
-      calcCost();
-    }
+  let rateArr, weightArr;
+  if (mode === 'export') {
+    rateArr   = isDoc ? EXP_DOC[zoneIdx] : EXP_PKG[zoneIdx];
+    weightArr = isDoc ? EXP_DOC_W        : DHL_WEIGHTS;
+  } else {
+    rateArr   = isDoc ? IMP_DOC[zoneIdx] : IMP_PKG[zoneIdx];
+    weightArr = isDoc ? IMP_DOC_W        : DHL_WEIGHTS;
+  }
 
-    function calcCost() {
-      const charge = parseFloat(document.getElementById('chargeWeight').value) || 0;
-      const rate = parseFloat(document.getElementById('ratePerKg').value) || 0;
-      const fuel = parseFloat(document.getElementById('fuelSurcharge').value) || 0;
-      const other = parseFloat(document.getElementById('otherCharges').value) || 0;
-      const total = (charge * rate) + fuel + other;
-      document.getElementById('sumTotal').textContent = total.toFixed(2);
-      document.getElementById('sumProduct').textContent = document.getElementById('productCode').value;
-    }
+  const price = interpolateRate(weightArr, rateArr, chargeableKg);
+  return { price: Math.round(price*100)/100, zone: zoneNum, zoneName: ZONE_NAMES[zoneNum] };
+}
 
-    // ── BUILD DHL PAYLOAD ─────────────────────────────────────────
-    function buildPayload() {
-      const shipDate = document.getElementById('shipDate').value;
-      const pickup = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
-      const productCode = document.getElementById('productCode').value;
-      const isDec = document.querySelector('input[name="customsDec"]:checked').value === 'true';
-      const actual = parseFloat(document.getElementById('actualWeight').value) || 1;
-      const L = parseFloat(document.getElementById('dimL').value) || 1;
-      const W = parseFloat(document.getElementById('dimW').value) || 1;
-      const H = parseFloat(document.getElementById('dimH').value) || 1;
-      const notifyEmail = document.getElementById('notifyEmail').value;
-      const notifyMsg = document.getElementById('notifyMsg').value;
+// ── WEIGHT CALC ───────────────────────────────────────────────
+function calcWeights() {
+  const L = parseFloat(document.getElementById('dimL').value) || 0;
+  const W = parseFloat(document.getElementById('dimW').value) || 0;
+  const H = parseFloat(document.getElementById('dimH').value) || 0;
+  const actual = parseFloat(document.getElementById('actualWeight').value) || 0;
+  const vol    = (L * W * H) / 5000;
+  const charge = Math.max(actual, vol);
+  document.getElementById('volWeight').value    = vol.toFixed(2);
+  document.getElementById('chargeWeight').value = charge.toFixed(2);
+  document.getElementById('sumActual').textContent = `${actual.toFixed(2)} kg`;
+  document.getElementById('sumCharge').textContent = `${charge.toFixed(2)} kg`;
+  document.getElementById('grossWeight').placeholder = `${(actual || vol || 1).toFixed(2)}`;
+  calcCost();
+}
 
-      const payload = {
-        shipmentDirection: currentMode.toUpperCase(),
+function calcCost() {
+  const charge      = parseFloat(document.getElementById('chargeWeight').value) || 0;
+  const other       = parseFloat(document.getElementById('otherCharges').value) || 0;
+  const override    = parseFloat(document.getElementById('priceOverride').value);
+  const destCountry = currentMode === 'export'
+    ? document.getElementById('receiverCountry').value
+    : document.getElementById('shipperCountry').value;
+  const contentType = document.querySelector('input[name="contentType"]:checked')?.value || 'packages';
 
-        plannedShippingDateAndTime: `${shipDate}T08:00:00 GMT+02:00`,
-        pickup: { isRequested: pickup },
-        productCode,
-        localProductCode: productCode,
-        getRateEstimates: false,
-        accounts: [{ typeCode: 'shipper', number: process_env_DHL_ACCOUNT || 'YOUR_DHL_ACCOUNT' }],
-        outputImageProperties: {
-          printerDPI: 300,
-          encodingFormat: 'pdf',
-          allDocumentsInOneImage: true,
-          splitDocumentsByPages: true,
-          receiptAndLabelsInOneImage: true,
-          ...(isDec ? {
-            imageOptions: [
-              { templateName: 'ECOM26_84_A4_001', typeCode: 'label' },
-              { templateName: 'ARCH_8X4_A4_002', isRequested: true, typeCode: 'waybillDoc', hideAccountNumber: true },
-              { typeCode: 'invoice', isRequested: true, invoiceType: 'commercial', languageCode: 'eng', templateName: 'COMMERCIAL_INVOICE_P_10' }
-            ]
-          } : {})
+  let basePrice = 0;
+
+  if (!isNaN(override) && override > 0) {
+    basePrice = override;
+    document.getElementById('detectedZone').value = 'Manual override';
+    document.getElementById('baseRate').value     = override.toFixed(2);
+    document.getElementById('rateInfo').style.display = 'none';
+  } else if (charge > 0 && destCountry) {
+    const result = getDHLRate(currentMode, contentType, destCountry, charge);
+    basePrice = result.price;
+    document.getElementById('detectedZone').value = `Zone ${result.zone}`;
+    document.getElementById('baseRate').value     = result.price.toFixed(2);
+    document.getElementById('rateInfo').style.display  = 'flex';
+    document.getElementById('rateInfoText').textContent =
+      `${result.zoneName} | ${contentType === 'documents' ? 'Documents' : 'Packages'} rate | `+
+      `${currentMode === 'export' ? 'Export' : 'Import'} | Chargeable: ${charge.toFixed(2)} kg`;
+  }
+
+  const total = basePrice + other;
+  document.getElementById('sumTotal').textContent   = total.toFixed(2);
+  document.getElementById('sumProduct').textContent = document.getElementById('productCode').value;
+}
+
+// ── BUILD DHL PAYLOAD ─────────────────────────────────────────
+function buildPayload() {
+  const shipDate  = document.getElementById('shipDate').value;
+  const pickup    = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
+  const productCode = document.getElementById('productCode').value;
+  const isDec     = document.querySelector('input[name="customsDec"]:checked').value === 'true';
+  const actual    = parseFloat(document.getElementById('actualWeight').value) || 1;
+  const L = parseFloat(document.getElementById('dimL').value)||1;
+  const W = parseFloat(document.getElementById('dimW').value)||1;
+  const H = parseFloat(document.getElementById('dimH').value)||1;
+  const notifyEmail = document.getElementById('notifyEmail').value;
+  const notifyMsg   = document.getElementById('notifyMsg').value;
+
+  const payload = {
+    plannedShippingDateAndTime: `${shipDate}T08:00:00 GMT+02:00`,
+    pickup: { isRequested: pickup },
+    productCode,
+    localProductCode: productCode,
+    getRateEstimates: false,
+    accounts: [{ typeCode: 'shipper', number: process_env_DHL_ACCOUNT || 'YOUR_DHL_ACCOUNT' }],
+    outputImageProperties: {
+      printerDPI: 300,
+      encodingFormat: 'pdf',
+      allDocumentsInOneImage: true,
+      splitDocumentsByPages: true,
+      receiptAndLabelsInOneImage: true,
+      ...(isDec ? {
+        imageOptions: [
+          { templateName: 'ECOM26_84_A4_001', typeCode: 'label' },
+          { templateName: 'ARCH_8X4_A4_002', isRequested: true, typeCode: 'waybillDoc', hideAccountNumber: true },
+          { typeCode: 'invoice', isRequested: true, invoiceType: 'commercial', languageCode: 'eng', templateName: 'COMMERCIAL_INVOICE_P_10' }
+        ]
+      } : {})
+    },
+    customerDetails: {
+      shipperDetails: {
+        postalAddress: {
+          postalCode:   document.getElementById('shipperPostal').value,
+          cityName:     document.getElementById('shipperCity').value,
+          countryCode:  document.getElementById('shipperCountry').value,
+          addressLine1: document.getElementById('shipperAddr1').value,
+          addressLine2: document.getElementById('shipperAddr2').value || undefined
         },
-        customerDetails: {
-          shipperDetails: {
-            postalAddress: {
-              postalCode: document.getElementById('shipperPostal').value,
-              cityName: document.getElementById('shipperCity').value,
-              countryCode: document.getElementById('shipperCountry').value,
-              addressLine1: document.getElementById('shipperAddr1').value,
-              addressLine2: document.getElementById('shipperAddr2').value || undefined
-            },
-            contactInformation: {
-              email: document.getElementById('shipperEmail').value,
-              phone: document.getElementById('shipperPhone').value,
-              mobilePhone: document.getElementById('shipperMobile').value || undefined,
-              companyName: document.getElementById('shipperCompany').value,
-              fullName: document.getElementById('shipperFullName').value
-            },
-            typeCode: 'business'
-          },
-          receiverDetails: {
-            postalAddress: {
-              postalCode: document.getElementById('receiverPostal').value,
-              cityName: document.getElementById('receiverCity').value,
-              countryCode: document.getElementById('receiverCountry').value,
-              addressLine1: document.getElementById('receiverAddr1').value,
-              addressLine2: document.getElementById('receiverAddr2').value || undefined,
-              provinceCode: document.getElementById('receiverProvince').value || undefined,
-              countryName: undefined
-            },
-            contactInformation: {
-              email: document.getElementById('receiverEmail').value,
-              phone: document.getElementById('receiverPhone').value,
-              mobilePhone: document.getElementById('receiverMobile').value || undefined,
-              companyName: document.getElementById('receiverCompany').value,
-              fullName: document.getElementById('receiverFullName').value
-            },
-            typeCode: 'business'
-          }
+        contactInformation: {
+          email:       document.getElementById('shipperEmail').value,
+          phone:       document.getElementById('shipperPhone').value,
+          mobilePhone: document.getElementById('shipperMobile').value || undefined,
+          companyName: document.getElementById('shipperCompany').value,
+          fullName:    document.getElementById('shipperFullName').value
         },
-        content: {
-          packages: [{
-            typeCode: document.getElementById('pkgTypeCode').value || '2BP',
-            weight: actual,
-            dimensions: { length: L, width: W, height: H },
-            description: document.getElementById('shipDescription').value || 'General Cargo',
-            customerReferences: document.getElementById('customerRef').value
-              ? [{ value: document.getElementById('customerRef').value, typeCode: 'CU' }]
-              : undefined
-          }],
-          isCustomsDeclarable: isDec,
-          description: document.getElementById('shipDescription').value || 'General Cargo',
-          unitOfMeasurement: 'metric',
-          ...(isDec ? buildExportDeclaration() : {}),
-          incoterm: isDec ? document.getElementById('incoterm').value : undefined
+        typeCode: 'business'
+      },
+      receiverDetails: {
+        postalAddress: {
+          postalCode:   document.getElementById('receiverPostal').value,
+          cityName:     document.getElementById('receiverCity').value,
+          countryCode:  document.getElementById('receiverCountry').value,
+          addressLine1: document.getElementById('receiverAddr1').value,
+          addressLine2: document.getElementById('receiverAddr2').value || undefined,
+          provinceCode: document.getElementById('receiverProvince').value || undefined,
+          countryName:  undefined
         },
-        getTransliteratedResponse: false,
-        estimatedDeliveryDate: { typeCode: 'QDDF', isRequested: true },
-        getAdditionalInformation: pickup ? [{ typeCode: 'pickupDetails', isRequested: true }] : undefined
-      };
-
-      if (notifyEmail) {
-        payload.shipmentNotification = [{
-          typeCode: 'email',
-          receiverId: notifyEmail,
-          languageCode: 'ENG',
-          languageCountryCode: 'UK',
-          bespokeMessage: notifyMsg || `Your shipment from Mok Transports is on its way.`
-        }];
+        contactInformation: {
+          email:       document.getElementById('receiverEmail').value,
+          phone:       document.getElementById('receiverPhone').value,
+          mobilePhone: document.getElementById('receiverMobile').value || undefined,
+          companyName: document.getElementById('receiverCompany').value,
+          fullName:    document.getElementById('receiverFullName').value
+        },
+        typeCode: 'business'
       }
+    },
+    content: {
+      packages: [{
+        typeCode:    document.getElementById('pkgTypeCode').value || '2BP',
+        weight:      actual,
+        dimensions:  { length: L, width: W, height: H },
+        description: document.getElementById('shipDescription').value || 'General Cargo',
+        customerReferences: document.getElementById('customerRef').value
+          ? [{ value: document.getElementById('customerRef').value, typeCode: 'CU' }]
+          : undefined
+      }],
+      isCustomsDeclarable: isDec,
+      description:         document.getElementById('shipDescription').value || 'General Cargo',
+      unitOfMeasurement:   'metric',
+      ...(isDec ? buildExportDeclaration() : {}),
+      incoterm: isDec ? document.getElementById('incoterm').value : undefined
+    },
+    getTransliteratedResponse: false,
+    estimatedDeliveryDate: { typeCode: 'QDDF', isRequested: true },
+    getAdditionalInformation: pickup ? [{ typeCode: 'pickupDetails', isRequested: true }] : undefined
+  };
 
-      // Remove undefined fields recursively
-      return JSON.parse(JSON.stringify(payload));
+  if (notifyEmail) {
+    payload.shipmentNotification = [{
+      typeCode: 'email',
+      receiverId: notifyEmail,
+      languageCode: 'ENG',
+      languageCountryCode: 'UK',
+      bespokeMessage: notifyMsg || `Your shipment from Mok Transports is on its way.`
+    }];
+  }
+
+  // Remove undefined fields recursively
+  return JSON.parse(JSON.stringify(payload));
+}
+
+function buildExportDeclaration() {
+  const lineItems = [];
+  document.querySelectorAll('#lineItemsBody tr').forEach((tr, idx) => {
+    const inputs = tr.querySelectorAll('input');
+    const desc   = inputs[1]?.value || 'General Goods';
+    const qty    = parseFloat(inputs[2]?.value) || 1;
+    const unit   = inputs[3]?.value || 'PCS';
+    const price  = parseFloat(inputs[4]?.value) || 0;
+    const weight = parseFloat(inputs[5]?.value) || 1;
+    const hs     = inputs[6]?.value || '';
+    const mfg    = inputs[7]?.value || 'ZA';
+    const item   = {
+      number: idx + 1,
+      description: desc,
+      price,
+      quantity: { value: qty, unitOfMeasurement: unit },
+      exportReasonType: document.getElementById('exportReason').value,
+      manufacturerCountry: mfg,
+      weight: { netValue: weight, grossValue: weight }
+    };
+    if (hs) item.commodityCodes = [
+      { typeCode: 'outbound', value: hs },
+      { typeCode: 'inbound',  value: hs }
+    ];
+    lineItems.push(item);
+  });
+
+  const totalNet = lineItems.reduce((s,i) => s + (i.weight?.netValue||0), 0);
+  return {
+    declaredValue:         parseFloat(document.getElementById('declaredValue').value) || 0,
+    declaredValueCurrency: document.getElementById('declaredCurrency').value,
+    exportDeclaration: {
+      exportReasonType: document.getElementById('exportReason').value,
+      invoice: {
+        number:           document.getElementById('invNumber').value,
+        date:             document.getElementById('invDate').value,
+        totalNetWeight:   totalNet,
+        totalGrossWeight: parseFloat(document.getElementById('grossWeight').value) || totalNet
+      },
+      lineItems
+    }
+  };
+}
+
+// hack: placeholder for env var — backend handles the real account number
+const process_env_DHL_ACCOUNT = 'SEE_BACKEND';
+
+// ── PREVIEW ───────────────────────────────────────────────────
+function previewPayload() {
+  const payload = buildPayload();
+  document.getElementById('payloadPre').textContent = JSON.stringify(payload, null, 2);
+  document.getElementById('payloadModal').style.display = 'flex';
+}
+function closeModal() { document.getElementById('payloadModal').style.display = 'none'; }
+function copyPayload() {
+  const text = document.getElementById('payloadPre').textContent;
+  navigator.clipboard.writeText(text).then(() => alert('Payload copied to clipboard!'));
+}
+
+// ── SAVE & SUBMIT ─────────────────────────────────────────────
+async function saveShipment() {
+  // Basic validation
+  const required = ['shipperCompany','shipperEmail','shipperPhone','shipperCity','shipperAddr1',
+                    'receiverCompany','receiverEmail','receiverPhone','receiverCity','receiverAddr1',
+                    'actualWeight','shipDescription'];
+  let valid = true;
+  required.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) { el.classList.add('required-empty'); valid = false; }
+    else el.classList.remove('required-empty');
+  });
+  if (!valid) { alert('Please fill in all required fields (highlighted in red).'); return; }
+
+  const payload = buildPayload();
+
+  try {
+    const res = await fetch(`${API}/dhl/shipments`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ payload, mode: currentMode })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(`DHL submission failed:\n${data.error || JSON.stringify(data.detail || data)}`);
+      return;
     }
 
-    function buildExportDeclaration() {
-      const lineItems = [];
+    const trackingNo = data.shipmentTrackingNumber || data.trackingNumber || '—';
+    alert(`✅ Shipment submitted to DHL successfully!\n\nTracking Number: ${trackingNo}`);
 
-      document.querySelectorAll("#lineItemsBody tr").forEach((tr, idx) => {
-        const inputs = tr.querySelectorAll("input");
+    // Store for invoice
+    localStorage.setItem('dhlShipmentData', JSON.stringify({
+      trackingNo,
+      shipper:  document.getElementById('shipperCompany').value,
+      receiver: document.getElementById('receiverCompany').value,
+      mode:     currentMode,
+      product:  document.getElementById('productCode').value,
+      weight:   document.getElementById('chargeWeight').value,
+      date:     document.getElementById('shipDate').value
+    }));
 
-        const desc = inputs[0]?.value || document.getElementById("shipDescription").value || "General Goods";
-        const qty = parseFloat(inputs[1]?.value) || 1;
-        const unit = inputs[2]?.value || "PCS";
-        const price = Math.max(parseFloat(inputs[3]?.value) || 1, 0.001);
-        const weight = Math.max(parseFloat(inputs[4]?.value) || parseFloat(document.getElementById("actualWeight").value) || 1, 0.001);
-        const hs = inputs[5]?.value || "";
-        const mfg = inputs[6]?.value || document.getElementById("shipperCountry").value || "ZA";
-
-        const item = {
-          number: idx + 1,
-          description: desc,
-          price: price,
-          quantity: {
-            value: qty,
-            unitOfMeasurement: unit
-          },
-          exportReasonType: document.getElementById("exportReason").value,
-          manufacturerCountry: mfg,
-          weight: {
-            netValue: weight,
-            grossValue: weight
-          }
-        };
-
-        if (hs) {
-          item.commodityCodes = [
-            { typeCode: "outbound", value: hs },
-            { typeCode: "inbound", value: hs }
-          ];
-        }
-
-        lineItems.push(item);
-      });
-
-      const totalNet = lineItems.reduce((s, i) => s + (i.weight?.netValue || 0), 0);
-      const declaredValue = Math.max(parseFloat(document.getElementById("declaredValue").value) || 1, 0.001);
-
-      return {
-        declaredValue: declaredValue,
-        declaredValueCurrency: document.getElementById("declaredCurrency").value,
-        exportDeclaration: {
-          exportReasonType: document.getElementById("exportReason").value,
-          invoice: {
-            number: document.getElementById("invNumber").value || `MOK-DHL-${Date.now()}`,
-            date: document.getElementById("invDate").value,
-            totalNetWeight: totalNet || 1,
-            totalGrossWeight: parseFloat(document.getElementById("grossWeight").value) || totalNet || 1
-          },
-          lineItems
-        }
-      };
-    }
-
-    // hack: placeholder for env var — backend handles the real account number
-    const process_env_DHL_ACCOUNT = 'SEE_BACKEND';
-
-    // ── PREVIEW ───────────────────────────────────────────────────
-    function previewPayload() {
-      const payload = buildPayload();
-      document.getElementById('payloadPre').textContent = JSON.stringify(payload, null, 2);
-      document.getElementById('payloadModal').style.display = 'flex';
-    }
-    function closeModal() { document.getElementById('payloadModal').style.display = 'none'; }
-    function copyPayload() {
-      const text = document.getElementById('payloadPre').textContent;
-      navigator.clipboard.writeText(text).then(() => alert('Payload copied to clipboard!'));
-    }
-
-    // ── SAVE & SUBMIT ─────────────────────────────────────────────
-    async function saveShipment() {
-      // Basic validation
-      const required = ['shipperCompany', 'shipperEmail', 'shipperPhone', 'shipperCity', 'shipperAddr1',
-        'receiverCompany', 'receiverEmail', 'receiverPhone', 'receiverCity', 'receiverAddr1',
-        'actualWeight', 'shipDescription'];
-      let valid = true;
-      required.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el.value.trim()) { el.classList.add('required-empty'); valid = false; }
-        else el.classList.remove('required-empty');
-      });
-      if (!valid) { alert('Please fill in all required fields (highlighted in red).'); return; }
-
-      const payload = buildPayload();
-
-      try {
-        console.log("Sending DHL Direction:", payload.shipmentDirection);
-
-        const res = await fetch(`${API}/dhl/shipments`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ payload })
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          alert(`DHL submission failed:\n${data.error || JSON.stringify(data.detail || data)}`);
-          return;
-        }
-
-        const trackingNo = data.shipmentTrackingNumber || data.trackingNumber || '—';
-        alert(`✅ Shipment submitted to DHL successfully!\n\nTracking Number: ${trackingNo}`);
-
-        // Store for invoice
-        localStorage.setItem('dhlShipmentData', JSON.stringify({
-          trackingNo,
-          shipper: document.getElementById('shipperCompany').value,
-          receiver: document.getElementById('receiverCompany').value,
-          mode: currentMode,
-          product: document.getElementById('productCode').value,
-          weight: document.getElementById('chargeWeight').value,
-          date: document.getElementById('shipDate').value
-        }));
-
-      } catch (err) {
-        alert(`Connection error: ${err.message}`);
-        console.error(err);
-      }
-    }
-  </script>
+  } catch(err) {
+    alert(`Connection error: ${err.message}`);
+    console.error(err);
+  }
+}
+</script>
 </body>
-
 </html>
-
-
 
 
 
