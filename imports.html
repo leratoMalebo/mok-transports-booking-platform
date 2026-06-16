@@ -979,15 +979,9 @@
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
-        Preview DHL Payload
+        Preview Shipment
       </button>
-      <a class="btn-top btn-green" href="invoice.html" style="height:44px;font-size:14px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-          <line x1="2" y1="10" x2="22" y2="10" />
-        </svg>
-        Create Invoice
-      </a>
+
     </div>
 
   </div>
@@ -1008,8 +1002,8 @@
             Close</button>
         </div>
       </div>
-      <pre id="payloadPre"
-        style="flex:1;overflow:auto;padding:20px;font-size:12px;color:#e0e0e0;font-family:monospace;line-height:1.6;background:var(--navy)"></pre>
+      <div id="payloadPre"
+        style="flex:1;overflow:auto;padding:20px;font-size:12px;color:#e0e0e0;font-family:monospace;line-height:1.6;background:var(--navy)"></div>
     </div>
   </div>
 
@@ -1387,12 +1381,188 @@
     // hack: placeholder for env var — backend handles the real account number
     const process_env_DHL_ACCOUNT = 'SEE_BACKEND';
 
+    function buildShipmentPreview(payload) {
+
+      return `
+    <h5>DHL Shipment Preview</h5>
+
+    <hr>
+
+    <h6>Shipment Details</h6>
+
+    <p>
+      <strong>Direction:</strong>
+      ${payload.shipmentDirection || "Export"}
+    </p>
+
+    <p>
+      <strong>Product:</strong>
+      ${payload.productCode}
+    </p>
+
+    <p>
+      <strong>Shipping Date:</strong>
+      ${payload.plannedShippingDateAndTime}
+    </p>
+
+    <hr>
+
+    <h6>Shipper</h6>
+
+    <p>
+      <strong>Company:</strong>
+      ${payload.customerDetails.shipperDetails.contactInformation.companyName}
+    </p>
+
+    <p>
+      <strong>Contact:</strong>
+      ${payload.customerDetails.shipperDetails.contactInformation.fullName}
+    </p>
+
+    <p>
+      <strong>Country:</strong>
+      ${payload.customerDetails.shipperDetails.postalAddress.countryCode}
+    </p>
+
+    <hr>
+
+    <h6>Receiver</h6>
+
+    <p>
+      <strong>Company:</strong>
+      ${payload.customerDetails.receiverDetails.contactInformation.companyName}
+    </p>
+
+    <p>
+      <strong>Contact:</strong>
+      ${payload.customerDetails.receiverDetails.contactInformation.fullName}
+    </p>
+
+    <p>
+      <strong>Country:</strong>
+      ${payload.customerDetails.receiverDetails.postalAddress.countryCode}
+    </p>
+
+    <hr>
+
+    <h6>Package</h6>
+
+    <p>
+      <strong>Description:</strong>
+      ${payload.content.description}
+    </p>
+
+    <p>
+      <strong>Weight:</strong>
+      ${payload.content.packages[0].weight} kg
+    </p>
+
+    <p>
+      <strong>Declared Value:</strong>
+      ${payload.content.declaredValue}
+      ${payload.content.declaredValueCurrency}
+    </p>
+
+    <hr>
+
+    <h6>Pricing</h6>
+
+    <p>
+      <strong>DHL Cost:</strong>
+      R ${document.getElementById("sumTotal").textContent}
+    </p>
+  `;
+    }
+
     // ── PREVIEW ───────────────────────────────────────────────────
     function previewPayload() {
+
       const payload = buildPayload();
-      document.getElementById('payloadPre').textContent = JSON.stringify(payload, null, 2);
+
+      const html = `
+        <h3 style="color:white;margin-top:0;">
+            DHL Shipment Preview
+        </h3>
+
+        <hr>
+
+        <p><strong>Direction:</strong> ${currentMode}</p>
+
+        <p><strong>Product:</strong> ${payload.productCode}</p>
+
+        <p><strong>Shipment Date:</strong>
+            ${payload.plannedShippingDateAndTime}
+        </p>
+
+        <hr>
+
+        <h4>Shipper</h4>
+
+        <p>
+            ${payload.customerDetails.shipperDetails.contactInformation.companyName}
+        </p>
+
+        <p>
+            ${payload.customerDetails.shipperDetails.contactInformation.fullName}
+        </p>
+
+        <p>
+            ${payload.customerDetails.shipperDetails.postalAddress.countryCode}
+        </p>
+
+        <hr>
+
+        <h4>Receiver</h4>
+
+        <p>
+            ${payload.customerDetails.receiverDetails.contactInformation.companyName}
+        </p>
+
+        <p>
+            ${payload.customerDetails.receiverDetails.contactInformation.fullName}
+        </p>
+
+        <p>
+            ${payload.customerDetails.receiverDetails.postalAddress.countryCode}
+        </p>
+
+        <hr>
+
+        <h4>Shipment</h4>
+
+        <p>
+            Description:
+            ${payload.content.description}
+        </p>
+
+        <p>
+            Weight:
+            ${payload.content.packages[0].weight} kg
+        </p>
+
+        <p>
+            Declared Value:
+            ${payload.content.declaredValue}
+            ${payload.content.declaredValueCurrency}
+        </p>
+
+        <hr>
+
+        <h4>Pricing</h4>
+
+        <p>
+            DHL Cost:
+            R ${document.getElementById('sumTotal').textContent}
+        </p>
+    `;
+
+      document.getElementById('payloadPre').innerHTML = html;
+
       document.getElementById('payloadModal').style.display = 'flex';
     }
+
+
+
     function closeModal() { document.getElementById('payloadModal').style.display = 'none'; }
     function copyPayload() {
       const text = document.getElementById('payloadPre').textContent;
@@ -1451,4 +1621,6 @@
 </body>
 
 </html>
+
+
 
