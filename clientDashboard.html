@@ -1008,17 +1008,27 @@ Create your first shipment →
     async function loadInternationalShipments() {
       try {
         const userId = clientId;
-        const res = await fetch(`${API_BASE}/international-shipments?client_id=${userId}`)
+        // FIX: use the correct DHL shipments endpoint
+        const res = await fetch(`${API_BASE}/dhl/shipments?client_id=${userId}`);
 
         if (!res.ok) {
-          throw new Error('Failed to load international shipments');
+          // Gracefully handle — don't crash the whole dashboard
+          console.warn('International shipments endpoint returned:', res.status);
+          allIntl = [];
+          renderIntlTable([]);
+          return;
         }
 
         const data = await res.json();
-        allIntl = Array.isArray(data) ? data : [];
+        // Filter to only show this client's shipments
+        allIntl = Array.isArray(data)
+          ? data.filter(s => !s.client_id || String(s.client_id) === String(userId))
+          : [];
         renderIntlTable(allIntl.slice(0, 5));
       } catch (e) {
-        console.error('Intl load error:', e);
+        console.warn('Intl load error (non-critical):', e.message);
+        allIntl = [];
+        renderIntlTable([]);
       }
     }
 
@@ -1057,6 +1067,7 @@ ${(s.status || 'pending').toUpperCase()}
 </body>
 
 </html>
+
 
 
 

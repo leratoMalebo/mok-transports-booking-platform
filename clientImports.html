@@ -968,42 +968,65 @@
     <div class="action-bar">
       <button class="btn-top btn-orange" style="height:44px;font-size:14px" onclick="saveShipment()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-          <polyline points="17 21 17 13 7 13 7 21" />
-          <polyline points="7 3 7 8 15 8" />
+          <path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>
         </svg>
-        Save &amp; Submit to DHL
+        Submit Shipment
       </button>
-      <button class="btn-top btn-grey" style="height:44px;font-size:14px" onclick="previewPayload()">
+      <button class="btn-top btn-grey" style="height:44px;font-size:14px" onclick="previewShipment()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
         Preview Shipment
       </button>
-      
     </div>
 
   </div>
 
-  <!-- PAYLOAD PREVIEW MODAL -->
+  <!-- SHIPMENT PREVIEW MODAL — human readable, no JSON -->
   <div id="payloadModal"
     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
-    <div
-      style="background:var(--navy);border-radius:10px;width:90vw;max-width:780px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4)">
-      <div
-        style="padding:16px 20px;border-bottom:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#fff">DHL API
-          Payload Preview</span>
-        <div style="display:flex;gap:8px">
-          <button class="btn-top btn-blue" style="height:30px;font-size:11px" onclick="copyPayload()">Copy JSON</button>
-          <button onclick="closeModal()"
-            style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;padding:6px 14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600">✕
-            Close</button>
+    <div style="background:#fff;border-radius:10px;width:92vw;max-width:680px;max-height:88vh;
+      display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.3)">
+
+      <!-- Modal header -->
+      <div style="background:var(--navy);padding:16px 22px;display:flex;align-items:center;
+        justify-content:space-between;border-bottom:3px solid var(--accent);flex-shrink:0">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff">
+            Shipment Preview
+          </div>
+          <div style="font-size:11px;color:#90a4ae;margin-top:2px">Review details before submitting to DHL</div>
         </div>
+        <button onclick="closeModal()"
+          style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;
+          color:#fff;padding:6px 14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600">
+          ✕ Close
+        </button>
       </div>
-      <pre id="payloadPre"
-        style="flex:1;overflow:auto;padding:20px;font-size:12px;color:#e0e0e0;font-family:monospace;line-height:1.6;background:var(--navy)"></pre>
+
+      <!-- Modal body -->
+      <div id="previewBody" style="flex:1;overflow-y:auto;padding:24px;background:#fff"></div>
+
+      <!-- Modal footer -->
+      <div style="padding:14px 22px;border-top:1px solid var(--border);background:#fafbfc;
+        display:flex;justify-content:flex-end;gap:10px;flex-shrink:0">
+        <button onclick="closeModal()"
+          style="padding:0 18px;height:38px;border:1px solid var(--border);border-radius:5px;
+          background:#fff;color:var(--muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+          font-size:13px;font-weight:700;letter-spacing:1px">
+          EDIT DETAILS
+        </button>
+        <button onclick="closeModal();saveShipment();"
+          style="padding:0 22px;height:38px;border:none;border-radius:5px;background:var(--accent);
+          color:#fff;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;
+          font-weight:700;letter-spacing:1px;display:inline-flex;align-items:center;gap:7px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>
+          </svg>
+          CONFIRM &amp; SUBMIT TO DHL
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1381,19 +1404,101 @@
     // hack: placeholder for env var — backend handles the real account number
     const process_env_DHL_ACCOUNT = 'SEE_BACKEND';
 
-    // ── PREVIEW ───────────────────────────────────────────────────
-    function previewPayload() {
-      const payload = buildPayload();
-      document.getElementById('payloadPre').textContent = JSON.stringify(payload, null, 2);
+    // ── PREVIEW SHIPMENT — human readable, no JSON ────────────────
+    function previewShipment() {
+      const charge      = parseFloat(document.getElementById('chargeWeight').value) || 0;
+      const actual      = parseFloat(document.getElementById('actualWeight').value) || 0;
+      const product     = document.getElementById('productCode').value;
+      const shipDate    = document.getElementById('shipDate').value;
+      const pickup      = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
+      const contentType = document.querySelector('input[name="contentType"]:checked')?.value || 'packages';
+      const isDec       = document.querySelector('input[name="customsDec"]:checked')?.value === 'true';
+      const destCountry = document.getElementById('receiverCountry').value;
+      const rateResult  = typeof getDHLRate === 'function' && charge > 0
+        ? getDHLRate(currentMode, contentType, destCountry, charge)
+        : null;
+
+      const row = (label, value, highlight) => `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;
+          border-bottom:1px solid var(--border);font-size:13px">
+          <span style="color:var(--muted);font-weight:500">${label}</span>
+          <span style="font-weight:700;color:${highlight||'var(--navy)'};">${value}</span>
+        </div>`;
+
+      const section = (title, icon, content) => `
+        <div style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
+            padding-bottom:6px;border-bottom:2px solid var(--navy)">
+            <span style="font-size:16px">${icon}</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:14px;
+              font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px">${title}</span>
+          </div>
+          ${content}
+        </div>`;
+
+      const html = `
+        <div style="font-family:'Barlow',sans-serif">
+
+          ${section('Shipment Direction', '🚚', `
+            ${row('Mode', currentMode === 'export' ? '📤 Export — Shipping OUT of South Africa' : '📥 Import — Shipping INTO South Africa', currentMode === 'export' ? '#1565c0' : '#2e7d32')}
+            ${row('DHL Product Code', product)}
+            ${row('Planned Ship Date', shipDate)}
+            ${row('Pickup Requested', pickup ? '✅ Yes — DHL will collect' : '❌ No — Drop off at DHL')}
+            ${row('Content Type', contentType === 'documents' ? '📄 Documents' : '📦 Packages')}
+          `)}
+
+          ${section('Shipper / Sender', '🏢', `
+            ${row('Company', document.getElementById('shipperCompany').value)}
+            ${row('Contact', document.getElementById('shipperFullName').value)}
+            ${row('Email', document.getElementById('shipperEmail').value)}
+            ${row('Phone', document.getElementById('shipperPhone').value)}
+            ${row('City', document.getElementById('shipperCity').value + ', ' + document.getElementById('shipperCountry').value)}
+            ${row('Address', document.getElementById('shipperAddr1').value)}
+          `)}
+
+          ${section('Consignee / Receiver', '📍', `
+            ${row('Company', document.getElementById('receiverCompany').value)}
+            ${row('Contact', document.getElementById('receiverFullName').value)}
+            ${row('Email', document.getElementById('receiverEmail').value)}
+            ${row('Phone', document.getElementById('receiverPhone').value)}
+            ${row('City', document.getElementById('receiverCity').value + ', ' + document.getElementById('receiverCountry').value)}
+            ${row('Address', document.getElementById('receiverAddr1').value)}
+          `)}
+
+          ${section('Weight & Dimensions', '⚖️', `
+            ${row('Actual Weight', actual.toFixed(2) + ' kg')}
+            ${row('Chargeable Weight', charge.toFixed(2) + ' kg')}
+            ${row('Dimensions (L×W×H)', `${document.getElementById('dimL').value||0}×${document.getElementById('dimW').value||0}×${document.getElementById('dimH').value||0} cm`)}
+            ${row('Description', document.getElementById('shipDescription').value)}
+            ${document.getElementById('customerRef').value ? row('Reference', document.getElementById('customerRef').value) : ''}
+          `)}
+
+          ${isDec ? section('Customs Declaration', '🛃', `
+            ${row('Declared Value', document.getElementById('declaredCurrency').value + ' ' + document.getElementById('declaredValue').value)}
+            ${row('Incoterm', document.getElementById('incoterm').value)}
+            ${row('Export Reason', document.getElementById('exportReason').value.replace(/_/g,' '))}
+          `) : ''}
+
+          ${rateResult ? section('Estimated Price', '💰', `
+            ${row('DHL Zone', rateResult.zoneName)}
+            ${row('Base Rate (excl. other charges)', 'R ' + rateResult.price.toFixed(2), '#f57c00')}
+            ${document.getElementById('otherCharges')?.value > 0 ? row('Other Charges', 'R ' + parseFloat(document.getElementById('otherCharges').value).toFixed(2)) : ''}
+            ${row('Total Estimated Cost', 'R ' + (rateResult.price + (parseFloat(document.getElementById('otherCharges')?.value)||0)).toFixed(2), '#2e7d32')}
+          `) : ''}
+
+          <div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;
+            padding:12px 16px;font-size:12px;color:#e65100;margin-top:4px">
+            ⚠️ Please review all details carefully. Once submitted, your shipment will be sent to DHL for processing.
+          </div>
+        </div>`;
+
+      document.getElementById('previewBody').innerHTML = html;
       document.getElementById('payloadModal').style.display = 'flex';
     }
-    function closeModal() { document.getElementById('payloadModal').style.display = 'none'; }
-    function copyPayload() {
-      const text = document.getElementById('payloadPre').textContent;
-      navigator.clipboard.writeText(text).then(() => alert('Payload copied to clipboard!'));
-    }
 
-    // ── SAVE & SUBMIT ─────────────────────────────────────────────
+    function closeModal() { document.getElementById('payloadModal').style.display = 'none'; }
+
+    // ── SUBMIT SHIPMENT — passes client_id so staff can see who submitted ──
     async function saveShipment() {
       // Basic validation
       const required = ['shipperCompany', 'shipperEmail', 'shipperPhone', 'shipperCity', 'shipperAddr1',
@@ -1402,18 +1507,33 @@
       let valid = true;
       required.forEach(id => {
         const el = document.getElementById(id);
-        if (!el.value.trim()) { el.classList.add('required-empty'); valid = false; }
+        if (!el || !el.value.trim()) { if(el) el.classList.add('required-empty'); valid = false; }
         else el.classList.remove('required-empty');
       });
       if (!valid) { alert('Please fill in all required fields (highlighted in red).'); return; }
 
+      // Close preview modal if open
+      document.getElementById('payloadModal').style.display = 'none';
+
       const payload = buildPayload();
+
+      // Get client session to pass client identity to backend
+      const session    = JSON.parse(localStorage.getItem('mokSession') || '{}');
+      const clientId   = session?.user?.id  || session?.id  || null;
+      const clientName = session?.user?.name || session?.name || '';
+      const clientComp = session?.user?.company || session?.company || '';
 
       try {
         const res = await fetch(`${API}/dhl/shipments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ payload, mode: currentMode })
+          body: JSON.stringify({
+            payload,
+            mode:         currentMode,
+            client_id:    clientId,    // ← staff can filter by this
+            client_name:  clientName,
+            client_company: clientComp
+          })
         });
         const data = await res.json();
 
@@ -1423,17 +1543,39 @@
         }
 
         const trackingNo = data.shipmentTrackingNumber || data.trackingNumber || '—';
-        alert(`✅ Shipment submitted to DHL successfully!\n\nTracking Number: ${trackingNo}`);
 
-        // Store for invoice
+        // Success — show a friendly confirmation
+        document.getElementById('previewBody').innerHTML = `
+          <div style="text-align:center;padding:32px 20px">
+            <div style="font-size:48px;margin-bottom:16px">✅</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;
+              color:var(--green);margin-bottom:8px">Shipment Submitted!</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:20px">
+              Your shipment has been successfully sent to DHL for processing.
+            </div>
+            <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;
+              padding:16px;margin-bottom:20px">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">DHL Tracking Number</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--green)">${trackingNo}</div>
+            </div>
+            <div style="font-size:12px;color:var(--muted)">
+              Save your tracking number. You can track your shipment at <strong>dhl.com</strong>
+            </div>
+          </div>`;
+        document.getElementById('payloadModal').style.display = 'flex';
+
+        // Hide confirm button after success
+        document.querySelector('#payloadModal [onclick*="saveShipment"]').style.display = 'none';
+
+        // Store for reference
         localStorage.setItem('dhlShipmentData', JSON.stringify({
           trackingNo,
-          shipper: document.getElementById('shipperCompany').value,
+          shipper:  document.getElementById('shipperCompany').value,
           receiver: document.getElementById('receiverCompany').value,
-          mode: currentMode,
-          product: document.getElementById('productCode').value,
-          weight: document.getElementById('chargeWeight').value,
-          date: document.getElementById('shipDate').value
+          mode:     currentMode,
+          product:  document.getElementById('productCode').value,
+          weight:   document.getElementById('chargeWeight').value,
+          date:     document.getElementById('shipDate').value
         }));
 
       } catch (err) {
