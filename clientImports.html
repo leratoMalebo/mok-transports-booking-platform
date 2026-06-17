@@ -1036,9 +1036,14 @@
       : 'https://bookings.moktransports.com/api';
 
     // Auth guard
+
+
+    console.log("CLIENT IMPORTS SESSION:", localStorage.getItem("mokSession"));
+
     const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
 
     if (!session || !session.id) {
+      console.log("REDIRECTING TO LOGIN");
       window.location.href = 'login.html';
     }
 
@@ -1588,6 +1593,5 @@
 </body>
 
 </html>
-
 
 
