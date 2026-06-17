@@ -1,30 +1,39 @@
 // mok-backend/routes/dhl.js
-const express = require('express');
-const router = express.Router();
-// Renamed this to dhlController to make the rest of the file safer and more descriptive
+const express       = require('express');
+const router        = express.Router();
 const dhlController = require('../controllers/dhlController');
 
-// ── Specific routes FIRST (before param routes) ──────────────
-// GET  /api/dhl/shipments          — list all DHL shipments
-router.get('/shipments', dhlController.getShipments);
+// ── Collection routes (no params) — MUST come first ──────────
 
-// POST /api/dhl/shipments          — create new DHL shipment
-router.post('/shipments', dhlController.createShipment);
+// GET  /api/dhl/shipments        — all shipments (staff) or filtered by ?client_id=X (client)
+router.get('/shipments',                              dhlController.getShipments);
 
-// POST /api/dhl/rates              — get rate estimate
-router.post('/rates', dhlController.getRates);
+// POST /api/dhl/shipments        — create new DHL shipment
+router.post('/shipments',                             dhlController.createShipment);
 
-router.post('/address-validate', dhlController.validateAddress);
-    
-// GET  /api/dhl/track/:trackingNo  — live tracking from DHL API
-router.get('/track/:trackingNo', dhlController.trackShipment);
+// POST /api/dhl/rates            — rate estimate
+router.post('/rates',                                 dhlController.getRates);
 
-// ── Param routes LAST ─────────────────────────────────────────
-// GET  /api/dhl/shipments/:trackingNo/label  — download PDF label
-router.get('/shipments/:trackingNo/label', dhlController.getLabel);
+// POST /api/dhl/address-validate — validate delivery address
+router.post('/address-validate',                      dhlController.validateAddress);
 
-// GET  /api/dhl/shipments/:trackingNo        — single shipment from DB
-router.get('/shipments/:trackingNo', dhlController.getShipmentByTracking);
+// POST /api/dhl/validate-address — alternate URL (same handler)
+router.post('/validate-address',                      dhlController.validateAddress);
+
+// GET  /api/dhl/track/:trackingNo — live tracking from DHL API
+router.get('/track/:trackingNo',                      dhlController.trackShipment);
+
+// ── Param routes LAST — specific sub-paths before bare param ──
+
+// GET  /api/dhl/shipments/:trackingNo/label          — PDF label download
+router.get('/shipments/:trackingNo/label',            dhlController.getLabel);
+
+// GET  /api/dhl/shipments/:trackingNumber/download-label — alternate label download
+router.get('/shipments/:trackingNumber/download-label', dhlController.downloadLabel);
+
+// GET  /api/dhl/shipments/:trackingNo — single shipment from DB (bare param LAST)
+router.get('/shipments/:trackingNo',                  dhlController.getShipmentByTracking);
 
 module.exports = router;
+
 
