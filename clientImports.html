@@ -968,7 +968,8 @@
     <div class="action-bar">
       <button class="btn-top btn-orange" style="height:44px;font-size:14px" onclick="saveShipment()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>
+          <path d="M22 2L11 13" />
+          <path d="M22 2L15 22 11 13 2 9l20-7z" />
         </svg>
         Submit Shipment
       </button>
@@ -1011,18 +1012,17 @@
       <!-- Modal footer -->
       <div style="padding:14px 22px;border-top:1px solid var(--border);background:#fafbfc;
         display:flex;justify-content:flex-end;gap:10px;flex-shrink:0">
-        <button onclick="closeModal()"
-          style="padding:0 18px;height:38px;border:1px solid var(--border);border-radius:5px;
+        <button onclick="closeModal()" style="padding:0 18px;height:38px;border:1px solid var(--border);border-radius:5px;
           background:#fff;color:var(--muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
           font-size:13px;font-weight:700;letter-spacing:1px">
           EDIT DETAILS
         </button>
-        <button onclick="closeModal();saveShipment();"
-          style="padding:0 22px;height:38px;border:none;border-radius:5px;background:var(--accent);
+        <button onclick="closeModal();saveShipment();" style="padding:0 22px;height:38px;border:none;border-radius:5px;background:var(--accent);
           color:#fff;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;
           font-weight:700;letter-spacing:1px;display:inline-flex;align-items:center;gap:7px">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>
+            <path d="M22 2L11 13" />
+            <path d="M22 2L15 22 11 13 2 9l20-7z" />
           </svg>
           CONFIRM &amp; SUBMIT TO DHL
         </button>
@@ -1037,7 +1037,8 @@
 
     // Auth guard
     const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
-    if (!session || !['staff', 'admin', 'office'].includes(session.role)) {
+
+    if (!session || !session.id) {
       window.location.href = 'login.html';
     }
 
@@ -1406,15 +1407,15 @@
 
     // ── PREVIEW SHIPMENT — human readable, no JSON ────────────────
     function previewShipment() {
-      const charge      = parseFloat(document.getElementById('chargeWeight').value) || 0;
-      const actual      = parseFloat(document.getElementById('actualWeight').value) || 0;
-      const product     = document.getElementById('productCode').value;
-      const shipDate    = document.getElementById('shipDate').value;
-      const pickup      = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
+      const charge = parseFloat(document.getElementById('chargeWeight').value) || 0;
+      const actual = parseFloat(document.getElementById('actualWeight').value) || 0;
+      const product = document.getElementById('productCode').value;
+      const shipDate = document.getElementById('shipDate').value;
+      const pickup = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
       const contentType = document.querySelector('input[name="contentType"]:checked')?.value || 'packages';
-      const isDec       = document.querySelector('input[name="customsDec"]:checked')?.value === 'true';
+      const isDec = document.querySelector('input[name="customsDec"]:checked')?.value === 'true';
       const destCountry = document.getElementById('receiverCountry').value;
-      const rateResult  = typeof getDHLRate === 'function' && charge > 0
+      const rateResult = typeof getDHLRate === 'function' && charge > 0
         ? getDHLRate(currentMode, contentType, destCountry, charge)
         : null;
 
@@ -1422,7 +1423,7 @@
         <div style="display:flex;justify-content:space-between;padding:8px 0;
           border-bottom:1px solid var(--border);font-size:13px">
           <span style="color:var(--muted);font-weight:500">${label}</span>
-          <span style="font-weight:700;color:${highlight||'var(--navy)'};">${value}</span>
+          <span style="font-weight:700;color:${highlight || 'var(--navy)'};">${value}</span>
         </div>`;
 
       const section = (title, icon, content) => `
@@ -1468,7 +1469,7 @@
           ${section('Weight & Dimensions', '⚖️', `
             ${row('Actual Weight', actual.toFixed(2) + ' kg')}
             ${row('Chargeable Weight', charge.toFixed(2) + ' kg')}
-            ${row('Dimensions (L×W×H)', `${document.getElementById('dimL').value||0}×${document.getElementById('dimW').value||0}×${document.getElementById('dimH').value||0} cm`)}
+            ${row('Dimensions (L×W×H)', `${document.getElementById('dimL').value || 0}×${document.getElementById('dimW').value || 0}×${document.getElementById('dimH').value || 0} cm`)}
             ${row('Description', document.getElementById('shipDescription').value)}
             ${document.getElementById('customerRef').value ? row('Reference', document.getElementById('customerRef').value) : ''}
           `)}
@@ -1476,14 +1477,14 @@
           ${isDec ? section('Customs Declaration', '🛃', `
             ${row('Declared Value', document.getElementById('declaredCurrency').value + ' ' + document.getElementById('declaredValue').value)}
             ${row('Incoterm', document.getElementById('incoterm').value)}
-            ${row('Export Reason', document.getElementById('exportReason').value.replace(/_/g,' '))}
+            ${row('Export Reason', document.getElementById('exportReason').value.replace(/_/g, ' '))}
           `) : ''}
 
           ${rateResult ? section('Estimated Price', '💰', `
             ${row('DHL Zone', rateResult.zoneName)}
             ${row('Base Rate (excl. other charges)', 'R ' + rateResult.price.toFixed(2), '#f57c00')}
             ${document.getElementById('otherCharges')?.value > 0 ? row('Other Charges', 'R ' + parseFloat(document.getElementById('otherCharges').value).toFixed(2)) : ''}
-            ${row('Total Estimated Cost', 'R ' + (rateResult.price + (parseFloat(document.getElementById('otherCharges')?.value)||0)).toFixed(2), '#2e7d32')}
+            ${row('Total Estimated Cost', 'R ' + (rateResult.price + (parseFloat(document.getElementById('otherCharges')?.value) || 0)).toFixed(2), '#2e7d32')}
           `) : ''}
 
           <div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;
@@ -1507,7 +1508,7 @@
       let valid = true;
       required.forEach(id => {
         const el = document.getElementById(id);
-        if (!el || !el.value.trim()) { if(el) el.classList.add('required-empty'); valid = false; }
+        if (!el || !el.value.trim()) { if (el) el.classList.add('required-empty'); valid = false; }
         else el.classList.remove('required-empty');
       });
       if (!valid) { alert('Please fill in all required fields (highlighted in red).'); return; }
@@ -1518,8 +1519,8 @@
       const payload = buildPayload();
 
       // Get client session to pass client identity to backend
-      const session    = JSON.parse(localStorage.getItem('mokSession') || '{}');
-      const clientId   = session?.user?.id  || session?.id  || null;
+      const session = JSON.parse(localStorage.getItem('mokSession') || '{}');
+      const clientId = session?.user?.id || session?.id || null;
       const clientName = session?.user?.name || session?.name || '';
       const clientComp = session?.user?.company || session?.company || '';
 
@@ -1529,9 +1530,9 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             payload,
-            mode:         currentMode,
-            client_id:    clientId,    // ← staff can filter by this
-            client_name:  clientName,
+            mode: currentMode,
+            client_id: clientId,    // ← staff can filter by this
+            client_name: clientName,
             client_company: clientComp
           })
         });
@@ -1570,12 +1571,12 @@
         // Store for reference
         localStorage.setItem('dhlShipmentData', JSON.stringify({
           trackingNo,
-          shipper:  document.getElementById('shipperCompany').value,
+          shipper: document.getElementById('shipperCompany').value,
           receiver: document.getElementById('receiverCompany').value,
-          mode:     currentMode,
-          product:  document.getElementById('productCode').value,
-          weight:   document.getElementById('chargeWeight').value,
-          date:     document.getElementById('shipDate').value
+          mode: currentMode,
+          product: document.getElementById('productCode').value,
+          weight: document.getElementById('chargeWeight').value,
+          date: document.getElementById('shipDate').value
         }));
 
       } catch (err) {
