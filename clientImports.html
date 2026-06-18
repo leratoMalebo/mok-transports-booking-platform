@@ -1036,25 +1036,40 @@
       : 'https://bookings.moktransports.com/api';
 
 
-      
+
 
     // ── AUTH GUARD ────────────────────────────────────────────────
     // Session can be stored as flat { role, id, name } OR nested { role, user: { id, name } }
     // We handle both structures to avoid false redirects
-    const session    = JSON.parse(localStorage.getItem('mokSession') || 'null');
-    const sessionId  = session?.id || session?.user?.id || null;
-    const sessionRole= session?.role || null;
+    const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+    const sessionId = session?.id || session?.user?.id || null;
+    const sessionRole = session?.role || null;
 
     console.log('CLIENT IMPORTS SESSION:', session);
     console.log('SESSION ID:', sessionId, '| ROLE:', sessionRole);
 
     if (!session || sessionRole !== 'client') {
       console.log('REDIRECTING TO LOGIN — not a client session');
+      console.trace("REDIRECTING");
       window.location.href = 'login.html';
     }
 
     let currentMode = 'export';
     let lineItemId = 0;
+
+    const originalHref = window.location.href;
+
+    const oldAssign = window.location.assign;
+    window.location.assign = function (url) {
+      console.trace("REDIRECT VIA ASSIGN:", url);
+      oldAssign.call(window.location, url);
+    };
+
+    const oldReplace = window.location.replace;
+    window.location.replace = function (url) {
+      console.trace("REDIRECT VIA REPLACE:", url);
+      oldReplace.call(window.location, url);
+    };
 
     // ── INIT ─────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
@@ -1599,7 +1614,4 @@
 </body>
 
 </html>
-
-
-
 
