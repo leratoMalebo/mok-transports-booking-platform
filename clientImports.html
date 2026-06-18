@@ -1035,15 +1035,18 @@
       ? 'http://localhost:5000/api'
       : 'https://bookings.moktransports.com/api';
 
-    // Auth guard
+    // ── AUTH GUARD ────────────────────────────────────────────────
+    // Session can be stored as flat { role, id, name } OR nested { role, user: { id, name } }
+    // We handle both structures to avoid false redirects
+    const session    = JSON.parse(localStorage.getItem('mokSession') || 'null');
+    const sessionId  = session?.id || session?.user?.id || null;
+    const sessionRole= session?.role || null;
 
+    console.log('CLIENT IMPORTS SESSION:', session);
+    console.log('SESSION ID:', sessionId, '| ROLE:', sessionRole);
 
-    console.log("CLIENT IMPORTS SESSION:", localStorage.getItem("mokSession"));
-
-    const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
-
-    if (!session || !session.id) {
-      console.log("REDIRECTING TO LOGIN");
+    if (!session || sessionRole !== 'client') {
+      console.log('REDIRECTING TO LOGIN — not a client session');
       window.location.href = 'login.html';
     }
 
@@ -1593,5 +1596,6 @@
 </body>
 
 </html>
+
 
 
