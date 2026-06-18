@@ -733,7 +733,7 @@
             <p>JKJ Express Courier Services</p>
           </div>
 
-          <div class="service-card international" onclick="window.location.href='imports.html'">
+          <div class="service-card international" onclick="window.location.href='clientImports.html'">
             <h3>🌍 International Shipments</h3>
             <p>DHL Express International</p>
           </div>
@@ -1037,7 +1037,7 @@ Create your first shipment →
       if (!tbody) return;
       if (!data.length) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">
-No international shipments yet. <a href="imports.html" style="color:var(--blue);font-weight:700;text-decoration:none">Submit one →</a>
+No international shipments yet. <a href="clientImports.html" style="color:var(--blue);font-weight:700;text-decoration:none">Submit one →</a>
 </td></tr>`; return;
       }
       tbody.innerHTML = data.map(s => `
@@ -1067,7 +1067,4 @@ ${(s.status || 'pending').toUpperCase()}
 </body>
 
 </html>
-
-
-
 
