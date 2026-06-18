@@ -1035,12 +1035,9 @@
       ? 'http://localhost:5000/api'
       : 'https://bookings.moktransports.com/api';
 
-    // ── AUTH GUARD ──────────────────────────────────────────────
-    const session     = JSON.parse(localStorage.getItem('mokSession') || 'null');
-    const sessionRole = session?.role || null;
-    if (!session || sessionRole !== 'client') {
-      window.location.href = 'login.html';
-    }
+    // ── SESSION — no redirect, just read and use ────────────────
+    const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+    if (!session) { window.location.href = 'login.html'; }
 
     let currentMode = 'export';
     let lineItemId = 0;
