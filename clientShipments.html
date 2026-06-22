@@ -736,8 +736,16 @@
         allBookings = rawList.map(b => ({
           ...b,
           waybillNo:   b.waybill_no    || b.waybillNo    || '',
-          fromCompany: b.consignor_name || b.fromCompany  || b.from_company || '',
-          toCompany:   b.consignee_name || b.toCompany    || b.to_company   || '',
+          fromCompany:   b.consignor_name    || b.fromCompany    || '',
+          fromAddress:   b.consignor_address  || b.fromAddress    || '',
+          fromContact:   b.consignor_contact  || b.fromContact    || '',
+          fromEmail:     b.consignor_email    || b.fromEmail      || '',
+          fromTown:      b.consignor_town     || b.fromTown       || '',
+          toCompany:     b.consignee_name    || b.toCompany      || '',
+          toAddress:     b.consignee_address  || b.toAddress      || '',
+          toContact:     b.consignee_contact  || b.toContact      || '',
+          toEmail:       b.consignee_email    || b.toEmail        || '',
+          toTown:        b.consignee_town     || b.toTown         || '',
           // Map short code to full name; fall back to raw value if already full name
           service:     SERVICE_MAP[b.service] || b.service || '',
           status:      b.status        || 'Booked',
@@ -826,7 +834,7 @@
       </td>
       <td><span class="pill pill-service">${b.service || '—'}</span></td>
       <td>${b.shipmentDate || b.createdAt?.slice(0, 10) || '—'}</td>
-      <td>${b.chargeWeight || '—'} kg</td>
+      <td>${b.weight ? parseFloat(b.weight).toFixed(2) + ' kg' : '—'}</td>
       <td><span class="pill ${sc}">${b.status || 'Booked'}</span></td>
     </tr>`;
       }).join('');
@@ -873,11 +881,9 @@
     </div>
 
     <div class="detail-section">
-      <div class="detail-section-title">Weight & Cost</div>
-      <div class="detail-row"><span class="detail-key">Actual Weight</span><span class="detail-val">${b.actualWeight || '—'} kg</span></div>
-      <div class="detail-row"><span class="detail-key">Volumetric</span><span class="detail-val">${b.volWeight || '—'} kg</span></div>
-      <div class="detail-row"><span class="detail-key">Chargeable</span><span class="detail-val">${b.chargeWeight || '—'} kg</span></div>
-      <div class="detail-row"><span class="detail-key">Total (excl. VAT)</span><span class="detail-val" style="color:var(--green);font-size:16px">R ${parseFloat(b.price || 0).toFixed(2)}</span></div>
+      <div class="detail-section-title">Weight</div>
+      <div class="detail-row"><span class="detail-key">Actual Weight</span><span class="detail-val">${b.weight ? parseFloat(b.weight).toFixed(2) + ' kg' : '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Volumetric Weight</span><span class="detail-val">${b.volumetric_weight ? parseFloat(b.volumetric_weight).toFixed(2) + ' kg' : '—'}</span></div>
     </div>
 
     <div class="detail-section">
@@ -939,19 +945,6 @@
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

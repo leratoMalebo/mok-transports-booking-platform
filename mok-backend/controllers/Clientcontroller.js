@@ -2,6 +2,7 @@
 // mok-backend/controllers/clientController.js
 // Client-facing data endpoints — waybills, shipment stats
 // =============================================================
+
 const db = require('../db');
 
 // ---------------------------------------------------------------
@@ -26,14 +27,20 @@ exports.getClientWaybills = async (req, res) => {
         b.service,
         b.consignor_name,
         b.consignor_address,
+        b.consignor_contact,
+        b.consignor_email,
+        b.consignor_town,
         b.consignee_name,
         b.consignee_address,
+        b.consignee_contact,
+        b.consignee_email,
+        b.consignee_town,
         b.booking_date,
         b.price,
         b.zone_label
       FROM waybills w
       LEFT JOIN bookings b ON b.id = w.booking_id
-      WHERE b.user_id = $1
+      WHERE b.client_id = $1
     `;
 
     const params = [userId];
@@ -82,7 +89,7 @@ exports.getClientStats = async (req, res) => {
         COUNT(*) FILTER (WHERE LOWER(w.status) IN ('booked','sent_to_jkj','in_transit')) AS in_transit
       FROM waybills w
       LEFT JOIN bookings b ON b.id = w.booking_id
-      WHERE b.user_id = $1
+      WHERE b.client_id = $1
     `, [userId]);
 
     res.json(result.rows[0]);
@@ -91,6 +98,7 @@ exports.getClientStats = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stats.' });
   }
 };
+
 
 
 

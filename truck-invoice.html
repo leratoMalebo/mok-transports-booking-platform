@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Mok Transports | Truck Invoice</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root{
+      --navy:#0d2137;--blue:#1565c0;--green:#2e7d32;
+      --orange:#f57c00;--red:#c62828;
+      --bg:#f0f4f8;--card:#fff;--border:#dce3ec;
+      --text:#1a2535;--muted:#607d8b;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    /* TOPBAR */
+    .topbar{background:var(--navy);border-bottom:3px solid var(--orange);height:64px;
+      display:flex;align-items:center;justify-content:space-between;padding:0 28px;
+      position:sticky;top:0;z-index:50;box-shadow:0 4px 18px rgba(13,33,55,.2)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{height:36px;background:#fff;padding:3px 5px;border-radius:5px}
+    .brand-name{font-family:'Barlow Condensed',sans-serif;color:#fff;font-size:17px;font-weight:800}
+    .brand-sub{font-size:10px;color:#90a4ae;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+    .topbar-right{display:flex;gap:8px;align-items:center}
+    .tbtn{height:34px;padding:0 14px;border-radius:5px;border:none;cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+      letter-spacing:1px;text-transform:uppercase;text-decoration:none;
+      display:inline-flex;align-items:center;gap:6px;transition:.18s}
+    .tbtn-ghost{background:rgba(255,255,255,.08);color:#90a4ae;border:1px solid rgba(255,255,255,.1)}
+    .tbtn-ghost:hover{background:rgba(255,255,255,.15);color:#fff}
+    .tbtn-orange{background:var(--orange);color:#fff}.tbtn-orange:hover{background:#fb8c00}
+    .tbtn-green{background:var(--green);color:#fff}.tbtn-green:hover{background:#388e3c}
+    .tbtn-red{background:var(--red);color:#fff}.tbtn-red:hover{background:#d32f2f}
+    .tbtn-navy{background:var(--navy2, #132d47);color:#fff}
+
+    /* PAGE */
+    .page{max-width:900px;margin:28px auto;padding:0 20px 80px}
+
+    /* INVOICE CARD */
+    .inv-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+      overflow:hidden;box-shadow:0 6px 28px rgba(13,33,55,.08)}
+
+    /* INVOICE HEADER */
+    .inv-head{background:var(--navy);padding:28px 32px;
+      display:flex;justify-content:space-between;align-items:flex-start}
+    .inv-co-name{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:#fff}
+    .inv-co-sub{font-size:11px;color:#90a4ae;margin-top:6px;line-height:1.8}
+    .inv-title-right{text-align:right}
+    .inv-title{font-family:'Barlow Condensed',sans-serif;font-size:38px;
+      font-weight:800;color:#fff;letter-spacing:3px;line-height:1}
+    .inv-type-badge{display:inline-block;background:var(--orange);color:#fff;
+      font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;
+      letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;
+      border-radius:4px;margin-top:8px}
+    .inv-no-display{font-family:'Barlow Condensed',sans-serif;font-size:18px;
+      font-weight:800;color:#90a4ae;margin-top:6px;letter-spacing:1px}
+
+    /* META ROW */
+    .inv-meta{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+    .inv-meta-cell{padding:14px 20px;border-right:1px solid var(--border)}
+    .inv-meta-cell:last-child{border-right:none}
+    .imc-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+      letter-spacing:.8px;margin-bottom:4px}
+    .imc-value{font-size:15px;font-weight:700;color:var(--navy)}
+
+    /* BILL TO / FROM */
+    .inv-parties{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+    .inv-party{padding:18px 20px;border-right:1px solid var(--border)}
+    .inv-party:last-child{border-right:none}
+    .party-label{font-size:10px;font-weight:700;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+    .party-name{font-size:17px;font-weight:700;color:var(--navy)}
+    .party-sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.7}
+
+    /* SHIPMENT DETAILS BAND */
+    .inv-details{display:grid;grid-template-columns:repeat(4,1fr);
+      background:#f8fafc;border-bottom:2px solid var(--border)}
+    .inv-det-cell{padding:12px 18px;border-right:1px solid var(--border)}
+    .inv-det-cell:last-child{border-right:none}
+    .idc-label{font-size:10px;font-weight:700;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+    .idc-value{font-size:13px;font-weight:600;color:var(--navy)}
+
+    /* LINE ITEMS TABLE */
+    .inv-table-wrap{padding:0}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{background:#f0f4f8;color:var(--navy);padding:11px 20px;
+      font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;
+      letter-spacing:1px;text-transform:uppercase;text-align:left;
+      border-bottom:2px solid var(--border)}
+    thead th:last-child{text-align:right}
+    tbody td{padding:16px 20px;border-bottom:1px solid var(--border);vertical-align:middle}
+    tbody tr:last-child td{border-bottom:none}
+    .desc-main{font-size:14px;font-weight:600;color:var(--navy)}
+    .desc-sub{font-size:11px;color:var(--muted);margin-top:3px}
+    .text-right{text-align:right}
+    .amount-cell{font-family:'Barlow Condensed',sans-serif;font-size:17px;
+      font-weight:800;color:var(--navy)}
+
+    /* TOTALS */
+    .inv-totals{display:flex;justify-content:flex-end;
+      padding:20px;border-top:1px solid var(--border);background:#fafbfc}
+    .totals-table{min-width:300px}
+    .total-row{display:flex;justify-content:space-between;align-items:center;
+      padding:6px 0;font-size:14px}
+    .total-row .tl{color:var(--muted);font-weight:500}
+    .total-row .tv{font-weight:700;color:var(--navy)}
+    .total-divider{border:none;border-top:2px solid var(--border);margin:8px 0}
+    .grand-total-row{display:flex;justify-content:space-between;align-items:center;
+      padding:10px 16px;background:var(--navy);border-radius:8px;margin-top:8px}
+    .gtl{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;
+      color:#90a4ae;letter-spacing:1px;text-transform:uppercase}
+    .gtv{font-family:'Barlow Condensed',sans-serif;font-size:24px;
+      font-weight:800;color:#fff;letter-spacing:1px}
+
+    /* STATUS BADGE */
+    .status-badge{display:inline-flex;align-items:center;gap:6px;
+      padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700}
+    .sb-unpaid{background:#fff3e0;color:#e65100}
+    .sb-paid{background:#e8f5e9;color:var(--green)}
+
+    /* BANKING */
+    .inv-banking{display:grid;grid-template-columns:1fr 1fr;
+      border-top:2px solid var(--border)}
+    .ib-cell{padding:20px}
+    .ib-cell:first-child{border-right:1px solid var(--border)}
+    .ib-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;
+      color:var(--navy);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+    .ib-body{font-size:12px;color:var(--muted);line-height:2}
+
+    /* FOOTER */
+    .inv-footer{background:var(--navy);padding:10px 20px;text-align:center;
+      font-size:11px;color:#90a4ae;letter-spacing:.4px}
+
+    /* LOADING */
+    .loading{padding:80px;text-align:center;color:var(--muted)}
+    .loading-icon{font-size:36px;margin-bottom:12px}
+
+    /* MARK PAID BANNER */
+    .mark-paid-bar{background:#e8f5e9;border-bottom:1px solid #a5d6a7;
+      padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+    .mpb-text{font-size:13px;color:var(--green);font-weight:600}
+    .mpb-btn{height:32px;padding:0 16px;background:var(--green);color:#fff;border:none;
+      border-radius:5px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+      font-size:12px;font-weight:800;letter-spacing:.8px}
+
+    @media print{
+      .topbar,.topbar-right,.tbtn,.mark-paid-bar{display:none!important}
+      body{background:#fff}
+      .page{margin:0;padding:0}
+      .inv-card{box-shadow:none;border:none}
+    }
+    @media(max-width:640px){
+      .inv-head{flex-direction:column;gap:16px}
+      .inv-title-right{text-align:left}
+      .inv-parties{grid-template-columns:1fr}
+      .inv-details{grid-template-columns:1fr 1fr}
+      .inv-meta{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/images/mok-logo.png" alt="Mok Transports">
+    <div>
+      <div class="brand-name">Mok Transports Services (Pty) Ltd</div>
+      <div class="brand-sub">Truck Invoice</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <a class="tbtn tbtn-ghost" href="truck-bookings.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Truck Bookings
+    </a>
+    <a class="tbtn tbtn-ghost" href="dashboard.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <button class="tbtn tbtn-orange" onclick="window.print()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print
+    </button>
+    <button class="tbtn tbtn-red" onclick="downloadPDF()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download PDF
+    </button>
+  </div>
+</header>
+
+<div class="page">
+  <div id="invoiceContainer">
+    <div class="loading">
+      <div class="loading-icon">📄</div>
+      <div>Loading invoice…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://bookings.moktransports.com/api';
+const session = JSON.parse(localStorage.getItem('mokSession')||'null');
+if (!session || !['staff','admin'].includes(session?.role)) {
+  window.location.href = 'login.html';
+}
+
+let invoiceData = null;
+
+// ── INIT ──────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const params      = new URLSearchParams(window.location.search);
+  const invoiceNo   = params.get('invoice');
+  const bookingRef  = params.get('booking');
+  const createMode  = params.get('create') === 'true';
+
+  if (createMode && bookingRef) {
+    await createFromBooking(bookingRef);
+  } else if (invoiceNo) {
+    await loadInvoice(invoiceNo);
+  } else if (bookingRef) {
+    // Try to load existing invoice for this booking
+    await loadInvoiceByBooking(bookingRef);
+  } else {
+    document.getElementById('invoiceContainer').innerHTML =
+      '<div class="loading"><div class="loading-icon">⚠️</div><div>No invoice reference provided.</div></div>';
+  }
+});
+
+// ── CREATE FROM BOOKING ───────────────────────
+async function createFromBooking(ref) {
+  try {
+    // First check if invoice already exists
+    const existRes = await fetch(`${API}/truck-invoices/booking/${ref}`);
+    if (existRes.ok) {
+      const existing = await existRes.json();
+      invoiceData = existing;
+      renderInvoice(existing);
+      return;
+    }
+
+    // Fetch the booking
+    const bRes = await fetch(`${API}/truck-bookings/${ref}`);
+    if (!bRes.ok) throw new Error('Booking not found');
+    const b = await bRes.json();
+
+    // Create the invoice
+    const payload = {
+      booking_ref:   b.booking_ref,
+      client_name:   b.client_name,
+      client_email:  b.client_email || '',
+      client_phone:  b.client_phone || '',
+      route:         b.route,
+      vehicle:       b.vehicle,
+      delivery_type: b.delivery_type,
+      commodity:     b.commodity,
+      shipment_date: b.shipment_date,
+      subtotal:      Number(b.price||0) + Number(b.toll_cost||0),
+      invoice_date:  new Date().toISOString().split('T')[0]
+    };
+
+    const res  = await fetch(`${API}/truck-invoices`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    if (res.status === 409) {
+      const err = await res.json();
+      // Already invoiced — load it
+      await loadInvoice(err.invoice_no);
+      return;
+    }
+    if (!res.ok) throw new Error('Failed to create invoice');
+
+    const inv = await res.json();
+    // Attach booking data for display
+    inv.pickup = b.pickup; inv.delivery = b.delivery;
+    inv.distance_km = b.distance_km; inv.toll_cost = b.toll_cost;
+    inv.processed_by = b.processed_by; inv.delivery_note_no = b.delivery_note_no;
+    invoiceData = inv;
+    renderInvoice(inv);
+
+  } catch(err) {
+    console.error(err);
+    document.getElementById('invoiceContainer').innerHTML =
+      `<div class="loading"><div class="loading-icon">⚠️</div><div>${err.message}</div></div>`;
+  }
+}
+
+async function loadInvoice(invoiceNo) {
+  try {
+    const res = await fetch(`${API}/truck-invoices/${encodeURIComponent(invoiceNo)}`);
+    if (!res.ok) throw new Error('Invoice not found');
+    invoiceData = await res.json();
+    renderInvoice(invoiceData);
+  } catch(err) {
+    document.getElementById('invoiceContainer').innerHTML =
+      `<div class="loading"><div class="loading-icon">⚠️</div><div>${err.message}</div></div>`;
+  }
+}
+
+async function loadInvoiceByBooking(ref) {
+  try {
+    const res = await fetch(`${API}/truck-invoices/booking/${ref}`);
+    if (!res.ok) throw new Error('No invoice found for this booking');
+    invoiceData = await res.json();
+    renderInvoice(invoiceData);
+  } catch(err) {
+    document.getElementById('invoiceContainer').innerHTML =
+      `<div class="loading"><div class="loading-icon">⚠️</div>
+       <div>No invoice found. <a href="truck-bookings.html" style="color:var(--blue)">Go back</a></div></div>`;
+  }
+}
+
+// ── RENDER ────────────────────────────────────
+function fmt(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
+}
+function money(n) {
+  return 'R\u00a0' + Number(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+}
+
+function renderInvoice(inv) {
+  const isPaid   = inv.status === 'paid';
+  const shipDate = fmt(inv.shipment_date);
+  const invDate  = fmt(inv.invoice_date || inv.created_at);
+  const dueDate  = (() => {
+    const d = new Date(inv.invoice_date || inv.created_at);
+    d.setDate(d.getDate()+30);
+    return fmt(d);
+  })();
+
+  document.getElementById('invoiceContainer').innerHTML = `
+
+    ${!isPaid ? `<div class="mark-paid-bar">
+      <span class="mpb-text">⚠ Outstanding — R ${Number(inv.total).toFixed(2)} due by ${dueDate}</span>
+      <button class="mpb-btn" onclick="markPaid('${inv.invoice_no}')">Mark as Paid</button>
+    </div>` : ''}
+
+    <div class="inv-card" id="printArea">
+
+      <!-- HEADER -->
+      <div class="inv-head">
+        <div>
+          <div class="inv-co-name">Mok Transports Services (Pty) Ltd</div>
+          <div class="inv-co-sub">
+            12 Jupiter Road, Crown Mines, Johannesburg, South Africa<br>
+            Tel: 011 839 6496 &nbsp;|&nbsp; Cell: 084 902 2258<br>
+            accounts@moktransports.com &nbsp;|&nbsp; VAT No: 4400269363
+          </div>
+        </div>
+        <div class="inv-title-right">
+          <div class="inv-title">TAX<br>INVOICE</div>
+          <div class="inv-type-badge">🚛 Truck Freight</div>
+          <div class="inv-no-display">${inv.invoice_no}</div>
+        </div>
+      </div>
+
+      <!-- META -->
+      <div class="inv-meta">
+        <div class="inv-meta-cell">
+          <div class="imc-label">Invoice Date</div>
+          <div class="imc-value">${invDate}</div>
+        </div>
+        <div class="inv-meta-cell">
+          <div class="imc-label">Due Date</div>
+          <div class="imc-value">${dueDate}</div>
+        </div>
+        <div class="inv-meta-cell">
+          <div class="imc-label">Status</div>
+          <div class="imc-value">
+            <span class="status-badge ${isPaid?'sb-paid':'sb-unpaid'}">
+              ${isPaid?'✓ Paid':'Unpaid'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BILL TO / FROM -->
+      <div class="inv-parties">
+        <div class="inv-party">
+          <div class="party-label">From</div>
+          <div class="party-name">Mok Transports Services (Pty) Ltd</div>
+          <div class="party-sub">
+            Reg No: 2015/162275/07<br>
+            ${inv.processed_by ? 'Processed by: '+inv.processed_by : ''}
+          </div>
+        </div>
+        <div class="inv-party">
+          <div class="party-label">Invoice To</div>
+          <div class="party-name">${inv.client_name||'—'}</div>
+          <div class="party-sub">
+            ${inv.client_phone||''}<br>
+            ${inv.client_email||''}
+          </div>
+        </div>
+      </div>
+
+      <!-- SHIPMENT DETAILS BAND -->
+      <div class="inv-details">
+        <div class="inv-det-cell">
+          <div class="idc-label">Booking Ref</div>
+          <div class="idc-value">${inv.booking_ref}</div>
+        </div>
+        <div class="inv-det-cell">
+          <div class="idc-label">Vehicle</div>
+          <div class="idc-value">${inv.vehicle||'—'}</div>
+        </div>
+        <div class="inv-det-cell">
+          <div class="idc-label">Shipment Date</div>
+          <div class="idc-value">${shipDate}</div>
+        </div>
+        <div class="inv-det-cell">
+          <div class="idc-label">Delivery Note</div>
+          <div class="idc-value">${inv.delivery_note_no||'—'}</div>
+        </div>
+      </div>
+
+      <!-- LINE ITEMS -->
+      <div class="inv-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50%">Description</th>
+              <th>Route</th>
+              <th class="text-right">Amount (Excl. VAT)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="desc-main">${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent / Dedicated':'Standard Delivery'}</div>
+                <div class="desc-sub">${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}</div>
+              </td>
+              <td style="font-size:12px;color:var(--muted);max-width:200px;word-break:break-word">
+                ${inv.route||'—'}
+              </td>
+              <td class="text-right">
+                <div class="amount-cell">${money(inv.subtotal)}</div>
+              </td>
+            </tr>
+            ${Number(inv.toll_cost||0) > 0 ? `
+            <tr>
+              <td>
+                <div class="desc-main">Toll Fees</div>
+                <div class="desc-sub">Estimated toll plaza charges along route</div>
+              </td>
+              <td></td>
+              <td class="text-right">
+                <div class="amount-cell">${money(inv.toll_cost)}</div>
+              </td>
+            </tr>` : ''}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TOTALS -->
+      <div class="inv-totals">
+        <div class="totals-table">
+          <div class="total-row">
+            <span class="tl">Subtotal (Excl. VAT)</span>
+            <span class="tv">${money(inv.subtotal)}</span>
+          </div>
+          <div class="total-row">
+            <span class="tl">VAT (15%)</span>
+            <span class="tv">${money(inv.vat_amount)}</span>
+          </div>
+          <hr class="total-divider">
+          <div class="grand-total-row">
+            <span class="gtl">Total Incl. VAT</span>
+            <span class="gtv">${money(inv.total)}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BANKING + TERMS -->
+      <div class="inv-banking">
+        <div class="ib-cell">
+          <div class="ib-title">Banking Details</div>
+          <div class="ib-body">
+            <strong>Bank:</strong> First National Bank (FNB)<br>
+            <strong>Account Name:</strong> Mok Transports Services (Pty) Ltd<br>
+            <strong>Account No:</strong> 62537955116<br>
+            <strong>Branch Code:</strong> 254205 &nbsp;|&nbsp; <strong>Type:</strong> Gold Business Account<br>
+            <strong>Reference:</strong> ${inv.invoice_no}
+          </div>
+        </div>
+        <div class="ib-cell">
+          <div class="ib-title">Terms &amp; Conditions</div>
+          <div class="ib-body">
+            Payment due within 30 days of invoice date.<br>
+            Interest charged on overdue accounts.<br>
+            Use invoice number as payment reference.<br>
+            Queries within 7 days of receipt.
+          </div>
+        </div>
+      </div>
+
+      <div class="inv-footer">
+        Thank you for choosing Mok Transports Services (Pty) Ltd &nbsp;|&nbsp;
+        accounts@moktransports.com &nbsp;|&nbsp; VAT No: 4400269363
+      </div>
+
+    </div><!-- /inv-card -->
+  `;
+}
+
+// ── MARK PAID ─────────────────────────────────
+async function markPaid(invoiceNo) {
+  if (!confirm(`Mark ${invoiceNo} as paid?`)) return;
+  try {
+    const res = await fetch(`${API}/truck-invoices/${invoiceNo}/mark-paid`, {method:'PATCH'});
+    if (!res.ok) throw new Error();
+    invoiceData.status = 'paid';
+    renderInvoice(invoiceData);
+  } catch { alert('Failed to mark as paid.'); }
+}
+
+// ── PDF DOWNLOAD ──────────────────────────────
+function downloadPDF() {
+  if (!invoiceData) { alert('Invoice not loaded yet.'); return; }
+  const inv = invoiceData;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  const W=210, M=14, pad=2.5;
+
+  const logo = new Image();
+  logo.crossOrigin='anonymous'; logo.src='/assets/images/mok-logo.png';
+
+  const render = () => {
+    const fmt2 = d => d ? new Date(d).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    const due  = (() => { const d=new Date(inv.invoice_date||inv.created_at); d.setDate(d.getDate()+30); return fmt2(d); })();
+
+    // Header band
+    doc.setFillColor(13,33,55); doc.rect(0,0,W,32,'F');
+    try { doc.addImage(logo,'PNG',M,6,32,20); } catch(_){}
+    doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(255,255,255);
+    doc.text('MOK TRANSPORT SERVICES', M+38, 14);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(200,210,222);
+    doc.text('12 Jupiter Road, Crown Mines, Johannesburg, 2091', M+38, 20);
+    doc.text('011 839 6496 | 084 902 2258 | accounts@moktransports.com | VAT No: 4400269363', M+38, 25);
+
+    // TAX INVOICE box
+    doc.setFillColor(245,124,0); doc.rect(W-M-42,6,42,20,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+    doc.text('TAX INVOICE', W-M-21, 12, {align:'center'});
+    doc.setFontSize(9); doc.text(inv.invoice_no, W-M-21, 19, {align:'center'});
+    doc.setFontSize(7); doc.text('🚛 TRUCK FREIGHT', W-M-21, 25, {align:'center'});
+
+    let y = 40;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+    doc.text(`Invoice Date: ${fmt2(inv.invoice_date||inv.created_at)}`, M, y);
+    doc.text(`Due Date: ${due}`, M+60, y);
+    doc.text(`Status: ${(inv.status||'unpaid').toUpperCase()}`, M+120, y);
+    y+=8;
+
+    // FROM / TO boxes
+    const bw=(W-2*M)/2-2;
+    doc.setFillColor(245,247,252); doc.roundedRect(M,y,bw,38,2,2,'F');
+    doc.setFillColor(245,247,252); doc.roundedRect(M+bw+4,y,bw,38,2,2,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+    doc.text('FROM:',M+3,y+7); doc.text('INVOICE TO:',M+bw+7,y+7);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
+    doc.text('Mok Transports Services (Pty) Ltd',M+3,y+14);
+    doc.text('Reg No: 2015/162275/07',M+3,y+20);
+    if(inv.processed_by) doc.text(`Processed by: ${inv.processed_by}`,M+3,y+26);
+    const cnLines=doc.splitTextToSize(inv.client_name||'—',bw-8);
+    doc.text(cnLines,M+bw+7,y+14);
+    if(inv.client_phone) doc.text(`Tel: ${inv.client_phone}`,M+bw+7,y+20);
+    if(inv.client_email) doc.text(inv.client_email,M+bw+7,y+26);
+    y+=44;
+
+    // Shipment details band
+    doc.setFillColor(240,244,248); doc.rect(M,y,W-2*M,10,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(10,42,67);
+    doc.text('BOOKING REF', M+3,y+7);
+    doc.text('VEHICLE',M+50,y+7);
+    doc.text('SHIPMENT DATE',M+100,y+7);
+    doc.text('DELIVERY NOTE',M+150,y+7);
+    y+=10;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+    doc.text(inv.booking_ref||'—',M+3,y+7);
+    doc.text(inv.vehicle||'—',M+50,y+7);
+    doc.text(fmt2(inv.shipment_date),M+100,y+7);
+    doc.text(inv.delivery_note_no||'—',M+150,y+7);
+    y+=14;
+
+    // Line items header
+    doc.setFillColor(230,235,245); doc.rect(M,y,W-2*M,8,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(10,42,67);
+    doc.text('DESCRIPTION',M+pad,y+5.5);
+    doc.text('ROUTE',M+80,y+5.5);
+    doc.text('AMOUNT (EXCL. VAT)',W-M-pad,y+5.5,{align:'right'});
+    y+=8;
+
+    // Line 1 — Freight
+    const desc1 = `${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent/Dedicated':'Standard Delivery'}`;
+    const sub1  = `${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}`;
+    const d1Lines = doc.splitTextToSize(desc1,60); const s1Lines = doc.splitTextToSize(sub1,60);
+    const rLines  = doc.splitTextToSize(inv.route||'—',50);
+    const rh1 = Math.max(d1Lines.length,rLines.length)*5+8;
+    doc.setFillColor(252,253,255); doc.rect(M,y-1,W-2*M,rh1,'F');
+    doc.setDrawColor(220,226,234); doc.setLineWidth(0.25);
+    doc.line(M+75,y-1,M+75,y-1+rh1); doc.line(W-M-35,y-1,W-M-35,y-1+rh1);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(13,33,55);
+    doc.text(d1Lines,M+pad,y+4);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(96,125,139);
+    doc.text(s1Lines,M+pad,y+4+d1Lines.length*5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(40,40,40);
+    doc.text(rLines,M+77,y+4);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(13,33,55);
+    doc.text(`R ${Number(inv.subtotal||0).toFixed(2)}`,W-M-pad,y+4,{align:'right'});
+    y+=rh1+2;
+
+    // Toll line if applicable
+    if(Number(inv.toll_cost||0)>0){
+      doc.setFillColor(252,253,255); doc.rect(M,y-1,W-2*M,12,'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
+      doc.text('Toll Fees',M+pad,y+5);
+      doc.setFontSize(7.5); doc.setTextColor(96,125,139);
+      doc.text('Estimated toll plaza charges along route',M+pad,y+10);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(13,33,55);
+      doc.text(`R ${Number(inv.toll_cost||0).toFixed(2)}`,W-M-pad,y+5,{align:'right'});
+      y+=14;
+    }
+
+    // Totals
+    doc.setDrawColor(210,218,228); doc.setLineWidth(0.4); doc.line(M,y,W-M,y); y+=6;
+    const totX=128;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(70,70,70);
+    doc.text('Subtotal (Excl. VAT):',totX,y);
+    doc.text(`R ${Number(inv.subtotal||0).toFixed(2)}`,W-M-pad,y,{align:'right'}); y+=7;
+    doc.text('VAT (15%):',totX,y);
+    doc.text(`R ${Number(inv.vat_amount||0).toFixed(2)}`,W-M-pad,y,{align:'right'}); y+=7;
+    doc.setDrawColor(10,42,67); doc.setLineWidth(0.6); doc.line(totX,y,W-M,y); y+=6;
+    doc.setFillColor(13,33,55); doc.roundedRect(totX,y,W-M-totX,12,2,2,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(255,255,255);
+    doc.text('TOTAL INCL. VAT:',totX+3,y+8);
+    doc.text(`R ${Number(inv.total||0).toFixed(2)}`,W-M-pad,y+8,{align:'right'}); y+=20;
+
+    // Banking + Terms
+    doc.setDrawColor(210,215,225); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=7;
+    const bkX=(W-2*M)/2+M+4;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+    doc.text('BANKING DETAILS:',M,y); doc.text('TERMS & CONDITIONS:',bkX,y); y+=6;
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(80,80,80);
+    const banking=['Bank: First National Bank (FNB)','Account Name: Mok Transports Services (Pty) Ltd',
+      'Account No: 62537955116','Branch Code: 254205 | Type: Gold Business Account',
+      `Reference: ${inv.invoice_no}`];
+    const terms=['Payment due within 30 days of invoice date.',
+      'Interest charged on overdue accounts.',
+      'Use invoice number as payment reference.','Queries within 7 days of receipt.'];
+    banking.forEach((l,i)=>doc.text(l,M,y+i*5));
+    terms.forEach((l,i)=>doc.text(l,bkX,y+i*5));
+    y+=30;
+
+    // Footer
+    doc.setFillColor(13,33,55); doc.rect(0,281,W,16,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(255,255,255);
+    doc.text('Thank you for choosing Mok Transports Services (Pty) Ltd',W/2,291,{align:'center'});
+
+    doc.save(`${inv.invoice_no}.pdf`);
+  };
+
+  let done=false;
+  const go=()=>{if(done)return;done=true;render();};
+  logo.onload=go; logo.onerror=go;
+  if(logo.complete) go();
+}
+</script>
+</body>
+</html>
+
+
