@@ -28,12 +28,12 @@ exports.getClientWaybills = async (req, res) => {
         b.consignor_name,
         b.consignor_address,
         b.consignor_contact,
-        b.consignor_email,
+       
         b.consignor_town,
         b.consignee_name,
         b.consignee_address,
         b.consignee_contact,
-        b.consignee_email,
+       
         b.consignee_town,
         b.booking_date,
         b.price,
@@ -98,6 +98,10 @@ exports.getClientStats = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stats.' });
   }
 };
+
+
+
+
 
 
 
