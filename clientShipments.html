@@ -721,19 +721,34 @@
         // FIX: this endpoint returns a plain array directly, not { success, shipments }
         const rawList = Array.isArray(data) ? data : (data.shipments || data.waybills || []);
 
-        // Normalize DB snake_case columns → camelCase used by renderTable/applyFilters
+        // Service code → full name map (matches what clientDashboard shows)
+        const SERVICE_MAP = {
+          'SDX': 'SameDay Express Air',
+          'ONX': 'Overnight Express (ONX)',
+          'NDX': 'NextDay Express',
+          'ECO': 'Economy Service',
+          'N':   'Domestic Express',
+          'P':   'Express Worldwide'
+        };
+
+        // Normalize DB snake_case → camelCase expected by renderTable/applyFilters
+        // IMPORTANT: spread ...b FIRST so our mapped fields override the raw ones
         allBookings = rawList.map(b => ({
-          waybillNo:   b.waybill_no   || b.waybillNo   || '',
-          fromCompany: b.consignor_name || b.fromCompany || b.from_company || '',
-          toCompany:   b.consignee_name || b.toCompany   || b.to_company   || '',
-          service:     b.service      || '',
-          status:      b.status       || 'Booked',
-          weight:      b.weight       || b.chargeWeight || 0,
-          date:        b.booking_date || b.created_at   || b.date || '',
-          jkjRef:      b.jkj_reference || '',
-          price:       b.price        || 0,
-          // Keep original raw fields too, in case other parts of the page need them
-          ...b
+          ...b,
+          waybillNo:   b.waybill_no    || b.waybillNo    || '',
+          fromCompany: b.consignor_name || b.fromCompany  || b.from_company || '',
+          toCompany:   b.consignee_name || b.toCompany    || b.to_company   || '',
+          // Map short code to full name; fall back to raw value if already full name
+          service:     SERVICE_MAP[b.service] || b.service || '',
+          status:      b.status        || 'Booked',
+          weight:      b.weight        || b.chargeWeight  || 0,
+          // booking_date preferred, fall back to waybill created_at
+          date:         b.booking_date  || b.created_at    || '',
+          // renderTable uses shipmentDate and createdAt — map both
+          shipmentDate: b.booking_date  ? new Date(b.booking_date).toLocaleDateString('en-ZA') : (b.created_at ? new Date(b.created_at).toLocaleDateString('en-ZA') : '—'),
+          createdAt:    b.created_at    || b.booking_date  || '',
+          jkjRef:       b.jkj_reference || '',
+          price:        b.price         || 0
         }));
 
         console.log(
@@ -924,6 +939,19 @@
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

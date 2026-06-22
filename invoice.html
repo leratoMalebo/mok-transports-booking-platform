@@ -1375,7 +1375,7 @@
       const match = billTo.match(/[\w.-]+@[\w.-]+\.\w+/);
       const email = match ? match[0] : '';
       const sub = encodeURIComponent(`Tax Invoice ${invNo} – Mok Transports Services (Pty) Ltd`);
-      const body = encodeURIComponent(`Dear Client,\n\nPlease find attached Tax Invoice ${invNo} for R${total}.\n\nKindly pay within 30 days.\n\nRegards,\nMok Transports Services (Pty) Ltd\nTel: 011 839 6496`);
+      const body = encodeURIComponent(`Dear Client,\n\nPlease find attached Tax Invoice ${invNo} for R${total}.\n\nKindly pay within 30 days.\n\nRegards,\nMok Transports Services (Pty) Ltd\nTel: 011 830 0042`);
       window.location.href = `mailto:${email}?subject=${sub}&body=${body}`;
     }
 
