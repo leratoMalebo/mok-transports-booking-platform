@@ -701,18 +701,40 @@
           return;
         }
 
+        const clientId = session.id || session.user?.id;
+
+        // FIX: correct endpoint — matches the working pattern used on
+        // clientDashboard.html: /api/client/:userId/waybills
         const response = await fetch(
-          `/api/client/shipments/${session.id}`
+          `https://bookings.moktransports.com/api/client/${clientId}/waybills`
         );
 
-        const data = await response.json();
-
-        if (!data.success) {
-          console.error("Failed to load shipments");
+        if (!response.ok) {
+          console.error("Failed to load shipments — status:", response.status);
+          allBookings = [];
+          applyFilters();
           return;
         }
 
-        allBookings = data.shipments || [];
+        const data = await response.json();
+
+        // FIX: this endpoint returns a plain array directly, not { success, shipments }
+        const rawList = Array.isArray(data) ? data : (data.shipments || data.waybills || []);
+
+        // Normalize DB snake_case columns → camelCase used by renderTable/applyFilters
+        allBookings = rawList.map(b => ({
+          waybillNo:   b.waybill_no   || b.waybillNo   || '',
+          fromCompany: b.consignor_name || b.fromCompany || b.from_company || '',
+          toCompany:   b.consignee_name || b.toCompany   || b.to_company   || '',
+          service:     b.service      || '',
+          status:      b.status       || 'Booked',
+          weight:      b.weight       || b.chargeWeight || 0,
+          date:        b.booking_date || b.created_at   || b.date || '',
+          jkjRef:      b.jkj_reference || '',
+          price:       b.price        || 0,
+          // Keep original raw fields too, in case other parts of the page need them
+          ...b
+        }));
 
         console.log(
           "CLIENT SHIPMENTS:",
@@ -902,5 +924,6 @@
 </body>
 
 </html>
+
 
 
