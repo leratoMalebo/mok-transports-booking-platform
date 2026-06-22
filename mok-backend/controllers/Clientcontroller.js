@@ -40,7 +40,7 @@ exports.getClientWaybills = async (req, res) => {
         b.zone_label
       FROM waybills w
       LEFT JOIN bookings b ON b.id = w.booking_id
-      WHERE b.client_id = $1
+      WHERE b.user_id = $1
     `;
 
     const params = [userId];
