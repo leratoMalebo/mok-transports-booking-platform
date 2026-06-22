@@ -828,7 +828,8 @@ function openInvoiceFlow(ref) {
 
   localStorage.setItem('invoiceFromBooking', JSON.stringify(payload));
   localStorage.setItem('truckBookingRef', ref);
-  window.location.href = 'truck-invoice.html';
+  //window.location.href = 'truck-invoice.html';
+  window.location.href = `truck-invoice.html?booking=${ref}&create=true`;
 }
 
 // ── TOAST ─────────────────────────────────────
