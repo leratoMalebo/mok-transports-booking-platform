@@ -429,6 +429,46 @@ function renderInvoice(inv) {
         <div style="font-size:13px;font-weight:600;color:var(--navy)">${inv.route||'—'}</div>
       </div>
 
+      <!-- SHIPPER / RECEIVER CARDS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)">
+
+        <!-- SHIPPER -->
+        <div style="padding:16px 20px;border-right:1px solid var(--border)">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+            letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;
+              background:var(--orange)"></span>
+            Shipper
+          </div>
+          <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px">
+            ${inv.client_name||'—'}
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">
+            ${inv.pickup ? inv.pickup.split(',').slice(0,2).join(', ') : '—'}<br>
+            ${inv.client_phone||''}
+          </div>
+        </div>
+
+        <!-- RECEIVER -->
+        <div style="padding:16px 20px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+            letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;
+              background:var(--blue)"></span>
+            Receiver
+          </div>
+          <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px">
+            ${inv.receiver_name || inv.client_name || '—'}
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">
+            ${inv.receiver_company ? inv.receiver_company+'<br>' : ''}
+            ${inv.delivery ? inv.delivery.split(',').slice(0,2).join(', ') : (inv.city||'—')}<br>
+            ${inv.receiver_phone || inv.client_phone || ''}
+          </div>
+        </div>
+
+      </div>
+
       <!-- LINE ITEMS -->
       <div class="inv-table-wrap">
         <table>
@@ -444,7 +484,6 @@ function renderInvoice(inv) {
                 <div class="desc-main">${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent / Dedicated':'Standard Delivery'}</div>
                 <div class="desc-sub">
                   ${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}
-                  ${Number(inv.toll_cost||0)>0?' · Incl. toll fees: '+money(inv.toll_cost):''}
                 </div>
               </td>
               <td class="text-right">
@@ -601,6 +640,38 @@ function downloadPDF() {
       y+=14;
     }
 
+    // Shipper / Receiver boxes
+    const shipRecH = 28;
+    const hw2 = (W-2*M)/2-2;
+    // Shipper box
+    doc.setFillColor(255,251,245); doc.rect(M,y,hw2,shipRecH,'F');
+    doc.setDrawColor(245,124,0); doc.setLineWidth(0.5); doc.rect(M,y,hw2,shipRecH);
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(245,124,0);
+    doc.text('● SHIPPER', M+3, y+6);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(13,33,55);
+    const shipNameLines = doc.splitTextToSize(inv.client_name||'—', hw2-6);
+    doc.text(shipNameLines, M+3, y+12);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(96,125,139);
+    const shipAddr = inv.pickup ? inv.pickup.split(',').slice(0,2).join(', ') : '—';
+    doc.text(doc.splitTextToSize(shipAddr, hw2-6), M+3, y+12+shipNameLines.length*5);
+    if(inv.client_phone) doc.text(inv.client_phone, M+3, y+shipRecH-4);
+    // Receiver box
+    doc.setFillColor(245,248,255); doc.rect(M+hw2+4,y,hw2,shipRecH,'F');
+    doc.setDrawColor(21,101,192); doc.setLineWidth(0.5); doc.rect(M+hw2+4,y,hw2,shipRecH);
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(21,101,192);
+    doc.text('● RECEIVER', M+hw2+7, y+6);
+    const recName = inv.receiver_name || inv.client_name || '—';
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(13,33,55);
+    const recNameLines = doc.splitTextToSize(recName, hw2-6);
+    doc.text(recNameLines, M+hw2+7, y+12);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(96,125,139);
+    if(inv.receiver_company) doc.text(inv.receiver_company, M+hw2+7, y+12+recNameLines.length*5);
+    const recAddr = inv.delivery ? inv.delivery.split(',').slice(0,2).join(', ') : (inv.city||'—');
+    doc.text(doc.splitTextToSize(recAddr, hw2-6), M+hw2+7, y+12+recNameLines.length*5+(inv.receiver_company?5:0));
+    const recPh = inv.receiver_phone || inv.client_phone || '';
+    if(recPh) doc.text(recPh, M+hw2+7, y+shipRecH-4);
+    y += shipRecH+6;
+
     // Line items header
     doc.setFillColor(230,235,245); doc.rect(M,y,W-2*M,8,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(10,42,67);
@@ -610,8 +681,7 @@ function downloadPDF() {
 
     // Line 1 — Freight
     const desc1 = `${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent/Dedicated':'Standard Delivery'}`;
-    const tollNote = Number(inv.toll_cost||0)>0 ? ` · Incl. toll fees: R ${Number(inv.toll_cost||0).toFixed(2)}` : '';
-    const sub1  = `${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}${tollNote}`;
+    const sub1  = `${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}`;
     const d1Lines = doc.splitTextToSize(desc1, W-2*M-40);
     const s1Lines = doc.splitTextToSize(sub1,  W-2*M-40);
     const rh1 = (d1Lines.length + s1Lines.length) * 5 + 10;
@@ -672,6 +742,8 @@ function downloadPDF() {
 </script>
 </body>
 </html>
+
+
 
 
 
