@@ -386,10 +386,10 @@ function renderInvoice(inv) {
       <div class="inv-parties">
         <div class="inv-party">
           <div class="party-label">From</div>
-          <div class="party-name">Mok Transports Services (Pty) Ltd</div>
+          <div class="party-name">Mok Transports Pty Ltd</div>
           <div class="party-sub">
             Reg No: 2015/162275/07<br>
-            ${inv.processed_by ? 'Processed by: '+inv.processed_by : ''}
+            VAT No: 4400269363
           </div>
         </div>
         <div class="inv-party">
@@ -404,7 +404,7 @@ function renderInvoice(inv) {
       </div>
 
       <!-- SHIPMENT DETAILS BAND -->
-      <div class="inv-details">
+      <div class="inv-details" style="grid-template-columns:repeat(4,1fr)">
         <div class="inv-det-cell">
           <div class="idc-label">Booking Ref</div>
           <div class="idc-value">${inv.booking_ref}</div>
@@ -422,14 +422,19 @@ function renderInvoice(inv) {
           <div class="idc-value">${inv.delivery_note_no||'—'}</div>
         </div>
       </div>
+      <!-- ROUTE BAND -->
+      <div style="padding:10px 18px;background:#f0f4f8;border-bottom:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+          letter-spacing:.8px;margin-bottom:3px">Route</div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${inv.route||'—'}</div>
+      </div>
 
       <!-- LINE ITEMS -->
       <div class="inv-table-wrap">
         <table>
           <thead>
             <tr>
-              <th style="width:50%">Description</th>
-              <th>Route</th>
+              <th>Description</th>
               <th class="text-right">Amount (Excl. VAT)</th>
             </tr>
           </thead>
@@ -437,26 +442,15 @@ function renderInvoice(inv) {
             <tr>
               <td>
                 <div class="desc-main">${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent / Dedicated':'Standard Delivery'}</div>
-                <div class="desc-sub">${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}</div>
-              </td>
-              <td style="font-size:12px;color:var(--muted);max-width:200px;word-break:break-word">
-                ${inv.route||'—'}
+                <div class="desc-sub">
+                  ${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}
+                  ${Number(inv.toll_cost||0)>0?' · Incl. toll fees: '+money(inv.toll_cost):''}
+                </div>
               </td>
               <td class="text-right">
                 <div class="amount-cell">${money(inv.subtotal)}</div>
               </td>
             </tr>
-            ${Number(inv.toll_cost||0) > 0 ? `
-            <tr>
-              <td>
-                <div class="desc-main">Toll Fees</div>
-                <div class="desc-sub">Estimated toll plaza charges along route</div>
-              </td>
-              <td></td>
-              <td class="text-right">
-                <div class="amount-cell">${money(inv.toll_cost)}</div>
-              </td>
-            </tr>` : ''}
           </tbody>
         </table>
       </div>
@@ -569,9 +563,9 @@ function downloadPDF() {
     doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
     doc.text('FROM:',M+3,y+7); doc.text('INVOICE TO:',M+bw+7,y+7);
     doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
-    doc.text('Mok Transports Services (Pty) Ltd',M+3,y+14);
+    doc.text('Mok Transports Pty Ltd',M+3,y+14);
     doc.text('Reg No: 2015/162275/07',M+3,y+20);
-    if(inv.processed_by) doc.text(`Processed by: ${inv.processed_by}`,M+3,y+26);
+    doc.text('VAT No: 4400269363',M+3,y+26);
     const cnLines=doc.splitTextToSize(inv.client_name||'—',bw-8);
     doc.text(cnLines,M+bw+7,y+14);
     if(inv.client_phone) doc.text(`Tel: ${inv.client_phone}`,M+bw+7,y+20);
@@ -592,45 +586,45 @@ function downloadPDF() {
     doc.text(fmt2(inv.shipment_date),M+100,y+7);
     doc.text(inv.delivery_note_no||'—',M+150,y+7);
     y+=14;
+    // Route band
+    doc.setFillColor(240,244,248); doc.rect(M,y,W-2*M,10,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(10,42,67);
+    doc.text('ROUTE', M+3,y+7);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
+    const routePdfLines = doc.splitTextToSize(inv.route||'—', W-2*M-20);
+    if(routePdfLines.length>1){
+      doc.rect(M,y,W-2*M,routePdfLines.length*5+6,'F');
+      doc.text(routePdfLines,M+22,y+7);
+      y+=routePdfLines.length*5+8;
+    } else {
+      doc.text(inv.route||'—',M+22,y+7);
+      y+=14;
+    }
 
     // Line items header
     doc.setFillColor(230,235,245); doc.rect(M,y,W-2*M,8,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(10,42,67);
     doc.text('DESCRIPTION',M+pad,y+5.5);
-    doc.text('ROUTE',M+80,y+5.5);
     doc.text('AMOUNT (EXCL. VAT)',W-M-pad,y+5.5,{align:'right'});
     y+=8;
 
     // Line 1 — Freight
     const desc1 = `${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent/Dedicated':'Standard Delivery'}`;
-    const sub1  = `${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}`;
-    const d1Lines = doc.splitTextToSize(desc1,60); const s1Lines = doc.splitTextToSize(sub1,60);
-    const rLines  = doc.splitTextToSize(inv.route||'—',50);
-    const rh1 = Math.max(d1Lines.length,rLines.length)*5+8;
+    const tollNote = Number(inv.toll_cost||0)>0 ? ` · Incl. toll fees: R ${Number(inv.toll_cost||0).toFixed(2)}` : '';
+    const sub1  = `${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}${tollNote}`;
+    const d1Lines = doc.splitTextToSize(desc1, W-2*M-40);
+    const s1Lines = doc.splitTextToSize(sub1,  W-2*M-40);
+    const rh1 = (d1Lines.length + s1Lines.length) * 5 + 10;
     doc.setFillColor(252,253,255); doc.rect(M,y-1,W-2*M,rh1,'F');
     doc.setDrawColor(220,226,234); doc.setLineWidth(0.25);
-    doc.line(M+75,y-1,M+75,y-1+rh1); doc.line(W-M-35,y-1,W-M-35,y-1+rh1);
+    doc.line(W-M-35,y-1,W-M-35,y-1+rh1);
     doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(13,33,55);
     doc.text(d1Lines,M+pad,y+4);
     doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(96,125,139);
     doc.text(s1Lines,M+pad,y+4+d1Lines.length*5);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(40,40,40);
-    doc.text(rLines,M+77,y+4);
     doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(13,33,55);
     doc.text(`R ${Number(inv.subtotal||0).toFixed(2)}`,W-M-pad,y+4,{align:'right'});
     y+=rh1+2;
-
-    // Toll line if applicable
-    if(Number(inv.toll_cost||0)>0){
-      doc.setFillColor(252,253,255); doc.rect(M,y-1,W-2*M,12,'F');
-      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
-      doc.text('Toll Fees',M+pad,y+5);
-      doc.setFontSize(7.5); doc.setTextColor(96,125,139);
-      doc.text('Estimated toll plaza charges along route',M+pad,y+10);
-      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(13,33,55);
-      doc.text(`R ${Number(inv.toll_cost||0).toFixed(2)}`,W-M-pad,y+5,{align:'right'});
-      y+=14;
-    }
 
     // Totals
     doc.setDrawColor(210,218,228); doc.setLineWidth(0.4); doc.line(M,y,W-M,y); y+=6;
@@ -678,5 +672,6 @@ function downloadPDF() {
 </script>
 </body>
 </html>
+
 
 
