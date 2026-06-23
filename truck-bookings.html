@@ -809,27 +809,8 @@ async function saveNotes(ref) {
 function openInvoiceFlow(ref) {
   const b = allBookings.find(x=>x.booking_ref===ref);
   if (!b) return;
-
-  // Package truck booking data as invoiceFromBooking for invoice.html
-  const payload = {
-    isTruckBooking: true,
-    truckRef:       b.booking_ref,
-    waybillNo:      b.booking_ref,
-    service:        `${b.vehicle} — ${b.type}`,
-    price:          Number(b.price||0) + Number(b.toll_cost||0),
-    fromTown:       (b.pickup||'').split(',')[0],
-    toTown:         (b.delivery||b.city||'').split(',')[0],
-    toCompany:      b.client_name,
-    toEmail:        b.client_email||'',
-    date:           b.shipment_date||b.created_at,
-    clientId:       null,
-    clientName:     b.client_name
-  };
-
-  localStorage.setItem('invoiceFromBooking', JSON.stringify(payload));
-  localStorage.setItem('truckBookingRef', ref);
-  //window.location.href = 'truck-invoice.html';
-  window.location.href = `truck-invoice.html?booking=${ref}&create=true`;
+  // Redirect to dedicated truck invoice page — creates or loads existing invoice
+  window.location.href = `truck-invoice.html?booking=${encodeURIComponent(ref)}&create=true`;
 }
 
 // ── TOAST ─────────────────────────────────────
@@ -890,7 +871,7 @@ function printDeliveryNote(ref) {
     doc.text('MOK TRANSPORT SERVICES', M+38, 14);
     doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(200,210,222);
     doc.text('12 Jupiter Road, Crown Mines, Johannesburg, 2091', M+38, 20);
-    doc.text('011 839 6496  |  069 437 1308  |  info@moktransports.com', M+38, 25);
+    doc.text('011 839 6496  |  084 902 2258  |  accounts@moktransports.com', M+38, 25);
 
     // ── DELIVERY NOTE NUMBER BOX ──────────────
     doc.setFillColor(245,124,0); doc.rect(W-M-42,6,42,20,'F');
@@ -1027,10 +1008,5 @@ loadBookings();
 </script>
 </body>
 </html>
-
-
-
-
-
 
 

@@ -11,8 +11,14 @@ exports.createBooking = async (req, res) => {
       commodity, shipment_date, processed_by,
       type, vehicle, delivery_type,
       price, toll_cost, distance_km,
-      pickup, delivery, country, city, route, status, notes
+      pickup, delivery, country, city, route, status, notes,
+      receiver_name, receiver_company, receiver_phone, receiver_email
     } = req.body;
+
+    // Auto-generate delivery note number
+    const seqResult = await db.query(`SELECT nextval('delivery_note_seq') AS n`);
+    const noteNum = seqResult.rows[0].n;
+    const delivery_note_no = `MTD${String(noteNum).padStart(6, '0')}`;
 
     const result = await db.query(`
       INSERT INTO truck_bookings
@@ -20,8 +26,10 @@ exports.createBooking = async (req, res) => {
          commodity, shipment_date, processed_by,
          type, vehicle, delivery_type,
          price, toll_cost, distance_km,
-         pickup, delivery, country, city, route, status, notes)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+         pickup, delivery, country, city, route, status, notes,
+         delivery_note_no,
+         receiver_name, receiver_company, receiver_phone, receiver_email)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
       RETURNING *
     `, [
       booking_ref, client_name, client_phone, client_email,
@@ -29,7 +37,10 @@ exports.createBooking = async (req, res) => {
       type, vehicle, delivery_type,
       price, toll_cost || 0, distance_km || null,
       pickup, delivery, country || null, city || null, route,
-      status || 'confirmed', notes || null
+      status || 'confirmed', notes || null,
+      delivery_note_no,
+      receiver_name || null, receiver_company || null,
+      receiver_phone || null, receiver_email || null
     ]);
 
     res.status(201).json(result.rows[0]);
@@ -175,6 +186,30 @@ exports.saveDeliverySignature = async (req, res) => {
   } catch (err) {
     console.error('DELIVERY SIGNATURE ERROR:', err.message);
     res.status(500).json({ error: 'Failed to save delivery signature' });
+  }
+};
+
+// ─────────────────────────────────────────────
+// UPLOAD SIGNED DELIVERY FORM
+// PATCH /api/truck-bookings/:ref/signed-form
+// ─────────────────────────────────────────────
+exports.uploadSignedForm = async (req, res) => {
+  try {
+    const { file } = req.body;
+    if (!file) return res.status(400).json({ error: 'File required' });
+    const result = await db.query(
+      `UPDATE truck_bookings
+       SET signed_form_url = $1, signed_form_uploaded_at = NOW()
+       WHERE booking_ref = $2 OR id::text = $2
+       RETURNING *`,
+      [file, req.params.ref]
+    );
+    if (!result.rows.length)
+      return res.status(404).json({ error: 'Booking not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('SIGNED FORM UPLOAD ERROR:', err.message);
+    res.status(500).json({ error: 'Failed to upload signed form' });
   }
 };
 

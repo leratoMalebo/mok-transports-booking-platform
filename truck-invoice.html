@@ -394,10 +394,11 @@ function renderInvoice(inv) {
         </div>
         <div class="inv-party">
           <div class="party-label">Invoice To</div>
-          <div class="party-name">${inv.client_name||'—'}</div>
+          <div class="party-name">${inv.receiver_name || inv.client_name||'—'}</div>
           <div class="party-sub">
-            ${inv.client_phone||''}<br>
-            ${inv.client_email||''}
+            ${inv.receiver_company ? inv.receiver_company+'<br>' : ''}
+            ${inv.receiver_phone || inv.client_phone||''}<br>
+            ${inv.receiver_email || inv.client_email||''}
           </div>
         </div>
       </div>

@@ -156,8 +156,8 @@
             </div>
 
             <div>
-                <a href="dashboard.html" class="btn btn-outline">Back to Dashboard</a>
-                <a href="imports.html" class="btn btn-dhl">Create DHL Shipment</a>
+                <a href="clientDashboard.html" class="btn btn-outline">Back to Dashboard</a>
+                <a href="clientImports.html" class="btn btn-dhl">New International Shipment</a>
             </div>
         </div>
 
@@ -178,6 +178,7 @@
                             <th>Tracking No</th>
                             <th>Mode</th>
                             <th>Product</th>
+                            <th>Client / Company</th>
                             <th>Shipper</th>
                             <th>From</th>
                             <th>Receiver</th>
@@ -210,8 +211,12 @@
 
             try {
 
-                const response =
-                    await fetch(`${API_BASE}/dhl/shipments`);
+                const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+                const clientId = session?.id || session?.user?.id || null;
+                const url = clientId
+                    ? `${API_BASE}/dhl/shipments?client_id=${clientId}`
+                    : `${API_BASE}/dhl/shipments`;
+                const response = await fetch(url);
 
                 if (!response.ok)
                     throw new Error("Failed to load DHL shipments");
@@ -228,7 +233,7 @@
                     "dhlShipmentsBody"
                 ).innerHTML = `
       <tr>
-        <td colspan="7">
+        <td colspan="12">
           Failed to load DHL shipments
         </td>
       </tr>
@@ -247,7 +252,7 @@
 
                 body.innerHTML = `
       <tr>
-        <td colspan="7">
+        <td colspan="12">
           No DHL shipments found
         </td>
       </tr>
@@ -270,6 +275,13 @@ ${row.mode || ""}
 </td>
 
 <td>${row.product_code || ""}</td>
+
+<td>
+  <div style="font-weight:700;color:#0f2742">${row.client_company || row.client_name || '—'}</div>
+  ${row.client_name && row.client_company && row.client_name !== row.client_company
+    ? `<div style="font-size:12px;color:#64748b">${row.client_name}</div>`
+    : ''}
+</td>
 
 <td>${row.shipper_name || ""}</td>
 
