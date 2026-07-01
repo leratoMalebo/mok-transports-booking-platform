@@ -1186,6 +1186,29 @@
             <div id="tollToggleNote" style="font-size:10px;color:#90a4ae;margin-top:6px;line-height:1.5"></div>
           </div>
 
+          <!-- Other Costs (optional) -->
+          <div id="otherCostsWrap" style="display:none;margin-top:14px;
+            background:rgba(255,255,255,.06);border-radius:8px;padding:12px">
+            <div style="font-size:10px;color:#90a4ae;text-transform:uppercase;
+              letter-spacing:1.5px;margin-bottom:8px">Additional Costs (Optional)</div>
+            <div style="position:relative">
+              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                color:#90a4ae;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700">R</span>
+              <input type="number" id="otherCosts" min="0" step="0.01" placeholder="0.00"
+                oninput="updateOtherCosts()"
+                style="width:100%;height:38px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+                border-radius:6px;padding:0 12px 0 26px;font-family:'Barlow Condensed',sans-serif;
+                font-size:16px;font-weight:700;color:#fff;outline:none">
+            </div>
+            <div style="font-size:10px;color:#90a4ae;margin-top:6px;line-height:1.5"
+              id="otherCostsDesc">
+              <input type="text" id="otherCostsLabel" placeholder="Description e.g. Bobcat / Labour"
+                style="width:100%;margin-top:6px;height:32px;background:rgba(255,255,255,.08);
+                border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:0 10px;
+                font-family:'Barlow',sans-serif;font-size:12px;color:#fff;outline:none">
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1457,12 +1480,16 @@
       const vat = Math.round(total * 0.15);
 
       document.getElementById('priceDisplay').style.display = 'block';
-      document.getElementById('priceAmount').textContent = `R ${base.toLocaleString()}`;
+      document.getElementById('otherCostsWrap').style.display = 'block';
+      const other = parseFloat(document.getElementById('otherCosts')?.value || 0) || 0;
+      const grandTotal = total + other;
+      document.getElementById('priceAmount').textContent = `R ${grandTotal.toLocaleString()}`;
       document.getElementById('priceSub').textContent =
         state.deliveryType === 'Dedicated' ? 'Urgent rate (base + 15%)' : 'Base rate excl. VAT & tolls';
       document.getElementById('priceTollNote').style.display = 'block';
       document.getElementById('priceTollNote').textContent =
-        `+ Tolls: R ${state.tollCost.toLocaleString()} | Total incl. tolls: R ${total.toLocaleString()}`;
+        `+ Tolls: R ${state.tollCost.toLocaleString()} | Total incl. tolls: R ${total.toLocaleString()}`
+        + (other > 0 ? ` | + Other: R ${other.toLocaleString()} | Grand Total: R ${grandTotal.toLocaleString()}` : '');
     }
 
     function getNationalRate(vehicle, km) {
@@ -1550,8 +1577,12 @@
       document.getElementById('sumCB').textContent = `${country} — ${city}`;
 
       document.getElementById('priceDisplay').style.display = 'block';
-      document.getElementById('priceAmount').textContent = `R ${total.toLocaleString()}`;
-      document.getElementById('priceSub').textContent = 'Incl. border fee excl. VAT';
+      document.getElementById('otherCostsWrap').style.display = 'block';
+      const otherCB = parseFloat(document.getElementById('otherCosts')?.value || 0) || 0;
+      const grandTotalCB = total + otherCB;
+      document.getElementById('priceAmount').textContent = `R ${grandTotalCB.toLocaleString()}`;
+      document.getElementById('priceSub').textContent = 'Incl. border fee excl. VAT'
+        + (otherCB > 0 ? ` + other costs` : '');
       document.getElementById('priceTollNote').style.display = 'none';
     }
 
@@ -1596,6 +1627,13 @@
         plazas.forEach(p => total += (p[ck] || 0));
       }
       return { total: Math.round(total), estimated: false };
+    }
+
+    // ── OTHER COSTS ───────────────────────────────
+    function updateOtherCosts() {
+      // Re-run whichever price is active so grand total updates live
+      if (state.type === 'National' && state.distance) updateNationalPrice();
+      if (state.type === 'Cross Border' && state.cbCountry && state.cbCity) updateCBPrice();
     }
 
     // ── TOLL TOGGLE ───────────────────────────────
@@ -1648,13 +1686,20 @@
       const receiverPhone   = document.getElementById('receiverPhone')?.value?.trim()   || '';
       const receiverEmail   = document.getElementById('receiverEmail')?.value?.trim()   || '';
 
+      const otherCostsVal   = parseFloat(document.getElementById('otherCosts')?.value || 0) || 0;
+      const otherCostsLabel = document.getElementById('otherCostsLabel')?.value?.trim() || '';
+      const finalPrice = price + otherCostsVal;
+
       return {
         ref, name, contact, phone, email, commodity, shipDate, agent,
         receiverName, receiverCompany, receiverPhone, receiverEmail,
         type: state.type,
         vehicle: state.vehicle,
         deliveryType: state.deliveryType,
-        price,
+        price: finalPrice,
+        basePrice: price,
+        otherCosts: otherCostsVal,
+        otherCostsLabel,
         tollCost: state.tollCost || 0,
         tollEstimated: state.tollEstimated || false,
         distance: state.distance || null,
@@ -1694,7 +1739,11 @@
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.textContent = 'Saving…';
       try {
-        const notesText = payload.contact ? `Contact Person: ${payload.contact}` : '';
+        const contactNote = payload.contact ? `Contact Person: ${payload.contact}` : '';
+        const otherNote   = payload.otherCosts > 0
+          ? `Other Costs: R ${payload.otherCosts.toLocaleString()}${payload.otherCostsLabel ? ' (' + payload.otherCostsLabel + ')' : ''}`
+          : '';
+        const notesText = [contactNote, otherNote].filter(Boolean).join(' | ');
         const res = await fetch(`${API}/truck-bookings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1738,8 +1787,11 @@
       }
 
       document.getElementById('successRef').textContent = payload.ref;
+      const otherLine = payload.otherCosts > 0
+        ? ` | Other: R ${payload.otherCosts.toLocaleString()}${payload.otherCostsLabel ? ' (' + payload.otherCostsLabel + ')' : ''}`
+        : '';
       document.getElementById('successMsg').textContent =
-        `${payload.vehicle} | ${payload.route} | R ${payload.price.toLocaleString()} excl. VAT | ${payload.date}` +
+        `${payload.vehicle} | ${payload.route} | R ${payload.price.toLocaleString()} excl. VAT${otherLine} | ${payload.date}` +
         (payload.deliveryNoteNo ? ` | Delivery Note: ${payload.deliveryNoteNo}` : '');
       document.getElementById('successOverlay').classList.add('show');
     }
@@ -2165,7 +2217,6 @@
 </body>
 
 </html>
-
 
 
 
