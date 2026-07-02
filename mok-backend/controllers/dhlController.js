@@ -1,6 +1,6 @@
 // =============================================================
 // mok-backend/controllers/dhlController.js
-// MERGED — combines your latest version + client_id upgrades
+// MERGED — client_id support + import/export account fix
 // =============================================================
 
 const db         = require('../db');
@@ -15,20 +15,35 @@ exports.createShipment = async (req, res) => {
       return res.status(400).json({ error: 'DHL payload is required.' });
     }
 
-    // Log full payload for debugging (from your version)
     console.log('[DHL PAYLOAD]', JSON.stringify(payload, null, 2));
 
-    // Use mode from request body, fall back to payload direction, then 'export'
-    const shipmentMode = mode || payload.shipmentDirection || 'export';
+    // Determine direction:
+    // 1. Use explicit mode from frontend (auto-detected by country)
+    // 2. Fall back to payload.shipmentDirection if set
+    // 3. Default to 'export'
+    const shipperCountry  = payload.customerDetails?.shipperDetails?.postalAddress?.countryCode || '';
+    const receiverCountry = payload.customerDetails?.receiverDetails?.postalAddress?.countryCode || '';
 
-    const dhlResult  = await dhlService.createShipment(payload);
+    let shipmentMode = mode || payload.shipmentDirection || 'export';
+
+    // Override with country-based detection as extra safety net
+    // If shipper is ZA → Export, if receiver is ZA → Import
+    if (shipperCountry === 'ZA') {
+      shipmentMode = 'export';
+    } else if (receiverCountry === 'ZA') {
+      shipmentMode = 'import';
+    }
+
+    console.log(`[DHL] Shipper: ${shipperCountry}, Receiver: ${receiverCountry}, Mode: ${shipmentMode}`);
+
+    // Pass mode so dhlService selects the correct account
+    const dhlResult  = await dhlService.createShipment(payload, shipmentMode);
     const trackingNo = dhlResult.shipmentTrackingNumber;
     console.log('✅ DHL Tracking Number:', trackingNo);
 
     const documents = dhlResult.documents || [];
     const labelB64  = documents.find(d => d.typeCode === 'label')?.content || null;
 
-    // Save to DB — includes client identity columns so staff can see who submitted
     const saved = await db.query(`
       INSERT INTO dhl_shipments (
         tracking_number, mode, product_code,
@@ -45,9 +60,9 @@ exports.createShipment = async (req, res) => {
       shipmentMode,
       payload.productCode,
       payload.customerDetails?.shipperDetails?.contactInformation?.companyName  || '',
-      payload.customerDetails?.shipperDetails?.postalAddress?.countryCode       || '',
+      shipperCountry,
       payload.customerDetails?.receiverDetails?.contactInformation?.companyName || '',
-      payload.customerDetails?.receiverDetails?.postalAddress?.countryCode      || '',
+      receiverCountry,
       payload.content?.packages?.[0]?.weight || 0,
       payload.content?.declaredValue         || null,
       payload.content?.declaredValueCurrency || null,
@@ -73,12 +88,9 @@ exports.createShipment = async (req, res) => {
 };
 
 // ── GET /api/dhl/shipments ────────────────────────────────────
-// Staff: returns all shipments (no query param)
-// Client: pass ?client_id=X to filter to their own shipments only
 exports.getShipments = async (req, res) => {
   try {
     const { client_id } = req.query;
-
     let query = `
       SELECT id, tracking_number, mode, product_code,
              shipper_name, shipper_country,
@@ -90,14 +102,8 @@ exports.getShipments = async (req, res) => {
       FROM dhl_shipments
     `;
     const params = [];
-
-    if (client_id) {
-      query += ' WHERE client_id = $1';
-      params.push(client_id);
-    }
-
+    if (client_id) { query += ' WHERE client_id = $1'; params.push(client_id); }
     query += ' ORDER BY created_at DESC';
-
     const result = await db.query(query, params);
     res.json(result.rows);
   } catch (err) {
@@ -111,12 +117,10 @@ exports.getShipmentByTracking = async (req, res) => {
   try {
     const { trackingNo } = req.params;
     const result = await db.query(
-      `SELECT * FROM dhl_shipments WHERE tracking_number = $1`,
-      [trackingNo]
+      `SELECT * FROM dhl_shipments WHERE tracking_number = $1`, [trackingNo]
     );
-    if (!result.rows.length) {
+    if (!result.rows.length)
       return res.status(404).json({ error: `DHL shipment ${trackingNo} not found.` });
-    }
     res.json(result.rows[0]);
   } catch (err) {
     console.error('GET DHL SHIPMENT ERROR:', err.message);
@@ -139,8 +143,8 @@ exports.trackShipment = async (req, res) => {
 // ── POST /api/dhl/rates ───────────────────────────────────────
 exports.getRates = async (req, res) => {
   try {
-    const { payload } = req.body;
-    const result = await dhlService.getRates(payload);
+    const { payload, mode } = req.body;
+    const result = await dhlService.getRates(payload, mode);
     res.json(result);
   } catch (err) {
     console.error('DHL RATES ERROR:', err.message);
@@ -149,7 +153,6 @@ exports.getRates = async (req, res) => {
 };
 
 // ── POST /api/dhl/validate-address ───────────────────────────
-// From your version — validates a delivery address with DHL
 exports.validateAddress = async (req, res) => {
   try {
     const result = await dhlService.validateAddress(req.body);
@@ -161,17 +164,14 @@ exports.validateAddress = async (req, res) => {
 };
 
 // ── GET /api/dhl/shipments/:trackingNo/label ─────────────────
-// Returns base64 PDF label stored at time of creation
 exports.getLabel = async (req, res) => {
   try {
     const { trackingNo } = req.params;
     const result = await db.query(
-      `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1`,
-      [trackingNo]
+      `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1`, [trackingNo]
     );
-    if (!result.rows.length || !result.rows[0].label_pdf_b64) {
+    if (!result.rows.length || !result.rows[0].label_pdf_b64)
       return res.status(404).json({ error: 'Label not found.' });
-    }
     const pdf = Buffer.from(result.rows[0].label_pdf_b64, 'base64');
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="DHL_Label_${trackingNo}.pdf"`);
@@ -183,17 +183,14 @@ exports.getLabel = async (req, res) => {
 };
 
 // ── GET /api/dhl/shipments/:trackingNumber/download-label ─────
-// From your version — fixed: was using 'pool' (undefined), now uses 'db'
 exports.downloadLabel = async (req, res) => {
   try {
     const { trackingNumber } = req.params;
     const result = await db.query(
-      `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1`,
-      [trackingNumber]
+      `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1`, [trackingNumber]
     );
-    if (!result.rows.length || !result.rows[0].label_pdf_b64) {
+    if (!result.rows.length || !result.rows[0].label_pdf_b64)
       return res.status(404).json({ error: 'Label not found.' });
-    }
     const pdfBuffer = Buffer.from(result.rows[0].label_pdf_b64, 'base64');
     res.setHeader('Content-Disposition', `attachment; filename="DHL-${trackingNumber}.pdf"`);
     res.setHeader('Content-Type', 'application/pdf');
@@ -203,5 +200,6 @@ exports.downloadLabel = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 

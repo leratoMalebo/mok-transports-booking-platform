@@ -1588,7 +1588,14 @@
         const res = await fetch(`${API}/dhl/shipments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ payload, mode: currentMode })
+          // Auto-detect mode from countries — don't rely on toggle alone
+          // If shipper is ZA → Export. If receiver is ZA → Import.
+          const shipperCC  = document.getElementById('shipperCountry').value || '';
+          const receiverCC = document.getElementById('receiverCountry').value || '';
+          const detectedMode = shipperCC === 'ZA' ? 'export' : (receiverCC === 'ZA' ? 'import' : currentMode);
+          console.log(`Mode detection: shipper=${shipperCC}, receiver=${receiverCC}, mode=${detectedMode}`);
+
+          body: JSON.stringify({ payload, mode: detectedMode })
         });
         const data = await res.json();
 
@@ -1621,4 +1628,5 @@
 </body>
 
 </html>
+
 

@@ -1521,15 +1521,21 @@
       const clientName = session?.user?.name || session?.name || '';
       const clientComp = session?.user?.company || session?.company || '';
 
+      // Auto-detect mode from country codes before fetch
+      const shipperCC    = document.getElementById('shipperCountry').value || '';
+      const receiverCC   = document.getElementById('receiverCountry').value || '';
+      const detectedMode = shipperCC === 'ZA' ? 'export' : (receiverCC === 'ZA' ? 'import' : currentMode);
+      console.log(`Mode: shipper=${shipperCC}, receiver=${receiverCC}, detected=${detectedMode}`);
+
       try {
         const res = await fetch(`${API}/dhl/shipments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             payload,
-            mode: currentMode,
-            client_id: clientId,    // ← staff can filter by this
-            client_name: clientName,
+            mode:           detectedMode,
+            client_id:      clientId,
+            client_name:    clientName,
             client_company: clientComp
           })
         });
@@ -1585,8 +1591,6 @@
 </body>
 
 </html>
-
-
 
 
 
