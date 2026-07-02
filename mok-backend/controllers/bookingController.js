@@ -1,28 +1,29 @@
-// mok-backend/controllers/bookingController.js
-const db           = require('../db');
+// CREATE BOOKING
+const db = require('../db');
+
 const emailService = require('../services/emailService');
 
-// ─────────────────────────────────────────────
 // CREATE BOOKING
-// POST /api/bookings
-// ─────────────────────────────────────────────
 exports.createBooking = async (req, res) => {
   try {
     const {
       user_id,
       service,
+
       consignor_name,
       consignor_address,
       consignor_contact,
       consignor_contact_name,
       consignor_suburb,
       consignor_town,
+
       consignee_name,
       consignee_address,
       consignee_contact,
       consignee_contact_name,
       consignee_suburb,
       consignee_town,
+
       weight,
       volumetric_weight,
       price,
@@ -30,63 +31,93 @@ exports.createBooking = async (req, res) => {
     } = req.body;
 
     const result = await db.query(
-      `INSERT INTO bookings (
-        user_id, service,
-        consignor_name, consignor_address, consignor_contact,
-        consignor_contact_name, consignor_suburb, consignor_town,
-        consignee_name, consignee_address, consignee_contact,
-        consignee_contact_name, consignee_suburb, consignee_town,
-        weight, volumetric_weight, price, zone_label
-      ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,
-        $9,$10,$11,$12,$13,$14,
-        $15,$16,$17,$18
-      ) RETURNING *`,
+      `INSERT INTO bookings 
+      (
+  user_id,
+  service,
+
+  consignor_name,
+  consignor_address,
+  consignor_contact,
+  consignor_contact_name,
+  consignor_suburb,
+  consignor_town,
+
+  consignee_name,
+  consignee_address,
+  consignee_contact,
+  consignee_contact_name,
+  consignee_suburb,
+  consignee_town,
+
+  weight,
+  volumetric_weight,
+  price,
+  zone_label
+)
+       VALUES (
+  $1,$2,$3,$4,$5,$6,$7,$8,
+  $9,$10,$11,$12,$13,$14,
+  $15,$16,$17,$18
+)
+       RETURNING *`,
       [
-        user_id, service,
-        consignor_name, consignor_address, consignor_contact,
-        consignor_contact_name, consignor_suburb, consignor_town,
-        consignee_name, consignee_address, consignee_contact,
-        consignee_contact_name, consignee_suburb, consignee_town,
-        weight, volumetric_weight, price, zone_label
+        user_id,
+        service,
+
+        consignor_name,
+        consignor_address,
+        consignor_contact,
+        consignor_contact_name,
+        consignor_suburb,
+        consignor_town,
+
+        consignee_name,
+        consignee_address,
+        consignee_contact,
+        consignee_contact_name,
+        consignee_suburb,
+        consignee_town,
+
+        weight,
+        volumetric_weight,
+        price,
+        zone_label
       ]
     );
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('CREATE BOOKING ERROR:', err.message);
+    console.error(err);
     res.status(500).json({ error: 'Booking creation failed' });
   }
 };
 
-// ─────────────────────────────────────────────
 // GET ALL BOOKINGS
-// GET /api/bookings
-// ─────────────────────────────────────────────
 exports.getAllBookings = async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM bookings ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (err) {
-    console.error('GET BOOKINGS ERROR:', err.message);
+    console.error(err);
     res.status(500).json({ error: 'Failed to fetch bookings' });
   }
 };
 
-// ─────────────────────────────────────────────
 // GET ONE BOOKING
-// GET /api/bookings/:id
-// ─────────────────────────────────────────────
 exports.getBookingById = async (req, res) => {
   try {
-    const result = await db.query(
-      'SELECT * FROM bookings WHERE id = $1', [req.params.id]
-    );
+    const result = await db.query('SELECT * FROM bookings WHERE id = $1', [req.params.id]);
     res.json(result.rows[0]);
   } catch (err) {
-    console.error('GET BOOKING ERROR:', err.message);
+    console.error(err);
     res.status(500).json({ error: 'Failed to fetch booking' });
   }
 };
+
+
+
+
+
 
 

@@ -2,15 +2,27 @@ const db = require('../db');
 
 const jkjService = require('../services/jkjService');
 
-// CREATE WAYBILL + send staff notification
+async function generateWaybillNumber() {
+  const result = await db.query(`
+    SELECT nextval('waybill_no_seq') AS next_no
+  `);
+
+  const nextNo = Number(result.rows[0].next_no);
+
+  return `MOK${String(nextNo).padStart(6, '0')}`;
+}
+
+
+// CREATE WAYBILL
 exports.createWaybill = async (req, res) => {
   try {
     const {
       booking_id,
-      waybill_no,
       weight,
       volumetric_weight
     } = req.body;
+
+    const waybill_no = await generateWaybillNumber();
 
     const result = await db.query(
       `INSERT INTO waybills 
@@ -20,34 +32,13 @@ exports.createWaybill = async (req, res) => {
       [booking_id, waybill_no, weight, volumetric_weight]
     );
 
-    const waybill = result.rows[0];
-
-    // Respond immediately — don't make client wait for email
-    res.json(waybill);
-
-    // ── Fire notification email asynchronously ──────────────────
-    try {
-      // Fetch the full booking so we have sender/receiver details
-      const bookingResult = await db.query(
-        'SELECT * FROM bookings WHERE id = $1', [booking_id]
-      );
-      if (bookingResult.rows.length) {
-        const emailService = require('../services/emailService');
-        await emailService.sendBookingNotification({
-          booking: bookingResult.rows[0],
-          waybill
-        });
-      }
-    } catch (emailErr) {
-      // Email failure must NEVER affect booking — log only
-      console.error('Email notification error:', emailErr.message);
-    }
-
+    res.json(result.rows[0]);
   } catch (err) {
     console.error('CREATE WAYBILL ERROR:', err.message);
     res.status(500).json({ error: 'Failed to create waybill' });
   }
 };
+
 
 // GET ALL WAYBILLS
 exports.getWaybills = async (req, res) => {
@@ -82,10 +73,16 @@ exports.sendToJKJ = async (req, res) => {
         b.service,
         b.consignor_name,
         b.consignor_address,
-        b.consignor_contact,
-        b.consignee_name,
-        b.consignee_address,
-        b.consignee_contact,
+       b.consignor_contact,
+b.consignor_contact_name,
+b.consignor_suburb,
+b.consignor_town,
+b.consignee_name,
+b.consignee_address,
+b.consignee_contact,
+b.consignee_contact_name,
+b.consignee_suburb,
+b.consignee_town,
         b.price
       FROM waybills w
       LEFT JOIN bookings b ON b.id = w.booking_id
@@ -183,10 +180,17 @@ exports.getWaybillByNumber = async (req, res) => {
         b.service,
         b.consignor_name,
         b.consignor_address,
-        b.consignor_contact,
-        b.consignee_name,
-        b.consignee_address,
-        b.consignee_contact,
+       b.consignor_contact,
+b.consignor_contact,
+b.consignor_contact_name,
+b.consignor_suburb,
+b.consignor_town,
+b.consignee_name,
+b.consignee_address,
+b.consignee_contact,
+b.consignee_contact_name,
+b.consignee_suburb,
+b.consignee_town,
         b.price,
         b.zone_label
        FROM waybills w
@@ -206,5 +210,15 @@ exports.getWaybillByNumber = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch waybill' });
   }
 };
+
+
+
+
+
+
+
+
+
+
 
 
