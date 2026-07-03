@@ -32,7 +32,27 @@ exports.createWaybill = async (req, res) => {
       [booking_id, waybill_no, weight, volumetric_weight]
     );
 
-    res.json(result.rows[0]);
+    const waybill = result.rows[0];
+
+    // Respond immediately — client never waits for email
+    res.json(waybill);
+
+    // ── Fire notification email non-blocking ────────────────────
+    try {
+      const bookingResult = await db.query(
+        'SELECT * FROM bookings WHERE id = $1', [booking_id]
+      );
+      if (bookingResult.rows.length) {
+        const emailService = require('../services/emailService');
+        await emailService.sendBookingNotification({
+          booking: bookingResult.rows[0],
+          waybill
+        });
+      }
+    } catch (emailErr) {
+      console.error('Email notification error:', emailErr.message);
+    }
+
   } catch (err) {
     console.error('CREATE WAYBILL ERROR:', err.message);
     res.status(500).json({ error: 'Failed to create waybill' });
@@ -210,15 +230,5 @@ b.consignee_town,
     res.status(500).json({ error: 'Failed to fetch waybill' });
   }
 };
-
-
-
-
-
-
-
-
-
-
 
 

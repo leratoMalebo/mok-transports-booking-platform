@@ -657,15 +657,179 @@
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsZik-na0xiGCAdoGfMrvzMhQHOGQjhkM&libraries=places"></script>
 
   <script src="assets/js/localWaybill.js"></script>
-
   <script src="assets/js/booking.js"></script>
+
+  <script>
+  // ── OTIS ADDRESS BOOK ─────────────────────────────────────────
+  const OTIS_ADDRESSES = {
+    sender: [
+      {
+        label:       'Otis Johannesburg',
+        company:     'Otis South Africa (Pty) Ltd',
+        address:     '17 Angus Crescent, Longmeadow Business Estate',
+        suburb:      'Modderfontein',
+        town:        'Johannesburg',
+        postal:      '1645',
+        contactName: 'Sam Segapela',
+        phone:       '011 878 6000',
+        email:       'sam.segapela@otis.com'
+      },
+      {
+        label:       'Otis Durban',
+        company:     'Otis South Africa (Pty) Ltd',
+        address:     '26 Hurst Grove',
+        suburb:      'Musgrave',
+        town:        'Durban',
+        postal:      '4001',
+        contactName: 'Nobuhle Mthembu',
+        phone:       '082 418 6396',
+        email:       ''
+      }
+    ],
+    receiver: [
+      {
+        label:       'Otis Johannesburg',
+        company:     'Otis South Africa (Pty) Ltd',
+        address:     '17 Angus Crescent, Longmeadow Business Estate',
+        suburb:      'Modderfontein',
+        town:        'Johannesburg',
+        postal:      '1645',
+        contactName: 'Sam Segapela',
+        phone:       '011 878 6000',
+        email:       'sam.segapela@otis.com'
+      },
+      {
+        label:       'Otis Durban',
+        company:     'Otis South Africa (Pty) Ltd',
+        address:     '26 Hurst Grove',
+        suburb:      'Musgrave',
+        town:        'Durban',
+        postal:      '4001',
+        contactName: 'Nobuhle Mthembu',
+        phone:       '082 418 6396',
+        email:       ''
+      },
+      {
+        label:       'Otis Cape Town',
+        company:     'Otis South Africa (Pty) Ltd',
+        address:     'Ratanga Road',
+        suburb:      'Sanddrift',
+        town:        'Cape Town',
+        postal:      '7441',
+        contactName: '',   // staff will type contact name
+        phone:       '082 418 5809',
+        email:       ''
+      }
+    ]
+  };
+
+  // ── DETERMINE IF CLIENT IS OTIS ───────────────────────────────
+  const _sess = JSON.parse(localStorage.getItem('mokSession') || 'null');
+  const _company = (_sess?.company || _sess?.name || '').toLowerCase();
+  const _isOtis  = _company.includes('otis');
+
+  function buildAddressDropdown(addresses, targetPrefix, dropdownId) {
+    // Remove existing dropdown if any
+    const existing = document.getElementById(dropdownId);
+    if (existing) existing.remove();
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-bottom:14px';
+
+    const label = document.createElement('label');
+    label.style.cssText = 'font-size:11px;font-weight:700;color:#607d8b;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px';
+    label.textContent = 'Quick Fill — Saved Address';
+
+    const sel = document.createElement('select');
+    sel.id = dropdownId;
+    sel.style.cssText = 'width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-family:Barlow,sans-serif;font-size:14px;outline:none;background:#fff;color:#1a2535;margin-bottom:4px';
+
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = '— Select saved address or type manually —';
+    sel.appendChild(defaultOpt);
+
+    addresses.forEach((addr, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = addr.label;
+      sel.appendChild(opt);
+    });
+
+    sel.addEventListener('change', () => {
+      const idx = sel.value;
+      if (idx === '') return;
+      const addr = addresses[parseInt(idx)];
+      fillFields(addr, targetPrefix);
+    });
+
+    wrap.id = dropdownId;
+    wrap.appendChild(label);
+    wrap.appendChild(sel);
+    return wrap;
+  }
+
+  function fillFields(addr, prefix) {
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (!el || val === undefined) return;
+      el.value = val;
+      // Trigger Materialize label float
+      if (val) el.classList.add('valid');
+      const lbl = document.querySelector(`label[for="${id}"]`);
+      if (lbl) lbl.classList.add('active');
+      // Trigger input event for any listeners
+      el.dispatchEvent(new Event('input'));
+    };
+
+    if (prefix === 'from') {
+      set('fromCompany',         addr.company);
+      set('fromAddress',         addr.address);
+      set('fromSuburb',          addr.suburb);
+      set('fromTown',            addr.town);
+      set('fromPostal',          addr.postal);
+      set('fromContact',         addr.phone);
+      set('fromEmail',           addr.email);
+      set('consignorContactName', addr.contactName);
+    } else {
+      set('toCompany',           addr.company);
+      set('toAddress',           addr.address);
+      set('toSuburb',            addr.suburb);
+      set('toTown',              addr.town);
+      set('toPostal',            addr.postal);
+      set('toContact',           addr.phone);
+      set('toEmail',             addr.email);
+      set('consigneeContactName', addr.contactName);
+    }
+  }
+
+  // ── INJECT DROPDOWNS ON DOM READY ────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!_isOtis) return; // Only show for Otis users
+
+    // FROM section — insert dropdown before first input in From card
+    const fromCard = document.querySelector('.booking-card:has(#fromCompany)') ||
+      document.getElementById('fromCompany')?.closest('.booking-card');
+    if (fromCard) {
+      const dropdown = buildAddressDropdown(OTIS_ADDRESSES.sender, 'from', 'fromAddressDropdown');
+      const firstRow = fromCard.querySelector('.row');
+      fromCard.insertBefore(dropdown, firstRow);
+    }
+
+    // TO section — insert dropdown before first input in To card
+    const toCard = document.querySelector('.booking-card:has(#toCompany)') ||
+      document.getElementById('toCompany')?.closest('.booking-card');
+    if (toCard) {
+      const dropdown = buildAddressDropdown(OTIS_ADDRESSES.receiver, 'to', 'toAddressDropdown');
+      const firstRow = toCard.querySelector('.row');
+      toCard.insertBefore(dropdown, firstRow);
+    }
+  });
+  </script>
 
 
 
 </body>
 
 </html>
-
-
-
 
