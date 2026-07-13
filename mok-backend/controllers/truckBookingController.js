@@ -8,7 +8,7 @@ exports.createBooking = async (req, res) => {
   try {
     const {
       booking_ref, client_name, client_phone, client_email,
-      commodity, shipment_date, processed_by,
+      commodity, client_reference, requirements, shipment_date, processed_by,
       type, vehicle, delivery_type,
       price, toll_cost, distance_km,
       pickup, delivery, country, city, route, status, notes,
@@ -23,17 +23,17 @@ exports.createBooking = async (req, res) => {
     const result = await db.query(`
       INSERT INTO truck_bookings
         (booking_ref, client_name, client_phone, client_email,
-         commodity, shipment_date, processed_by,
+         commodity, client_reference, requirements, shipment_date, processed_by,
          type, vehicle, delivery_type,
          price, toll_cost, distance_km,
          pickup, delivery, country, city, route, status, notes,
          delivery_note_no,
          receiver_name, receiver_company, receiver_phone, receiver_email)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27)
       RETURNING *
     `, [
       booking_ref, client_name, client_phone, client_email,
-      commodity, shipment_date || null, processed_by,
+      commodity, client_reference || null, requirements || null, shipment_date || null, processed_by,
       type, vehicle, delivery_type,
       price, toll_cost || 0, distance_km || null,
       pickup, delivery, country || null, city || null, route,
@@ -256,6 +256,7 @@ exports.updateNotes = async (req, res) => {
     res.status(500).json({ error: 'Failed to update notes' });
   }
 };
+
 
 
 

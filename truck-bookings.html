@@ -581,6 +581,8 @@ function renderDrawerBody(b) {
         <div class="d-field"><div class="d-field-label">Processed By</div><div class="d-field-value">${b.processed_by||'—'}</div></div>
         <div class="d-field"><div class="d-field-label">Commodity</div><div class="d-field-value">${b.commodity||'—'}</div></div>
         <div class="d-field"><div class="d-field-label">Distance</div><div class="d-field-value">${b.distance_km?b.distance_km+' km':'—'}</div></div>
+        <div class="d-field"><div class="d-field-label">Client Reference / PO</div><div class="d-field-value">${b.client_reference||'—'}</div></div>
+        ${b.requirements ? `<div class="d-field" style="grid-column:1/-1"><div class="d-field-label">Requirements</div><div class="d-field-value" style="white-space:pre-wrap">${b.requirements}</div></div>` : ''}
       </div>
     </div>
 
@@ -1008,5 +1010,7 @@ loadBookings();
 </script>
 </body>
 </html>
+
+
 
 

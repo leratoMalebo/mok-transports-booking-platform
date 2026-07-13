@@ -906,6 +906,15 @@
             <label class="field-label">Commodity / Description of Goods</label>
             <input class="field-input" type="text" id="commodity" placeholder="e.g. Machinery, furniture, pallets…">
           </div>
+          <div class="field-group">
+            <label class="field-label">Client Reference / PO Number</label>
+            <input class="field-input" type="text" id="clientReference" placeholder="e.g. Client PO number or internal reference">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Requirements (no cost — for client's information)</label>
+            <textarea class="field-input" id="requirements" rows="3" style="resize:vertical;font-family:inherit"
+              placeholder="e.g. Bobcat required to offload, 2x pallet jacks, 4x labourers, after-hours delivery…"></textarea>
+          </div>
           <div class="grid-2">
             <div class="field-group">
               <label class="field-label">Shipment Date</label>
@@ -1661,6 +1670,8 @@
       const phone = document.getElementById('clientPhone').value.trim();
       const email = document.getElementById('clientEmail').value.trim();
       const commodity = document.getElementById('commodity').value.trim();
+      const clientReference = document.getElementById('clientReference')?.value?.trim() || '';
+      const requirements = document.getElementById('requirements')?.value?.trim() || '';
       const shipDate = document.getElementById('shipmentDate').value;
       // Processed By is hidden for clients — office assigns it when reviewing the booking
       const agent = isClient ? 'Pending Assignment' : document.getElementById('processedBy').value;
@@ -1691,7 +1702,7 @@
       const finalPrice = price + otherCostsVal;
 
       return {
-        ref, name, contact, phone, email, commodity, shipDate, agent,
+        ref, name, contact, phone, email, commodity, clientReference, requirements, shipDate, agent,
         receiverName, receiverCompany, receiverPhone, receiverEmail,
         type: state.type,
         vehicle: state.vehicle,
@@ -1753,6 +1764,8 @@
             client_phone:      payload.phone,
             client_email:      payload.email,
             commodity:         payload.commodity,
+            client_reference:  payload.clientReference || null,
+            requirements:      payload.requirements    || null,
             shipment_date:     payload.shipDate,
             processed_by:      payload.agent,
             type:              payload.type,
@@ -1855,6 +1868,9 @@
               : '—'
           },
         ];
+        if (payload.clientReference) {
+          metaLines.push({ label: 'Client Ref:', value: payload.clientReference });
+        }
         const metaH = 14 + metaLines.length * 8;
         doc.setFillColor(10, 42, 67); doc.roundedRect(108, 41, 88, metaH, 2, 2, 'F');
         metaLines.forEach((row, i) => {
@@ -1951,6 +1967,18 @@
         const totalLabel = payload.tollCost > 0 && !withTolls ? 'Total Excl. Tolls:' : 'Total Excl. VAT:';
         doc.text(totalLabel, totX, y);
         doc.text('R' + total.toLocaleString(), W - M - pad, y, { align: 'right' }); y += 14;
+
+        // Requirements section (no cost shown — informational only)
+        if (payload.requirements) {
+          const reqLines = doc.splitTextToSize(payload.requirements, W - M * 2 - 6);
+          const reqBoxH = 12 + reqLines.length * 4.5;
+          doc.setFillColor(245, 247, 252); doc.roundedRect(M, y, W - M * 2, reqBoxH, 2, 2, 'F');
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(10, 42, 67);
+          doc.text('REQUIREMENTS:', M + 3, y + 7);
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(50, 50, 50);
+          doc.text(reqLines, M + 3, y + 12.5);
+          y += reqBoxH + 6;
+        }
 
         // Shipment info box
         if (payload.shipDate) {
@@ -2217,6 +2245,7 @@
 </body>
 
 </html>
+
 
 
 
