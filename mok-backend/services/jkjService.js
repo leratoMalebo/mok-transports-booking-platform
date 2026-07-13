@@ -109,18 +109,44 @@ exports.submitWaybillToJKJ = async (waybill) => {
       waydate: todayDDMMYYYY(),
 
       // Consignor (sender)
-      origpers: sanitizeJKJ(waybill.consignor_contact_name || waybill.consignor_name || "Mok Transports", 40),
-      origperadd1: sanitizeJKJ(waybill.consignor_address || "12 Jupiter Road Crown Mines", 60),
-      
-      origtown: sanitizeJKJ(waybill.consignor_town || "Johannesburg", 30),
-      origpercontact: (waybill.consignor_contact || '0118396496').replace(/\D/g, '').substring(0, 15),
+      // Consignor (sender)
+      origpers: sanitizeJKJ(
+        waybill.consignor_contact_name || waybill.consignor_name || "Mok Transports",
+        40
+      ),
+
+      origperadd1: sanitizeJKJ(waybill.consignor_address, 30),
+      origperadd2: sanitizeJKJ(waybill.consignor_address2, 30),
+      origperadd3: sanitizeJKJ(waybill.consignor_suburb, 30),
+      origperadd4: sanitizeJKJ(waybill.consignor_province, 30),
+
+      origperpcode: sanitizeJKJ(waybill.consignor_postcode, 10),
+
+      origtown: sanitizeJKJ(waybill.consignor_town, 30),
+
+      origpercontact: (waybill.consignor_contact || "")
+        .replace(/\D/g, "")
+        .substring(0, 15),
 
       // Consignee (receiver)
-      destpers: sanitizeJKJ(waybill.consignee_contact_name || waybill.consignee_name || "Receiver", 40),
-      destperadd1: sanitizeJKJ(waybill.consignee_address || "Receiver Address", 60),
-      
-      desttown: sanitizeJKJ(waybill.consignee_town || "Johannesburg", 30),
-      destpercontact: (waybill.consignee_contact || '0000000000').replace(/\D/g, '').substring(0, 15),
+      // Consignee (receiver)
+      destpers: sanitizeJKJ(
+        waybill.consignee_contact_name || waybill.consignee_name || "Receiver",
+        40
+      ),
+
+      destperadd1: sanitizeJKJ(waybill.consignee_address, 30),
+      destperadd2: sanitizeJKJ(waybill.consignee_address2, 30),
+      destperadd3: sanitizeJKJ(waybill.consignee_suburb, 30),
+      destperadd4: sanitizeJKJ(waybill.consignee_province, 30),
+
+      destperpcode: sanitizeJKJ(waybill.consignee_postcode, 10),
+
+      desttown: sanitizeJKJ(waybill.consignee_town, 30),
+
+      destpercontact: (waybill.consignee_contact || "")
+        .replace(/\D/g, "")
+        .substring(0, 15),
 
       reference: sanitizeJKJ(waybill.waybill_no, 30),
       ppcust: JKJ_PPCUST_ID
@@ -157,6 +183,10 @@ exports.submitWaybillToJKJ = async (waybill) => {
   console.log('✅ [JKJ] Waybill submitted successfully:', waybill.waybill_no);
   return result;
 };
+
+
+
+
 
 
 

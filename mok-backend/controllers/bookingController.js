@@ -12,17 +12,23 @@ exports.createBooking = async (req, res) => {
 
       consignor_name,
       consignor_address,
+      consignor_address2,
       consignor_contact,
       consignor_contact_name,
       consignor_suburb,
       consignor_town,
+      consignor_province,
+      consignor_postcode,
 
       consignee_name,
       consignee_address,
+      consignee_address2,
       consignee_contact,
       consignee_contact_name,
       consignee_suburb,
       consignee_town,
+      consignee_province,
+      consignee_postcode,
 
       weight,
       volumetric_weight,
@@ -36,19 +42,25 @@ exports.createBooking = async (req, res) => {
   user_id,
   service,
 
-  consignor_name,
-  consignor_address,
-  consignor_contact,
-  consignor_contact_name,
-  consignor_suburb,
-  consignor_town,
+ consignor_name,
+consignor_address,
+consignor_address2,
+consignor_contact,
+consignor_contact_name,
+consignor_suburb,
+consignor_town,
+consignor_province,
+consignor_postcode,
 
-  consignee_name,
-  consignee_address,
-  consignee_contact,
-  consignee_contact_name,
-  consignee_suburb,
-  consignee_town,
+consignee_name,
+consignee_address,
+consignee_address2,
+consignee_contact,
+consignee_contact_name,
+consignee_suburb,
+consignee_town,
+consignee_province,
+consignee_postcode,
 
   weight,
   volumetric_weight,
@@ -56,9 +68,9 @@ exports.createBooking = async (req, res) => {
   zone_label
 )
        VALUES (
-  $1,$2,$3,$4,$5,$6,$7,$8,
-  $9,$10,$11,$12,$13,$14,
-  $15,$16,$17,$18
+  $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+  $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
+  $21,$22,$23,$24
 )
        RETURNING *`,
       [
@@ -67,17 +79,23 @@ exports.createBooking = async (req, res) => {
 
         consignor_name,
         consignor_address,
+        consignor_address2,
         consignor_contact,
         consignor_contact_name,
         consignor_suburb,
         consignor_town,
+        consignor_province,
+        consignor_postcode,
 
         consignee_name,
         consignee_address,
+        consignee_address2,
         consignee_contact,
         consignee_contact_name,
         consignee_suburb,
         consignee_town,
+        consignee_province,
+        consignee_postcode,
 
         weight,
         volumetric_weight,
