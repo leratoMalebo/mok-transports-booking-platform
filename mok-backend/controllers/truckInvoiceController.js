@@ -12,7 +12,7 @@ exports.createInvoice = async (req, res) => {
       subtotal, notes, invoice_date
     } = req.body;
 
-    if (!booking_ref || !subtotal)
+    if (!booking_ref || subtotal === undefined || subtotal === null)
       return res.status(400).json({ error: 'booking_ref and subtotal are required' });
 
     // Check not already invoiced
@@ -84,8 +84,9 @@ exports.getAllInvoices = async (req, res) => {
 exports.getInvoice = async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT ti.*, tb.pickup, tb.delivery, tb.distance_km, tb.toll_cost,
-             tb.processed_by, tb.delivery_note_no
+      SELECT ti.*, tb.pickup, tb.delivery, tb.city, tb.distance_km, tb.toll_cost,
+             tb.processed_by, tb.delivery_note_no,
+             tb.receiver_name, tb.receiver_company, tb.receiver_phone, tb.receiver_email
       FROM truck_invoices ti
       LEFT JOIN truck_bookings tb ON tb.booking_ref = ti.booking_ref
       WHERE ti.invoice_no = $1 OR ti.id::text = $1
@@ -107,8 +108,9 @@ exports.getInvoice = async (req, res) => {
 exports.getInvoiceByBooking = async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT ti.*, tb.pickup, tb.delivery, tb.distance_km, tb.toll_cost,
-             tb.processed_by, tb.delivery_note_no
+      SELECT ti.*, tb.pickup, tb.delivery, tb.city, tb.distance_km, tb.toll_cost,
+             tb.processed_by, tb.delivery_note_no,
+             tb.receiver_name, tb.receiver_company, tb.receiver_phone, tb.receiver_email
       FROM truck_invoices ti
       LEFT JOIN truck_bookings tb ON tb.booking_ref = ti.booking_ref
       WHERE ti.booking_ref = $1
