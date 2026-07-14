@@ -290,11 +290,13 @@ function fillAddressComponents(components, prefix) {
   const suburb = get(["sublocality", "sublocality_level_1", "neighborhood"]);
   const town = get(["locality", "administrative_area_level_2"]);
   const postal = get(["postal_code"]);
+  const province = get(["administrative_area_level_1"]);
 
   const streetField = document.getElementById(`${prefix}Address`);
   const suburbField = document.getElementById(`${prefix}Suburb`);
   const townField = document.getElementById(`${prefix}Town`);
   const postalField = document.getElementById(`${prefix}Postal`);
+  const provinceField = document.getElementById(`${prefix}Province`);
 
   if (streetField) {
     streetField.value = [streetNo, streetName].filter(Boolean).join(" ");
@@ -303,6 +305,9 @@ function fillAddressComponents(components, prefix) {
   if (suburbField && suburb) { suburbField.value = suburb; M.updateTextFields(); }
   if (townField && town) { townField.value = town; M.updateTextFields(); }
   if (postalField && postal) { postalField.value = postal; M.updateTextFields(); }
+  if (provinceField && province) { provinceField.value = province; }
+
+
 }
 
 // ----------------------------------------------------------
@@ -476,8 +481,8 @@ async function confirmBooking() {
   if (!data) return;
 
   try {
-    
-      delete data.waybillNo;
+
+    delete data.waybillNo;
 
     const session = JSON.parse(localStorage.getItem("mokSession") || "{}");
 
@@ -487,30 +492,27 @@ async function confirmBooking() {
       user_id: session?.user?.id || session?.id || null,
       service: data.service,
       consignor_name: data.fromCompany,
-      consignor_address: [
-        data.fromAddress,
-        data.fromSuburb,
-        data.fromTown,
-        data.fromPostal
-      ].filter(Boolean).join(", "),
+      consignor_address: data.fromAddress,
+      consignor_address2: data.fromAddress2,
       consignor_contact: data.fromContact || data.fromEmail,
       consignor_contact_name: data.fromContactName,
       consignor_suburb: data.fromSuburb,
       consignor_town: data.fromTown,
-      consignor_postal: data.fromPostal,
+      consignor_province: data.fromProvince,
+      consignor_postcode: data.fromPostal,
+
 
       consignee_name: data.toCompany,
-      consignee_address: [
-        data.toAddress,
-        data.toSuburb,
-        data.toTown,
-        data.toPostal
-      ].filter(Boolean).join(", "),
+      consignee_address: data.toAddress,
+      consignee_address2: data.toAddress2,
       consignee_contact: data.toContact || data.toEmail,
       consignee_contact_name: data.toContactName,
       consignee_suburb: data.toSuburb,
       consignee_town: data.toTown,
-      consignee_postal: data.toPostal,
+      consignee_province: data.toProvince,
+      consignee_postcode: data.toPostal,
+
+
       weight: parseFloat(data.chargeWeight || 0),
       volumetric_weight: parseFloat(data.volWeight || 0),
       price: parseFloat(data.price || 0),
@@ -564,12 +566,14 @@ async function confirmBooking() {
     });
     localStorage.setItem("mokBookings", JSON.stringify(existing));
 
-    function buildAddr(company, street, suburb, town, postal, email, contactName, contact) {
+    function buildAddr(company, street, street2, suburb, town, province, postal, email, contactName, contact) {
       const lines = [
         `<strong>${company}</strong>`,
         street,
+        street2,
         suburb,
         town,
+        province,
         postal,
         email,
         contactName,
@@ -585,8 +589,10 @@ async function confirmBooking() {
       shipFrom: buildAddr(
         data.fromCompany,
         data.fromAddress,
+        data.fromAddress2,
         data.fromSuburb,
         data.fromTown,
+        data.fromProvince,
         data.fromPostal,
         data.fromEmail,
         data.fromContactName,
@@ -595,8 +601,10 @@ async function confirmBooking() {
       shipTo: buildAddr(
         data.toCompany,
         data.toAddress,
+        data.toAddress2,
         data.toSuburb,
         data.toTown,
+        data.toProvince,
         data.toPostal,
         data.toEmail,
         data.toContactName,
