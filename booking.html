@@ -452,11 +452,12 @@
           letter-spacing:.8px;margin-bottom:10px">⚡ Quick Fill — Address Book</div>
 
         <!-- Staff: Company selector -->
+        <!-- Staff: Company selector -->
         <div id="qfCompanyRow" style="display:none;margin-bottom:8px">
           <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Client
             Company</label>
-          <select id="qfCompany" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
-            padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
+          <select id="qfCompany" class="browser-default" onchange="qfLoadAddresses()" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
+    padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
             <option value="">— Select company —</option>
           </select>
         </div>
@@ -465,16 +466,16 @@
           <div>
             <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">From
               Address</label>
-            <select id="qfFromAddr" onchange="qfApply('from',this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
-              padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
+            <select id="qfFromAddr" class="browser-default" onchange="qfApply('from',this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
+      padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
               <option value="">— Select from address —</option>
             </select>
           </div>
           <div>
             <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">To
               Address</label>
-            <select id="qfToAddr" onchange="qfApply('to',this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
-              padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
+            <select id="qfToAddr" class="browser-default" onchange="qfApply('to',this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
+      padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
               <option value="">— Select to address —</option>
             </select>
           </div>
@@ -795,31 +796,24 @@
 
     async function qfInit() {
       if (_qfStaff) {
+        // Staff: load all company names into company dropdown
         try {
           const res = await fetch(`${QF_API}/addresses/companies`);
           const cos = await res.json();
-
           const sel = document.getElementById('qfCompany');
 
-          // Clear existing options
+          // Clear existing except placeholder
           sel.innerHTML = '<option value="">— Select company —</option>';
-
-          // Add companies
-          cos.forEach(company => {
-            sel.add(new Option(company, company));
+          cos.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c; o.textContent = c;
+            sel.appendChild(o);
           });
-
-          // Attach ONE change listener
-          sel.addEventListener('change', qfLoadAddresses);
 
           document.getElementById('qfCompanyRow').style.display = 'block';
           document.getElementById('qfPanel').style.display = 'block';
-
-        } catch (err) {
-          console.error(err);
-        }
-      }
-      else if (_qfCo) {
+        } catch (e) { console.error('QF companies error:', e); }
+      } else if (_qfCo) {
         // Client: auto-load their company addresses
         try {
           const res = await fetch(`${QF_API}/addresses?type=local`);
@@ -839,6 +833,7 @@
             document.getElementById('otisToWrap').style.display = 'block';
           }
         } catch (e) {
+          console.error('QF addresses error:', e);
           // Fallback to hardcoded Otis on error
           if (_qfCo.indexOf('otis') !== -1) {
             document.getElementById('otisFromWrap').style.display = 'block';
@@ -849,110 +844,61 @@
     }
 
     async function qfLoadAddresses() {
-
-      const company = document.getElementById('qfCompany').value.trim();
-
+      const company = document.getElementById('qfCompany').value;
       if (!company) {
-
         _qfCache = [];
         qfPopulate([]);
         return;
-
       }
-
       try {
-
-        const res = await fetch(
-          `${QF_API}/addresses?company=${encodeURIComponent(company)}&type=local`
-        );
-
-        if (!res.ok)
-          throw new Error("Unable to load addresses");
-
+        const res = await fetch(`${QF_API}/addresses?company=${encodeURIComponent(company)}&type=local`);
         _qfCache = await res.json();
-
-        console.log("Addresses loaded:", _qfCache);
-
         qfPopulate(_qfCache);
-
-      }
-
-      catch (err) {
-
-        console.error(err);
-
-      }
-
+      } catch (e) { console.error('QF load error:', e); }
     }
 
     function qfPopulate(addresses) {
-
-      const from = document.getElementById("qfFromAddr");
-      const to = document.getElementById("qfToAddr");
-
-      [from, to].forEach(sel => {
-
-        sel.innerHTML = '';
-
-        sel.add(new Option("— Select address —", ""));
-
-        addresses.forEach((a, index) => {
-
-          const text =
-            `${a.label || a.company_name} | ${a.address_1} | ${a.city}`;
-
-          sel.add(new Option(text, index));
-
+      ['qfFromAddr', 'qfToAddr'].forEach(id => {
+        const sel = document.getElementById(id);
+        sel.innerHTML = '<option value="">— Select address —</option>';
+        addresses.forEach((a, i) => {
+          const o = document.createElement('option');
+          o.value = i; // Store index to fetch details easily during apply
+          o.textContent = `${a.company_name} - ${a.street_address}, ${a.town || a.city || ''}`;
+          sel.appendChild(o);
         });
-
       });
-
     }
 
-    function qfApply(prefix, idx) {
-      if (idx === '') return;
-      const a = _qfCache[parseInt(idx)];
+    function qfApply(prefix, index) {
+      if (index === "") return;
+      const a = _qfCache[index];
       if (!a) return;
-      const set = (id, val) => {
-        const el = document.getElementById(id);
-        if (!el || val === undefined || val === null) return;
-        el.value = val || '';
-        const lbl = document.querySelector('label[for="' + id + '"]');
-        if (lbl && val) lbl.classList.add('active');
-        el.dispatchEvent(new Event('input'));
-        el.dispatchEvent(new Event('change'));
-      };
-      if (prefix === 'from') {
-        set('fromCompany', a.company_name || a.label);
-        set('fromAddress', a.address_1);
-        set('fromSuburb', a.suburb);
-        set('fromTown', a.city);
-        set('fromPostal', a.postal_code);
-        set('fromContact', a.phone);
-        set('fromEmail', a.email);
-        set('consignorContactName', a.contact_name);
-      } else {
-        set('toCompany', a.company_name || a.label);
-        set('toAddress', a.address_1);
-        set('toSuburb', a.suburb);
-        set('toTown', a.city);
-        set('toPostal', a.postal_code);
-        set('toContact', a.phone);
-        set('toEmail', a.email);
-        set('consigneeContactName', a.contact_name);
+
+      otisSet(`${prefix}Company`, a.company_name);
+      otisSet(`${prefix}Address`, a.street_address);
+      otisSet(`${prefix}Address2`, a.address_line_2 || '');
+      otisSet(`${prefix}Suburb`, a.suburb);
+      otisSet(`${prefix}Town`, a.town || a.city || '');
+      otisSet(`${prefix}Province`, a.province);
+      otisSet(`${prefix}Postal`, a.postal_code || a.postcode || '');
+      otisSet(`${prefix}Contact`, a.phone || a.contact_number || '');
+      otisSet(`${prefix}Email`, a.email || '');
+      otisSet(prefix === 'from' ? 'consignorContactName' : 'consigneeContactName', a.contact_name || '');
+
+      // Trigger recalculation of distance and zones
+      if (typeof calculateDistance === 'function') {
+        calculateDistance();
       }
     }
 
-    document.addEventListener('DOMContentLoaded', qfInit);
+    // Initialize the quick fill subsystem on load
+    document.addEventListener("DOMContentLoaded", () => {
+      qfInit();
+    });
   </script>
-
 </body>
 
 </html>
-
-
-
-
-
 
 
