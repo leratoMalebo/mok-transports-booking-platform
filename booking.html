@@ -453,9 +453,9 @@
 
         <!-- Staff: Company selector -->
         <div id="qfCompanyRow" style="display:none;margin-bottom:8px">
-          <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Client Company</label>
-          <select id="qfCompany" onchange="qfLoadAddresses()"
-            style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
+          <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Client
+            Company</label>
+          <select id="qfCompany" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
             padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
             <option value="">— Select company —</option>
           </select>
@@ -463,17 +463,17 @@
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div>
-            <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">From Address</label>
-            <select id="qfFromAddr" onchange="qfApply('from',this.value)"
-              style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
+            <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">From
+              Address</label>
+            <select id="qfFromAddr" onchange="qfApply('from',this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
               padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
               <option value="">— Select from address —</option>
             </select>
           </div>
           <div>
-            <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">To Address</label>
-            <select id="qfToAddr" onchange="qfApply('to',this.value)"
-              style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
+            <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">To
+              Address</label>
+            <select id="qfToAddr" onchange="qfApply('to',this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
               padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
               <option value="">— Select to address —</option>
             </select>
@@ -738,12 +738,12 @@
       },
       dbn: {
         company: 'Otis South Africa (Pty) Ltd', address: '26 Hurst Grove',
-        suburb: 'Musgrave', town: 'Durban',  province: "Kwazulu Natal",postal: '4001',
+        suburb: 'Musgrave', town: 'Durban', province: "Kwazulu Natal", postal: '4001',
         contactName: 'Nobuhle Mthembu', phone: '082 418 6396', email: ''
       },
       cpt: {
         company: 'Otis South Africa (Pty) Ltd', address: 'Ratanga Road',
-        suburb: 'Sanddrift', town: 'Cape Town',  province: "Western Cape", postal: '7441',
+        suburb: 'Sanddrift', town: 'Cape Town', province: "Western Cape", postal: '7441',
         contactName: '', phone: '082 418 5809', email: ''
       }
     };
@@ -788,31 +788,42 @@
 
     // ── DB-DRIVEN ADDRESS BOOK ────────────────────────────────────
     const QF_API = 'https://bookings.moktransports.com/api';
-    let _qfCache  = [];
-    let _qfSess   = JSON.parse(localStorage.getItem('mokSession') || 'null');
-    let _qfStaff  = _qfSess && ['staff','admin'].includes(_qfSess.role);
-    let _qfCo     = ((_qfSess && (_qfSess.company || _qfSess.name)) || '').toLowerCase();
+    let _qfCache = [];
+    let _qfSess = JSON.parse(localStorage.getItem('mokSession') || 'null');
+    let _qfStaff = _qfSess && ['staff', 'admin'].includes(_qfSess.role);
+    let _qfCo = ((_qfSess && (_qfSess.company || _qfSess.name)) || '').toLowerCase();
 
     async function qfInit() {
       if (_qfStaff) {
-        // Staff: load all company names into company dropdown
         try {
-          const res  = await fetch(`${QF_API}/addresses/companies`);
-          const cos  = await res.json();
-          const sel  = document.getElementById('qfCompany');
-          cos.forEach(c => {
-            const o = document.createElement('option');
-            o.value = c; o.textContent = c;
-            sel.appendChild(o);
+          const res = await fetch(`${QF_API}/addresses/companies`);
+          const cos = await res.json();
+
+          const sel = document.getElementById('qfCompany');
+
+          // Clear existing options
+          sel.innerHTML = '<option value="">— Select company —</option>';
+
+          // Add companies
+          cos.forEach(company => {
+            sel.add(new Option(company, company));
           });
+
+          // Attach ONE change listener
+          sel.addEventListener('change', qfLoadAddresses);
+
           document.getElementById('qfCompanyRow').style.display = 'block';
           document.getElementById('qfPanel').style.display = 'block';
-        } catch(e) { console.error('QF companies error:', e); }
-      } else if (_qfCo) {
+
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      else if (_qfCo) {
         // Client: auto-load their company addresses
         try {
-          const res  = await fetch(`${QF_API}/addresses?type=local`);
-          const all  = await res.json();
+          const res = await fetch(`${QF_API}/addresses?type=local`);
+          const all = await res.json();
           // Match addresses to this client's company
           const mine = all.filter(a => {
             const an = a.company_name.toLowerCase();
@@ -827,7 +838,7 @@
             document.getElementById('otisFromWrap').style.display = 'block';
             document.getElementById('otisToWrap').style.display = 'block';
           }
-        } catch(e) {
+        } catch (e) {
           // Fallback to hardcoded Otis on error
           if (_qfCo.indexOf('otis') !== -1) {
             document.getElementById('otisFromWrap').style.display = 'block';
@@ -838,30 +849,64 @@
     }
 
     async function qfLoadAddresses() {
-      const company = document.getElementById('qfCompany').value;
+
+      const company = document.getElementById('qfCompany').value.trim();
+
       if (!company) {
+
         _qfCache = [];
         qfPopulate([]);
         return;
+
       }
+
       try {
-        const res  = await fetch(`${QF_API}/addresses?company=${encodeURIComponent(company)}&type=local`);
-        _qfCache   = await res.json();
+
+        const res = await fetch(
+          `${QF_API}/addresses?company=${encodeURIComponent(company)}&type=local`
+        );
+
+        if (!res.ok)
+          throw new Error("Unable to load addresses");
+
+        _qfCache = await res.json();
+
+        console.log("Addresses loaded:", _qfCache);
+
         qfPopulate(_qfCache);
-      } catch(e) { console.error('QF load error:', e); }
+
+      }
+
+      catch (err) {
+
+        console.error(err);
+
+      }
+
     }
 
     function qfPopulate(addresses) {
-      ['qfFromAddr','qfToAddr'].forEach(id => {
-        const sel = document.getElementById(id);
-        sel.innerHTML = '<option value="">— Select address —</option>';
-        addresses.forEach((a,i) => {
-          const o = document.createElement('option');
-          o.value = i;
-          o.textContent = (a.label || a.company_name) + (a.city ? ' — ' + a.city : '') + (a.suburb ? ', ' + a.suburb : '');
-          sel.appendChild(o);
+
+      const from = document.getElementById("qfFromAddr");
+      const to = document.getElementById("qfToAddr");
+
+      [from, to].forEach(sel => {
+
+        sel.innerHTML = '';
+
+        sel.add(new Option("— Select address —", ""));
+
+        addresses.forEach((a, index) => {
+
+          const text =
+            `${a.label || a.company_name} | ${a.address_1} | ${a.city}`;
+
+          sel.add(new Option(text, index));
+
         });
+
       });
+
     }
 
     function qfApply(prefix, idx) {
@@ -878,22 +923,22 @@
         el.dispatchEvent(new Event('change'));
       };
       if (prefix === 'from') {
-        set('fromCompany',          a.company_name || a.label);
-        set('fromAddress',          a.address_1);
-        set('fromSuburb',           a.suburb);
-        set('fromTown',             a.city);
-        set('fromPostal',           a.postal_code);
-        set('fromContact',          a.phone);
-        set('fromEmail',            a.email);
+        set('fromCompany', a.company_name || a.label);
+        set('fromAddress', a.address_1);
+        set('fromSuburb', a.suburb);
+        set('fromTown', a.city);
+        set('fromPostal', a.postal_code);
+        set('fromContact', a.phone);
+        set('fromEmail', a.email);
         set('consignorContactName', a.contact_name);
       } else {
-        set('toCompany',            a.company_name || a.label);
-        set('toAddress',            a.address_1);
-        set('toSuburb',             a.suburb);
-        set('toTown',               a.city);
-        set('toPostal',             a.postal_code);
-        set('toContact',            a.phone);
-        set('toEmail',              a.email);
+        set('toCompany', a.company_name || a.label);
+        set('toAddress', a.address_1);
+        set('toSuburb', a.suburb);
+        set('toTown', a.city);
+        set('toPostal', a.postal_code);
+        set('toContact', a.phone);
+        set('toEmail', a.email);
         set('consigneeContactName', a.contact_name);
       }
     }
@@ -904,6 +949,10 @@
 </body>
 
 </html>
+
+
+
+
 
 
 
