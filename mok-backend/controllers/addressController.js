@@ -5,7 +5,6 @@ exports.getCompanies = async (req, res) => {
   try {
     const result = await db.query(
       `SELECT DISTINCT company_name FROM client_addresses
-       WHERE type IN ('local','both')
        ORDER BY company_name ASC`
     );
     res.json(result.rows.map(r => r.company_name));
@@ -28,7 +27,7 @@ exports.getAddresses = async (req, res) => {
       params.push(company);
     }
     if (type) {
-      query += ` AND (type = $${idx++} OR type = 'both')`;
+      query += ` AND (type = $${idx++} OR type = 'both' OR type IS NULL)`;
       params.push(type);
     }
     query += ' ORDER BY label ASC';
