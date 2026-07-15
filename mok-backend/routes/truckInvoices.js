@@ -7,8 +7,8 @@ router.get('/booking/:ref',              controller.getInvoiceByBooking);
 router.get('/:invoiceNo',                controller.getInvoice);
 router.post('/',                         controller.createInvoice);
 router.patch('/:invoiceNo/mark-paid',    controller.markPaid);
+router.patch('/:invoiceNo/reference',    controller.updateReference);
 
 module.exports = router;
-
 
 

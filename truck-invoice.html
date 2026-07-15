@@ -84,6 +84,27 @@
       text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
     .idc-value{font-size:13px;font-weight:600;color:var(--navy)}
 
+    .po-ref-band{padding:12px 18px;background:#fffdf5;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+    .po-ref-label{font-size:10px;font-weight:700;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+    .po-ref-input{flex:1;min-width:180px;max-width:340px;height:32px;
+      border:1px dashed #c9b458;border-radius:6px;background:#fffef9;
+      padding:0 10px;font-family:'DM Sans',sans-serif;font-size:13px;
+      font-weight:600;color:var(--navy);outline:none;transition:.15s}
+    .po-ref-input:focus{border-style:solid;border-color:var(--blue);
+      background:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+    .po-ref-input::placeholder{font-weight:400;color:#9aa5b1}
+    .po-ref-status{font-size:11px;color:var(--green);font-weight:600;opacity:0;
+      transition:opacity .3s}
+    .po-ref-status.show{opacity:1}
+    @media print{
+      .po-ref-band{background:#fff}
+      .po-ref-input{border:none;background:transparent;padding:0;height:auto;
+        font-size:13px}
+      .po-ref-status{display:none}
+    }
+
     /* LINE ITEMS TABLE */
     .inv-table-wrap{padding:0}
     table{width:100%;border-collapse:collapse;font-size:13px}
@@ -430,6 +451,20 @@ function renderInvoice(inv) {
           <div class="idc-value">${inv.delivery_note_no||'—'}</div>
         </div>
       </div>
+
+      <!-- PO / CLIENT REFERENCE (editable) -->
+      <div class="po-ref-band">
+        <span class="po-ref-label">PO / Client Reference</span>
+        <input
+          type="text"
+          class="po-ref-input"
+          id="poRefInput"
+          value="${inv.client_reference || inv.booking_client_reference || ''}"
+          placeholder="Type PO number or client reference…"
+          onblur="savePORef('${inv.invoice_no}')"
+        >
+        <span class="po-ref-status" id="poRefStatus">Saved ✓</span>
+      </div>
       <!-- ROUTE BAND -->
       <div style="padding:10px 18px;background:#f0f4f8;border-bottom:1px solid var(--border)">
         <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
@@ -564,10 +599,51 @@ async function markPaid(invoiceNo) {
   } catch { alert('Failed to mark as paid.'); }
 }
 
+// ── SAVE PO / CLIENT REFERENCE ────────────────
+let poRefSaveTimer = null;
+async function savePORef(invoiceNo, silent) {
+  const input = document.getElementById('poRefInput');
+  if (!input) return;
+  const value = input.value.trim();
+
+  // Avoid a pointless write if nothing actually changed
+  const current = invoiceData?.client_reference || invoiceData?.booking_client_reference || '';
+  if (value === current) return;
+
+  try {
+    const res = await fetch(`${API}/truck-invoices/${invoiceNo}/reference`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_reference: value })
+    });
+    if (!res.ok) throw new Error();
+    const updated = await res.json();
+    if (invoiceData) invoiceData.client_reference = updated.client_reference;
+
+    if (!silent) {
+      const status = document.getElementById('poRefStatus');
+      if (status) {
+        status.classList.add('show');
+        clearTimeout(poRefSaveTimer);
+        poRefSaveTimer = setTimeout(() => status.classList.remove('show'), 2000);
+      }
+    }
+  } catch {
+    if (!silent) alert('Failed to save the PO / reference. Please try again.');
+  }
+}
+
 // ── PDF DOWNLOAD ──────────────────────────────
 function downloadPDF() {
   if (!invoiceData) { alert('Invoice not loaded yet.'); return; }
   const inv = invoiceData;
+
+  // Pick up whatever is currently typed in the PO/Reference field — even
+  // if the accountant hasn't clicked away from it yet — and persist it
+  // so the saved invoice matches what's on the downloaded PDF.
+  const poInput = document.getElementById('poRefInput');
+  const poValue = poInput ? poInput.value.trim() : (inv.client_reference || inv.booking_client_reference || '');
+  if (poInput) savePORef(inv.invoice_no, true);
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
@@ -602,6 +678,12 @@ function downloadPDF() {
     doc.text(`Due Date: ${due}`, M+60, y);
     doc.text(`Status: ${(inv.status||'unpaid').toUpperCase()}`, M+120, y);
     y+=8;
+
+    if (poValue) {
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+      doc.text(`PO / Reference: ${poValue}`, M, y);
+      y+=8;
+    }
 
     // FROM / TO boxes
     const bw=(W-2*M)/2-2;
@@ -750,9 +832,5 @@ function downloadPDF() {
 </script>
 </body>
 </html>
-
-
-
-
 
 

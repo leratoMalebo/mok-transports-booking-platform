@@ -31,18 +31,26 @@ exports.createInvoice = async (req, res) => {
     const vat     = Math.round(sub * 0.15 * 100) / 100;
     const total   = Math.round((sub + vat) * 100) / 100;
 
+    // Default the invoice's PO/Client Reference to whatever was captured
+    // on the booking (if anything) — accountants can still edit it later.
+    const bookingRefResult = await db.query(
+      'SELECT client_reference FROM truck_bookings WHERE booking_ref = $1', [booking_ref]
+    );
+    const defaultReference = bookingRefResult.rows[0]?.client_reference || null;
+
     const result = await db.query(`
       INSERT INTO truck_invoices
         (invoice_no, booking_ref, client_name, client_email, client_phone,
          route, vehicle, delivery_type, commodity, shipment_date,
-         subtotal, vat_amount, total, status, notes, invoice_date)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'unpaid',$14,$15)
+         subtotal, vat_amount, total, status, notes, invoice_date, client_reference)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'unpaid',$14,$15,$16)
       RETURNING *
     `, [
       invoice_no, booking_ref, client_name, client_email, client_phone,
       route, vehicle, delivery_type, commodity, shipment_date || null,
       sub, vat, total, notes || null,
-      invoice_date || new Date().toISOString().split('T')[0]
+      invoice_date || new Date().toISOString().split('T')[0],
+      defaultReference
     ]);
 
     // Mark truck booking as invoiced
@@ -86,7 +94,8 @@ exports.getInvoice = async (req, res) => {
     const result = await db.query(`
       SELECT ti.*, tb.pickup, tb.delivery, tb.city, tb.distance_km, tb.toll_cost,
              tb.processed_by, tb.delivery_note_no,
-             tb.receiver_name, tb.receiver_company, tb.receiver_phone, tb.receiver_email
+             tb.receiver_name, tb.receiver_company, tb.receiver_phone, tb.receiver_email,
+             tb.client_reference AS booking_client_reference
       FROM truck_invoices ti
       LEFT JOIN truck_bookings tb ON tb.booking_ref = ti.booking_ref
       WHERE ti.invoice_no = $1 OR ti.id::text = $1
@@ -110,7 +119,8 @@ exports.getInvoiceByBooking = async (req, res) => {
     const result = await db.query(`
       SELECT ti.*, tb.pickup, tb.delivery, tb.city, tb.distance_km, tb.toll_cost,
              tb.processed_by, tb.delivery_note_no,
-             tb.receiver_name, tb.receiver_company, tb.receiver_phone, tb.receiver_email
+             tb.receiver_name, tb.receiver_company, tb.receiver_phone, tb.receiver_email,
+             tb.client_reference AS booking_client_reference
       FROM truck_invoices ti
       LEFT JOIN truck_bookings tb ON tb.booking_ref = ti.booking_ref
       WHERE ti.booking_ref = $1
@@ -122,6 +132,30 @@ exports.getInvoiceByBooking = async (req, res) => {
   } catch (err) {
     console.error('GET INVOICE BY BOOKING ERROR:', err.message);
     res.status(500).json({ error: 'Failed to fetch invoice' });
+  }
+};
+
+// ─────────────────────────────────────────────
+// UPDATE PO / CLIENT REFERENCE
+// PATCH /api/truck-invoices/:invoiceNo/reference
+// Body: { client_reference: 'PO-12345' }
+// Lets an accountant type in or correct the PO/client reference
+// directly on the invoice, even if it wasn't captured at booking time.
+// ─────────────────────────────────────────────
+exports.updateReference = async (req, res) => {
+  try {
+    const { client_reference } = req.body;
+    const result = await db.query(
+      `UPDATE truck_invoices SET client_reference = $1
+       WHERE invoice_no = $2 RETURNING *`,
+      [client_reference?.trim() || null, req.params.invoiceNo]
+    );
+    if (!result.rows.length)
+      return res.status(404).json({ error: 'Invoice not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('UPDATE INVOICE REFERENCE ERROR:', err.message);
+    res.status(500).json({ error: 'Failed to update reference' });
   }
 };
 
