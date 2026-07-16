@@ -732,65 +732,94 @@
   <<script>
     // ── OTIS ADDRESS DATA ─────────────────────────────────────────
     const OTIS = {
-      jhb: {
-        company: 'Otis South Africa (Pty) Ltd', address: '17 Angus Crescent, Longmeadow Business Estate',
-        suburb: 'Modderfontein', town: 'Johannesburg', province: "Gauteng", postal: '1645',
-        contactName: 'Sam Segapela', phone: '011 878 6000', email: 'sam.segapela@otis.com'
-      },
-      dbn: {
-        company: 'Otis South Africa (Pty) Ltd', address: '26 Hurst Grove',
-        suburb: 'Musgrave', town: 'Durban', province: "Kwazulu Natal", postal: '4001',
-        contactName: 'Nobuhle Mthembu', phone: '082 418 6396', email: ''
-      },
-      cpt: {
-        company: 'Otis South Africa (Pty) Ltd', address: 'Ratanga Road',
-        suburb: 'Sanddrift', town: 'Cape Town', province: "Western Cape", postal: '7441',
-        contactName: '', phone: '082 418 5809', email: ''
-      }
+    jhb: {
+    company: 'Otis South Africa (Pty) Ltd', address: '17 Angus Crescent, Longmeadow Business Estate',
+    suburb: 'Modderfontein', town: 'Johannesburg', province: "Gauteng", postal: '1645',
+    contactName: 'Sam Segapela', phone: '011 878 6000', email: 'sam.segapela@otis.com'
+    },
+    jhb: {
+    company: 'Otis South Africa (Pty) Ltd', address: '17 Angus Crescent, Longmeadow Business Estate',
+    suburb: 'Modderfontein', town: 'Johannesburg', province: "Gauteng", postal: '1645',
+    contactName: 'Dannyboy Kotu', phone: '079 874 9339', email: 'Danny.Kotu@otis.com'
+    },
+
+    dbn: {
+    company: 'Otis South Africa (Pty) Ltd', address: '26 Hurst Grove',
+    suburb: 'Musgrave', town: 'Durban', province: "Kwazulu Natal", postal: '4001',
+    contactName: 'Nobuhle Mthembu', phone: '082 418 6396', email: 'Nobuhle.Mtembu@otis.com'
+    },
+    cpt: {
+    company: 'Otis South Africa (Pty) Ltd', address: 'Ratanga Road',
+    suburb: 'Sanddrift', town: 'Cape Town', province: "Western Cape", postal: '7441',
+    contactName: 'Nazleigh Booys', phone: '011 878 6000', email: 'nazleigh.Booys@otis.com'
+    },
+    cpt : {
+    company: 'Otis South Africa (Pty) Ltd', address: 'Bosmansdam Road',
+    suburb: 'Milnerton', town: 'Cape Town', province: "Western Cape", postal: '7441',
+    contactName: 'Nazleigh Booys ', phone: '011 878 6000', email: 'nazleigh.Booys@otis.com'
+    },
+
+    bfn: {
+    company: 'Otis South Africa (Pty) Ltd', address: '17 First Street',
+    suburb: 'Arboretum', town: 'Bloemfontein', province: "Free State", postal: '9301',
+    contactName: 'Thato Mafantiri', phone: '082 419 4860', email: 'Thato.Mafantiri@otis.com'
+    },
+
+    PE: {
+    company: 'Otis South Africa (Pty) Ltd', address: '4th Avenue',
+    suburb: 'Newton Park ', town: 'Port Elizabeth', province: "Eastern Cape", postal: '6045',
+    contactName: 'Gerhard Lessing', phone: '041 365 6549', email: 'gerhard.lessing@otis.com'
+    },
+    EL: {
+    company: 'Otis South Africa (Pty) Ltd', address: 'Old Transkei Road',
+    suburb: 'Nahoon', town: 'East London ', province: "Eastern Cape", postal: '9301',
+    contactName: 'Siziba Lukhanyo', phone: '043 722-9776', email: 'siziba.lukhanyo@otis.com'
+    }
+
     };
 
     function otisSet(id, val) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.value = val || '';
-      
-      // Fixed Materialize Floating Labels validation
-      if (val) el.classList.add('valid');
-      const lbl = document.querySelector('label[for="' + id + '"]');
-      if (lbl && val) lbl.classList.add('active');
-      
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val || '';
+
+    // Fixed Materialize Floating Labels validation
+    if (val) el.classList.add('valid');
+    const lbl = document.querySelector('label[for="' + id + '"]');
+    if (lbl && val) lbl.classList.add('active');
+
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     function fillOtisFrom(key) {
-      if (!key) return;
-      const a = OTIS[key];
-      otisSet('fromCompany', a.company);
-      otisSet('fromAddress', a.address);
-      otisSet('fromAddress2', ''); // Clear address 2 explicitly
-      otisSet('fromSuburb', a.suburb);
-      otisSet('fromTown', a.town);
-      otisSet('fromProvince', a.province);
-      otisSet('fromPostal', a.postal);
-      otisSet('fromContact', a.phone);
-      otisSet('fromEmail', a.email);
-      otisSet('consignorContactName', a.contactName);
+    if (!key) return;
+    const a = OTIS[key];
+    otisSet('fromCompany', a.company);
+    otisSet('fromAddress', a.address);
+    otisSet('fromAddress2', ''); // Clear address 2 explicitly
+    otisSet('fromSuburb', a.suburb);
+    otisSet('fromTown', a.town);
+    otisSet('fromProvince', a.province);
+    otisSet('fromPostal', a.postal);
+    otisSet('fromContact', a.phone);
+    otisSet('fromEmail', a.email);
+    otisSet('consignorContactName', a.contactName);
     }
 
     function fillOtisTo(key) {
-      if (!key) return;
-      const a = OTIS[key];
-      otisSet('toCompany', a.company);
-      otisSet('toAddress', a.address);
-      otisSet('toAddress2', ''); // Clear address 2 explicitly
-      otisSet('toSuburb', a.suburb);
-      otisSet('toTown', a.town);
-      otisSet('toProvince', a.province);
-      otisSet('toPostal', a.postal);
-      otisSet('toContact', a.phone);
-      otisSet('toEmail', a.email);
-      otisSet('consigneeContactName', a.contactName);
+    if (!key) return;
+    const a = OTIS[key];
+    otisSet('toCompany', a.company);
+    otisSet('toAddress', a.address);
+    otisSet('toAddress2', ''); // Clear address 2 explicitly
+    otisSet('toSuburb', a.suburb);
+    otisSet('toTown', a.town);
+    otisSet('toProvince', a.province);
+    otisSet('toPostal', a.postal);
+    otisSet('toContact', a.phone);
+    otisSet('toEmail', a.email);
+    otisSet('consigneeContactName', a.contactName);
     }
 
     // ── DB-DRIVEN ADDRESS BOOK ────────────────────────────────────
@@ -801,143 +830,140 @@
     let _qfCo = ((_qfSess && (_qfSess.company || _qfSess.name)) || '').toLowerCase();
 
     async function qfInit() {
-      // 1. SAFE CHECK FIRST: If Otis client, inject real operational buttons inside wrappers
-      if (_qfCo && _qfCo.indexOf('otis') !== -1) {
-        
-        // Build & populate From Buttons
-        document.getElementById('otisFromWrap').innerHTML = `
-          <div style="margin-bottom:16px; padding:12px; background:#f0f4ff; border-radius:6px; border:1px dashed #1565c0;">
-            <span style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; display:block; margin-bottom:6px">📍 Otis Quick Fill Pickup</span>
-            <button type="button" class="btn-mok primary small" onclick="fillOtisFrom('jhb')">Johannesburg HQ</button>
-            <button type="button" class="btn-mok primary small" onclick="fillOtisFrom('dbn')">Durban Hub</button>
-          </div>`;
-        
-        // Build & populate To Buttons
-        document.getElementById('otisToWrap').innerHTML = `
-          <div style="margin-bottom:16px; padding:12px; background:#f0f4ff; border-radius:6px; border:1px dashed #1565c0;">
-            <span style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; display:block; margin-bottom:6px">🏁 Otis Quick Fill Delivery</span>
-            <button type="button" class="btn-mok primary small" onclick="fillOtisTo('jhb')">Johannesburg HQ</button>
-            <button type="button" class="btn-mok primary small" onclick="fillOtisTo('dbn')">Durban Hub</button>
-            <button type="button" class="btn-mok primary small" onclick="fillOtisTo('cpt')">Cape Town Branch</button>
-          </div>`;
+    // 1. SAFE CHECK FIRST: If Otis client, inject real operational buttons inside wrappers
+    if (_qfCo && _qfCo.indexOf('otis') !== -1) {
 
-        document.getElementById('otisFromWrap').style.display = 'block';
-        document.getElementById('otisToWrap').style.display = 'block';
-        
-        if (document.getElementById('qfPanel')) {
-          document.getElementById('qfPanel').style.display = 'none';
-        }
-        return; 
-      }
+    // Build & populate From Buttons
+    document.getElementById('otisFromWrap').innerHTML = `
+    <div style="margin-bottom:16px; padding:12px; background:#f0f4ff; border-radius:6px; border:1px dashed #1565c0;">
+      <span
+        style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; display:block; margin-bottom:6px">📍
+        Otis Quick Fill Pickup</span>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisFrom('jhb')">Johannesburg HQ</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisFrom('dbn')">Durban Hub</button>
+    </div>`;
 
-      // 2. Staff workflow
-      if (_qfStaff) {
-        try {
-          const res = await fetch(`${QF_API}/addresses/companies`);
-          const cos = await res.json();
-          const sel = document.getElementById('qfCompany');
+    // Build & populate To Buttons
+    document.getElementById('otisToWrap').innerHTML = `
+    <div style="margin-bottom:16px; padding:12px; background:#f0f4ff; border-radius:6px; border:1px dashed #1565c0;">
+      <span
+        style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; display:block; margin-bottom:6px">🏁
+        Otis Quick Fill Delivery</span>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('jhb')">Johannesburg HQ</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('dbn')">Durban Hub</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('cpt')">Cape Town Branch</button>
+    </div>`;
 
-          sel.innerHTML = '<option value="">— Select company —</option>';
-          cos.forEach(c => {
-            const o = document.createElement('option');
-            o.value = c; o.textContent = c;
-            sel.appendChild(o);
-          });
+    document.getElementById('otisFromWrap').style.display = 'block';
+    document.getElementById('otisToWrap').style.display = 'block';
 
-          document.getElementById('qfCompanyRow').style.display = 'block';
-          document.getElementById('qfPanel').style.display = 'block';
-        } catch (e) { console.error('QF companies error:', e); }
-      } 
-      // 3. Regular client workflow
-      else if (_qfCo) {
-        try {
-          const res = await fetch(`${QF_API}/addresses?type=local`);
-          const all = await res.json();
-          
-          const mine = all.filter(a => {
-            const an = a.company_name.toLowerCase();
-            return an.includes(_qfCo.split(' ')[0]) || _qfCo.includes(an.split(' ')[0]);
-          });
-          if (mine.length) {
-            _qfCache = mine;
-            qfPopulate(mine);
-            document.getElementById('qfPanel').style.display = 'block';
-          }
-        } catch (e) {
-          console.error('QF addresses error:', e);
-        }
-      }
+    if (document.getElementById('qfPanel')) {
+    document.getElementById('qfPanel').style.display = 'none';
+    }
+    return;
+    }
+
+    // 2. Staff workflow
+    if (_qfStaff) {
+    try {
+    const res = await fetch(`${QF_API}/addresses/companies`);
+    const cos = await res.json();
+    const sel = document.getElementById('qfCompany');
+
+    sel.innerHTML = '<option value="">— Select company —</option>';
+    cos.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    sel.appendChild(o);
+    });
+
+    document.getElementById('qfCompanyRow').style.display = 'block';
+    document.getElementById('qfPanel').style.display = 'block';
+    } catch (e) { console.error('QF companies error:', e); }
+    }
+    // 3. Regular client workflow
+    else if (_qfCo) {
+    try {
+    const res = await fetch(`${QF_API}/addresses?type=local`);
+    const all = await res.json();
+
+    const mine = all.filter(a => {
+    const an = a.company_name.toLowerCase();
+    return an.includes(_qfCo.split(' ')[0]) || _qfCo.includes(an.split(' ')[0]);
+    });
+    if (mine.length) {
+    _qfCache = mine;
+    qfPopulate(mine);
+    document.getElementById('qfPanel').style.display = 'block';
+    }
+    } catch (e) {
+    console.error('QF addresses error:', e);
+    }
+    }
     }
 
     async function qfLoadAddresses() {
-      const company = document.getElementById('qfCompany').value;
-      if (!company) {
-        _qfCache = [];
-        qfPopulate([]);
-        return;
-      }
-      try {
-        const res = await fetch(`${QF_API}/addresses?company=${encodeURIComponent(company)}&type=local`);
-        _qfCache = await res.json();
-        qfPopulate(_qfCache);
-      } catch (e) { console.error('QF load error:', e); }
+    const company = document.getElementById('qfCompany').value;
+    if (!company) {
+    _qfCache = [];
+    qfPopulate([]);
+    return;
+    }
+    try {
+    const res = await fetch(`${QF_API}/addresses?company=${encodeURIComponent(company)}&type=local`);
+    _qfCache = await res.json();
+    qfPopulate(_qfCache);
+    } catch (e) { console.error('QF load error:', e); }
     }
 
     function qfPopulate(addresses) {
-      ['qfFromAddr', 'qfToAddr'].forEach(id => {
-        const sel = document.getElementById(id);
-        if (!sel) return;
-        sel.innerHTML = '<option value="">— Select address —</option>';
-        addresses.forEach((a, i) => {
-          const o = document.createElement('option');
-          o.value = i;
-          o.textContent = `${a.company_name} - ${a.street_address}, ${a.town || a.city || ''}`;
-          sel.appendChild(o);
-        });
-      });
+    ['qfFromAddr', 'qfToAddr'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Select address —</option>';
+    addresses.forEach((a, i) => {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = `${a.company_name} - ${a.street_address}, ${a.town || a.city || ''}`;
+    sel.appendChild(o);
+    });
+    });
     }
 
     function qfApply(prefix, index) {
-      if (index === "" || index === undefined) return;
-      const a = _qfCache[parseInt(index)];
-      if (!a) return;
+    if (index === "" || index === undefined) return;
+    const a = _qfCache[parseInt(index)];
+    if (!a) return;
 
-      otisSet(`${prefix}Company`, a.company_name);
-      otisSet(`${prefix}Address`, a.street_address);
-      otisSet(`${prefix}Address2`, a.address_line_2 || '');
-      otisSet(`${prefix}Suburb`, a.suburb);
-      otisSet(`${prefix}Town`, a.town || a.city || '');
-      otisSet(`${prefix}Province`, a.province);
-      otisSet(`${prefix}Postal`, a.postal_code || a.postcode || '');
-      otisSet(`${prefix}Contact`, a.phone || a.contact_number || '');
-      otisSet(`${prefix}Email`, a.email || '');
-      otisSet(prefix === 'from' ? 'consignorContactName' : 'consigneeContactName', a.contact_name || '');
+    otisSet(`${prefix}Company`, a.company_name);
+    otisSet(`${prefix}Address`, a.street_address);
+    otisSet(`${prefix}Address2`, a.address_line_2 || '');
+    otisSet(`${prefix}Suburb`, a.suburb);
+    otisSet(`${prefix}Town`, a.town || a.city || '');
+    otisSet(`${prefix}Province`, a.province);
+    otisSet(`${prefix}Postal`, a.postal_code || a.postcode || '');
+    otisSet(`${prefix}Contact`, a.phone || a.contact_number || '');
+    otisSet(`${prefix}Email`, a.email || '');
+    otisSet(prefix === 'from' ? 'consignorContactName' : 'consigneeContactName', a.contact_name || '');
 
-      if (typeof calculateDistance === 'function') {
-        calculateDistance();
-      }
+    if (typeof calculateDistance === 'function') {
+    calculateDistance();
+    }
     }
 
     // Initialize components on load
     document.addEventListener("DOMContentLoaded", () => {
-      // Initialize Materialize select options
-      const selects = document.querySelectorAll('select:not(.browser-default)');
-      if(selects.length > 0 && typeof M !== 'undefined') {
-         M.FormSelect.init(selects);
-      }
-      qfInit();
+    // Initialize Materialize select options
+    const selects = document.querySelectorAll('select:not(.browser-default)');
+    if(selects.length > 0 && typeof M !== 'undefined') {
+    M.FormSelect.init(selects);
+    }
+    qfInit();
     });
-  </script>
+    </script>
 </body>
 
 </html>
-
-
-
-
-
-
-
 
 
 
