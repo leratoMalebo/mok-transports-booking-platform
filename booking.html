@@ -737,7 +737,7 @@
     suburb: 'Modderfontein', town: 'Johannesburg', province: "Gauteng", postal: '1645',
     contactName: 'Sam Segapela', phone: '011 878 6000', email: 'sam.segapela@otis.com'
     },
-    jhb: {
+    jhb1: {
     company: 'Otis South Africa (Pty) Ltd', address: '17 Angus Crescent, Longmeadow Business Estate',
     suburb: 'Modderfontein', town: 'Johannesburg', province: "Gauteng", postal: '1645',
     contactName: 'Dannyboy Kotu', phone: '079 874 9339', email: 'Danny.Kotu@otis.com'
@@ -753,7 +753,7 @@
     suburb: 'Sanddrift', town: 'Cape Town', province: "Western Cape", postal: '7441',
     contactName: 'Nazleigh Booys', phone: '011 878 6000', email: 'nazleigh.Booys@otis.com'
     },
-    cpt : {
+    cpt1 : {
     company: 'Otis South Africa (Pty) Ltd', address: 'Bosmansdam Road',
     suburb: 'Milnerton', town: 'Cape Town', province: "Western Cape", postal: '7441',
     contactName: 'Nazleigh Booys ', phone: '011 878 6000', email: 'nazleigh.Booys@otis.com'
@@ -840,6 +840,7 @@
         style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; display:block; margin-bottom:6px">📍
         Otis Quick Fill Pickup</span>
       <button type="button" class="btn-mok primary small" onclick="fillOtisFrom('jhb')">Johannesburg HQ</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('jhb1')">Johannesburg Kotu</button>
       <button type="button" class="btn-mok primary small" onclick="fillOtisFrom('dbn')">Durban Hub</button>
     </div>`;
 
@@ -850,8 +851,14 @@
         style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; display:block; margin-bottom:6px">🏁
         Otis Quick Fill Delivery</span>
       <button type="button" class="btn-mok primary small" onclick="fillOtisTo('jhb')">Johannesburg HQ</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('jhb1')">Johannesburg Kotu</button>
       <button type="button" class="btn-mok primary small" onclick="fillOtisTo('dbn')">Durban Hub</button>
-      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('cpt')">Cape Town Branch</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('cpt')">Cape Town Ratanda</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('cpt1')">Cape Town Branch</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('bfn')">Bloemfontein Hub</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('EL')">East London Hub</button>
+      <button type="button" class="btn-mok primary small" onclick="fillOtisTo('PE')">Port Elizabeth Hub</button>
+
     </div>`;
 
     document.getElementById('otisFromWrap').style.display = 'block';
