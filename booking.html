@@ -607,12 +607,16 @@
     <!-- SHIPMENT TABLE -->
     <div class="booking-card">
       <div class="section-title">Shipment Items</div>
+      <div style="overflow-x:auto">
       <table class="shipment-table">
         <thead>
           <tr>
-            <th style="width:80px">Qty</th>
+            <th style="width:70px">Qty</th>
             <th>Description</th>
-            <th style="width:120px">Weight (kg)</th>
+            <th style="width:110px">Weight (kg)</th>
+            <th style="width:90px">Length (cm)</th>
+            <th style="width:90px">Width (cm)</th>
+            <th style="width:90px">Height (cm)</th>
             <th style="width:50px"></th>
           </tr>
         </thead>
@@ -621,6 +625,9 @@
             <td><input type="number" class="qty" value="1" min="1"></td>
             <td><input type="text" class="desc-input" placeholder="e.g. Carton boxes"></td>
             <td><input type="number" class="weight" oninput="calculateAll()" step="0.1" min="0" placeholder="0.00"></td>
+            <td><input type="number" class="item-length" oninput="calculateAll()" step="0.1" min="0" placeholder="0"></td>
+            <td><input type="number" class="item-width" oninput="calculateAll()" step="0.1" min="0" placeholder="0"></td>
+            <td><input type="number" class="item-height" oninput="calculateAll()" step="0.1" min="0" placeholder="0"></td>
             <td>
               <button type="button" class="btn-mok danger small" onclick="removeRow(this)">
                 <i class="material-icons" style="font-size:16px">delete</i>
@@ -629,29 +636,11 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div style="margin-top:12px">
         <button type="button" class="btn-mok grey small" onclick="addRow()">
           <i class="material-icons" style="font-size:16px">add</i> Add Item
         </button>
-      </div>
-    </div>
-
-    <!-- DIMENSIONS -->
-    <div class="booking-card">
-      <div class="section-title">Dimensions (cm)</div>
-      <div class="row" style="margin-bottom:0">
-        <div class="input-field col s4">
-          <input id="length" type="number" oninput="calculateAll()" min="0" step="0.1">
-          <label for="length">Length</label>
-        </div>
-        <div class="input-field col s4">
-          <input id="width" type="number" oninput="calculateAll()" min="0" step="0.1">
-          <label for="width">Width</label>
-        </div>
-        <div class="input-field col s4">
-          <input id="height" type="number" oninput="calculateAll()" min="0" step="0.1">
-          <label for="height">Height</label>
-        </div>
       </div>
     </div>
 

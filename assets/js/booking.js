@@ -199,6 +199,9 @@ function addRow() {
     <td><input type="number" value="1" min="1" class="qty"></td>
     <td><input type="text" class="desc-input"></td>
     <td><input type="number" class="weight" oninput="calculateAll()" step="0.1" min="0"></td>
+    <td><input type="number" class="item-length" oninput="calculateAll()" step="0.1" min="0"></td>
+    <td><input type="number" class="item-width" oninput="calculateAll()" step="0.1" min="0"></td>
+    <td><input type="number" class="item-height" oninput="calculateAll()" step="0.1" min="0"></td>
     <td>
       <button type="button" class="btn red btn-small" onclick="removeRow(this)">
         <i class="material-icons">delete</i>
@@ -218,15 +221,19 @@ function removeRow(btn) {
 // ----------------------------------------------------------
 function calculateAll() {
   let totalWeight = 0;
-  document.querySelectorAll(".weight").forEach(w => {
-    totalWeight += Number(w.value) || 0;
+  let totalVolumetric = 0;
+
+  document.querySelectorAll("#shipmentTable tr").forEach(row => {
+    const weight = Number(row.querySelector(".weight")?.value) || 0;
+    const L = Number(row.querySelector(".item-length")?.value) || 0;
+    const W = Number(row.querySelector(".item-width")?.value) || 0;
+    const H = Number(row.querySelector(".item-height")?.value) || 0;
+
+    totalWeight += weight;
+    totalVolumetric += (L * W * H) / 5000;
   });
 
-  const L = Number(document.getElementById("length").value) || 0;
-  const W = Number(document.getElementById("width").value) || 0;
-  const H = Number(document.getElementById("height").value) || 0;
-  const volumetric = (L * W * H) / 5000;
-  const chargeable = Math.max(totalWeight, volumetric);
+  const chargeable = Math.max(totalWeight, totalVolumetric);
 
   const service = document.getElementById("serviceType").value;
   const fromAddress = document.getElementById("fromAddress").value;
@@ -235,13 +242,13 @@ function calculateAll() {
   const { price, label } = calculatePrice(service, chargeable, fromAddress, toAddress);
 
   document.getElementById("actualWeight").innerText = totalWeight.toFixed(2);
-  document.getElementById("volWeight").innerText = volumetric.toFixed(2);
+  document.getElementById("volWeight").innerText = totalVolumetric.toFixed(2);
   document.getElementById("chargeWeight").innerText = chargeable.toFixed(2);
   document.getElementById("price").innerText = price.toFixed(2);
   document.getElementById("zoneLabel").innerText = label || "—";
 
   // Store for summary
-  window._lastCalc = { totalWeight, volumetric, chargeable, price, label, service };
+  window._lastCalc = { totalWeight, volumetric: totalVolumetric, chargeable, price, label, service };
 }
 
 // ----------------------------------------------------------
@@ -357,20 +364,36 @@ function calculateDistance() {
 function collectBookingData() {
   const rows = document.querySelectorAll("#shipmentTable tr");
   const items = Array.from(rows).map(r => {
-    const inputs = r.querySelectorAll("input");
     return {
-      qty: inputs[0] ? inputs[0].value : "",
-      desc: inputs[1] ? inputs[1].value : "",
-      weight: inputs[2] ? inputs[2].value : ""
+      qty: r.querySelector(".qty")?.value || "",
+      desc: r.querySelector(".desc-input")?.value || "",
+      weight: r.querySelector(".weight")?.value || "",
+      length: r.querySelector(".item-length")?.value || "",
+      width: r.querySelector(".item-width")?.value || "",
+      height: r.querySelector(".item-height")?.value || ""
     };
   });
 
-  const totalPieces = Array.from(rows).reduce((s, r) => {
-    const q = r.querySelectorAll("input")[0];
-    return s + (Number(q ? q.value : 0) || 0);
-  }, 0);
+  const totalPieces = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
 
   const descriptions = items.map(i => i.desc).filter(Boolean).join(", ");
+
+  // The waybill currently stores a single length/width/height set (not
+  // one per package). For a single-item shipment we use that item's
+  // exact dimensions; for multiple packages we use the dimensions of
+  // the single largest-volume package as the representative figure —
+  // the per-package breakdown itself still travels in `items` below.
+  let repLength = "", repWidth = "", repHeight = "";
+  if (items.length) {
+    const biggest = items.reduce((max, i) => {
+      const vol = (Number(i.length) || 0) * (Number(i.width) || 0) * (Number(i.height) || 0);
+      const maxVol = (Number(max.length) || 0) * (Number(max.width) || 0) * (Number(max.height) || 0);
+      return vol > maxVol ? i : max;
+    }, items[0]);
+    repLength = biggest.length;
+    repWidth = biggest.width;
+    repHeight = biggest.height;
+  }
 
   return {
     shipmentDate: document.getElementById("shipmentDate").value,
@@ -400,9 +423,9 @@ function collectBookingData() {
     distance: document.getElementById("distance").innerText,
     zoneLabel: document.getElementById("zoneLabel").innerText,
     price: document.getElementById("price").innerText,
-    length: document.getElementById("length").value,
-    width: document.getElementById("width").value,
-    height: document.getElementById("height").value
+    length: repLength,
+    width: repWidth,
+    height: repHeight
   };
 }
 
@@ -430,7 +453,7 @@ function saveBooking() {
   };
 
   const itemRows = data.items.map(i =>
-    `<tr><td>${i.qty}</td><td>${i.desc || "—"}</td><td>${i.weight} kg</td></tr>`
+    `<tr><td>${i.qty}</td><td>${i.desc || "—"}</td><td>${i.weight || 0} kg</td><td>${i.length||0}×${i.width||0}×${i.height||0} cm</td></tr>`
   ).join("");
 
   document.getElementById("summaryBody").innerHTML = `
@@ -454,7 +477,7 @@ function saveBooking() {
       <tr><th colspan="2" class="summary-section">Items</th></tr>
     </table>
     <table class="summary-table items-table">
-      <thead><tr><th>Qty</th><th>Description</th><th>Weight</th></tr></thead>
+      <thead><tr><th>Qty</th><th>Description</th><th>Weight</th><th>Dimensions</th></tr></thead>
       <tbody>${itemRows}</tbody>
     </table>
     <table class="summary-table">
@@ -629,6 +652,7 @@ async function confirmBooking() {
       length: data.length,
       width: data.width,
       height: data.height,
+      items: data.items,
       description: data.descriptions,
       price: data.price,
       zoneLabel: data.zoneLabel
@@ -705,6 +729,5 @@ function fallbackDistance() {
   document.getElementById("distance").innerText = dist;
   calculateAll();
 }
-
 
 
