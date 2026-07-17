@@ -543,7 +543,10 @@ async function confirmBooking() {
       body: JSON.stringify({
         booking_id: savedBooking.id,
         weight: parseFloat(data.chargeWeight || 0),
-        volumetric_weight: parseFloat(data.volWeight || 0)
+        volumetric_weight: parseFloat(data.volWeight || 0),
+        length: parseFloat(data.length || 0),
+        width: parseFloat(data.width || 0),
+        height: parseFloat(data.height || 0)
       })
     });
 
@@ -623,6 +626,9 @@ async function confirmBooking() {
       pieces: data.pieces,
       weight: data.chargeWeight,
       volumetricWeight: data.volWeight,
+      length: data.length,
+      width: data.width,
+      height: data.height,
       description: data.descriptions,
       price: data.price,
       zoneLabel: data.zoneLabel
@@ -699,13 +705,6 @@ function fallbackDistance() {
   document.getElementById("distance").innerText = dist;
   calculateAll();
 }
-
-
-
-
-
-
-
 
 
 

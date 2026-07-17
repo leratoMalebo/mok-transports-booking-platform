@@ -19,17 +19,20 @@ exports.createWaybill = async (req, res) => {
     const {
       booking_id,
       weight,
-      volumetric_weight
+      volumetric_weight,
+      length,
+      width,
+      height
     } = req.body;
 
     const waybill_no = await generateWaybillNumber();
 
     const result = await db.query(
       `INSERT INTO waybills 
-      (booking_id, waybill_no, weight, volumetric_weight)
-      VALUES ($1, $2, $3, $4)
+      (booking_id, waybill_no, weight, volumetric_weight, length, width, height)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *`,
-      [booking_id, waybill_no, weight, volumetric_weight]
+      [booking_id, waybill_no, weight, volumetric_weight, length || null, width || null, height || null]
     );
 
     const waybill = result.rows[0];

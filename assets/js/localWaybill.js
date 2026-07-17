@@ -51,6 +51,10 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("pieces").innerText = data.pieces || "—";
   document.getElementById("weight").innerText = data.weight || "—";
   document.getElementById("volumetricWeight").innerText = data.volumetricWeight || "—";
+  document.getElementById("dimensions").innerText =
+    (data.length && data.width && data.height)
+      ? `${data.length} × ${data.width} × ${data.height}`
+      : "—";
   document.getElementById("description").innerText = data.description || "—";
 
   const priceEl = document.getElementById("waybillPrice");
@@ -186,6 +190,10 @@ async function loadWaybillFromDatabase(waybillNo) {
     document.getElementById("pieces").innerText = data.pieces || "1";
     document.getElementById("weight").innerText = data.weight || "—";
     document.getElementById("volumetricWeight").innerText = data.volumetric_weight || "—";
+    document.getElementById("dimensions").innerText =
+      (data.length && data.width && data.height)
+        ? `${data.length} × ${data.width} × ${data.height}`
+        : "—";
     document.getElementById("description").innerText = data.description || "General Cargo";
 
     const zoneEl = document.getElementById("waybillZone");
@@ -204,13 +212,5 @@ async function loadWaybillFromDatabase(waybillNo) {
     alert("Could not load saved waybill from database.");
   }
 }
-
-
-
-
-
-
-
-
 
 
