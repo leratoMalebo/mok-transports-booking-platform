@@ -514,6 +514,7 @@ async function confirmBooking() {
     const payload = {
       user_id: session?.user?.id || session?.id || null,
       service: data.service,
+      booking_date: data.shipmentDate || null,
       consignor_name: data.fromCompany,
       consignor_address: data.fromAddress,
       consignor_address2: data.fromAddress2,
@@ -729,5 +730,6 @@ function fallbackDistance() {
   document.getElementById("distance").innerText = dist;
   calculateAll();
 }
+
 
 
