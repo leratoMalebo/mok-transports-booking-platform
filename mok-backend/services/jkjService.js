@@ -11,6 +11,19 @@
 
 const axios = require('axios');
 
+const {
+  loadPlaces,
+  findPlace
+} = require('./jkjPlaceLookup');
+
+loadPlaces().catch(err => {
+
+  console.error("Failed to load JKJ Places:", err);
+
+});
+
+
+
 // ── ENV ────────────────────────────────────────────────────────
 const JKJ_SUBMIT_URL = process.env.JKJ_SUBMIT_URL || 'https://jkjweb45760.pperfect.com/ppintegrationservice/v28/Json/';
 const JKJ_SUBMIT_TOKEN = process.env.JKJ_SUBMIT_TOKEN || '000710815ba31c469a95714370df353b193c1470';
@@ -101,6 +114,22 @@ exports.submitWaybillToJKJ = async (waybill) => {
   const actualWeight = Math.max(Number(waybill.weight || 1), 0.5);
   const pieces = Number(waybill.pieces || 1);
 
+  // ----------------------------------------------------
+  // Find Parcel Perfect Origin & Destination Places
+  // ----------------------------------------------------
+  const originPlace = findPlace(
+    waybill.consignor_postcode,
+    waybill.consignor_town
+  );
+
+  const destinationPlace = findPlace(
+    waybill.consignee_postcode,
+    waybill.consignee_town
+  );
+
+  console.log("Origin Place:", originPlace);
+  console.log("Destination Place:", destinationPlace);
+
   const params = {
     details: {
       waybill: waybill.waybill_no,
@@ -123,6 +152,7 @@ exports.submitWaybillToJKJ = async (waybill) => {
       origperpcode: sanitizeJKJ(waybill.consignor_postcode, 10),
 
       origtown: sanitizeJKJ(waybill.consignor_town, 30),
+      origplace: originPlace || "",
 
       origpercontact: (waybill.consignor_contact || "")
         .replace(/\D/g, "")
@@ -143,6 +173,7 @@ exports.submitWaybillToJKJ = async (waybill) => {
       destperpcode: sanitizeJKJ(waybill.consignee_postcode, 10),
 
       desttown: sanitizeJKJ(waybill.consignee_town, 30),
+      destplace: destinationPlace || "",
 
       destpercontact: (waybill.consignee_contact || "")
         .replace(/\D/g, "")
@@ -170,6 +201,9 @@ exports.submitWaybillToJKJ = async (waybill) => {
   };
 
   console.log('[JKJ] Submitting waybill:', waybill.waybill_no);
+
+  console.log("Matched Origin Place:", originPlace);
+  console.log("Matched Destination Place:", destinationPlace);
   console.log('[JKJ] Params:', JSON.stringify(params, null, 2));
 
   const result = await makeCall('Waybill', 'submitWaybill', params);
