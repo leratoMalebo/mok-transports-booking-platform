@@ -43,68 +43,60 @@ async function loadPlaces() {
 
 function findPlace(postcode, suburb, town) {
 
+  postcode = String(postcode || "").trim();
+
+  suburb = String(suburb || "").trim().toUpperCase();
+
+  town = String(town || "").trim().toUpperCase();
+
   console.log("==================================");
   console.log("findPlace() called");
   console.log("POSTCODE:", postcode);
   console.log("SUBURB :", suburb);
   console.log("TOWN    :", town);
-  postcode = String(postcode || "").trim();
-
-  suburb = String(suburb || "")
-    .trim()
-    .toUpperCase();
-
-  town = String(town || "")
-    .trim()
-    .toUpperCase();
-
-  console.log("Searching postcode:", postcode);
 
   const postcodeMatches = places.filter(p => p.postcode === postcode);
 
   console.log("Matches for postcode:", postcodeMatches.length);
 
-  postcodeMatches.slice(0, 5).forEach(p => {
-    console.log("Candidate:", p.place);
-  });
-  // First try postcode + suburb
-  let match = places.find(p =>
+  postcodeMatches.forEach(p => console.log("Candidate:", p.place));
 
-    p.postcode === postcode &&
-    (
-      p.place.includes(suburb) ||
-      suburb.includes(p.place)
-    )
+  // **********************
+  // THIS IS THE IMPORTANT PART
+  // **********************
+  if (postcodeMatches.length === 1) {
 
+    console.log("✅ Unique postcode match:", postcodeMatches[0].place);
+
+    return postcodeMatches[0].place;
+
+  }
+
+  let match = postcodeMatches.find(p =>
+    p.place.includes(suburb) ||
+    suburb.includes(p.place)
   );
 
-  // If not found, try postcode + town
   if (!match) {
 
-    match = places.find(p =>
-
-      p.postcode === postcode &&
-      (
-        p.place.includes(town) ||
-        town.includes(p.place)
-      )
-
+    match = postcodeMatches.find(p =>
+      p.place.includes(town) ||
+      town.includes(p.place)
     );
 
   }
 
   if (match) {
 
-    console.log(`✅ Place matched: ${postcode} -> ${match.place}`);
+    console.log("✅ Place matched:", match.place);
 
     return match.place;
 
   }
 
-  console.log(`❌ No place match for ${postcode}`);
+  console.log("❌ No place match for", postcode);
 
   return null;
-
 }
 
 module.exports = {
