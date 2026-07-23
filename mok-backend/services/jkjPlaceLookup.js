@@ -86,23 +86,25 @@ function findPlace(postcode, suburb, town) {
 
   }
 
-  if (match) {
+ if (match) {
 
     console.log("✅ Place matched:", match.place);
 
-    return match.place;
+    // TEMPORARY TEST
+    return match.postcode;
 
-  }
+}
 
-  console.log("❌ No place match for", postcode);
+console.log("❌ No place match for", postcode);
 
-  return null;
+return null;
 }
 
 module.exports = {
   loadPlaces,
   findPlace
 };
+
 
 
 
