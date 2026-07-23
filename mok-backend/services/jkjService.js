@@ -63,30 +63,30 @@ function todayDDMMYYYY() {
 
 // ── CORE API CALL ─────────────────────────────────────────────
 async function makeCall(className, method, params) {
-  const queryParams = {
-    params: JSON.stringify(params),
-    method: method,
-    class: className,
-    token_id: JKJ_SUBMIT_TOKEN
-  };
 
-  console.log(`[JKJ] Calling ${className}.${method}`);
+    console.log("====================================");
+    console.log("RAW PARAMS OBJECT");
+    console.dir(params, { depth: null });
 
-  const response = await axios.get(JKJ_SUBMIT_URL, {
-    params: queryParams,
-    timeout: 30000,
-    headers: { 'Content-Type': 'application/json' }
-  });
+    console.log("====================================");
+    console.log("JSON SENT TO JKJ");
+    console.log(JSON.stringify(params));
 
-  const data = response.data;
+    const response = await axios.get(JKJ_SUBMIT_URL, {
+        params: {
+            params: JSON.stringify(params),
+            method,
+            class: className,
+            token_id: JKJ_SUBMIT_TOKEN
+        },
+        timeout: 30000
+    });
 
-  // Guard: if HTML comes back the token is wrong
-  if (typeof data === 'string' && data.trim().startsWith('<')) {
-    throw new Error('JKJ returned HTML — check JKJ_SUBMIT_TOKEN and JKJ_SUBMIT_URL env vars.');
-  }
+    console.log("====================================");
+    console.log("JKJ RESPONSE");
+    console.dir(response.data, { depth: null });
 
-  return data;
-
+    return response.data;
 }
 
 function sanitizeJKJ(value, maxLength = 60) {
