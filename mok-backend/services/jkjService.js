@@ -207,6 +207,21 @@ exports.submitWaybillToJKJ = async (waybill) => {
     }]
   };
 
+
+  console.log(
+    "origplace length:",
+    originPlace.length,
+    "value:",
+    JSON.stringify(originPlace)
+  );
+
+  console.log(
+    "destplace length:",
+    destinationPlace.length,
+    "value:",
+    JSON.stringify(destinationPlace)
+  );
+
   console.log('[JKJ] Submitting waybill:', waybill.waybill_no);
 
   console.log("Matched Origin Place:", originPlace);
@@ -224,6 +239,8 @@ exports.submitWaybillToJKJ = async (waybill) => {
   console.log('✅ [JKJ] Waybill submitted successfully:', waybill.waybill_no);
   return result;
 };
+
+
 
 
 
