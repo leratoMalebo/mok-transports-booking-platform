@@ -12,13 +12,16 @@ async function loadPlaces() {
     fs.createReadStream(
       path.join(__dirname, "../data/jkj_places.csv")
     )
-      .pipe(csv())
+      .pipe(csv({
+        headers: ["PLACE", "PCODE"],
+        skipLines: 1
+      }))
       .on("data", (row) => {
 
-        if (!row.TOWN || !row.PCODE) return;
+        if (!row.PLACE || !row.PCODE) return;
 
         places.push({
-          town: String(row.TOWN).trim().toUpperCase(),
+          place: String(row.PLACE).trim().toUpperCase(),
           postcode: String(row.PCODE).trim()
         });
 
@@ -37,35 +40,36 @@ async function loadPlaces() {
 
 function findPlace(postcode, town) {
 
-    postcode = String(postcode || "").trim();
-    town = String(town || "").trim().toUpperCase();
+  postcode = String(postcode || "").trim();
+  town = String(town || "").trim().toUpperCase();
 
-    const match = places.find(p => {
+  const match = places.find(p => {
 
-        const csvTown =
-            String(p.place || "")
-            .trim()
-            .toUpperCase();
+    if (p.postcode !== postcode) return false;
 
-        const csvPostcode =
-            String(p.pcode || "")
-            .trim();
+    return (
+      p.place.includes(town) ||
+      town.includes(p.place)
+    );
 
-        return (
-            csvPostcode === postcode &&
-            csvTown === town
-        );
+  });
 
-    });
+  if (match) {
+    console.log(`✅ Place matched: ${postcode} -> ${match.place}`);
+  } else {
+    console.log(`❌ No place match for ${postcode} / ${town}`);
+  }
 
-    return match || null;
-
+  return match ? match.place : null;
 }
 
 module.exports = {
-    loadPlaces,
-    findPlace
+  loadPlaces,
+  findPlace
 };
+
+
+
 
 
 

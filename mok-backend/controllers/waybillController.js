@@ -91,25 +91,33 @@ exports.sendToJKJ = async (req, res) => {
     const { waybillNo } = req.params;
 
     const check = await db.query(
-      `SELECT 
-        w.*,
-        b.service,
-        b.consignor_name,
-        b.consignor_address,
-       b.consignor_contact,
-b.consignor_contact_name,
-b.consignor_suburb,
-b.consignor_town,
-b.consignee_name,
-b.consignee_address,
-b.consignee_contact,
-b.consignee_contact_name,
-b.consignee_suburb,
-b.consignee_town,
-        b.price
-      FROM waybills w
-      LEFT JOIN bookings b ON b.id = w.booking_id
-      WHERE w.waybill_no = $1`,
+      `SELECT
+    w.*,
+
+    b.booking_date,
+    b.service,
+
+    b.consignor_contact_name,
+    b.consignor_suburb,
+    b.consignor_town,
+    b.consignor_address2,
+    b.consignor_province,
+    b.consignor_postcode,
+
+    b.consignee_contact_name,
+    b.consignee_suburb,
+    b.consignee_town,
+    b.consignee_address2,
+    b.consignee_province,
+    b.consignee_postcode,
+
+    b.price,
+    b.zone_label
+
+FROM waybills w
+LEFT JOIN bookings b
+ON b.id = w.booking_id
+WHERE w.waybill_no = $1`,
       [waybillNo]
     );
 
@@ -197,28 +205,37 @@ exports.getWaybillByNumber = async (req, res) => {
     const { waybillNo } = req.params;
 
     const result = await db.query(
-      `SELECT 
-        w.*,
-        b.booking_date,
-        b.service,
-        b.consignor_name,
-        b.consignor_address,
-       b.consignor_contact,
-b.consignor_contact,
-b.consignor_contact_name,
-b.consignor_suburb,
-b.consignor_town,
-b.consignee_name,
-b.consignee_address,
-b.consignee_contact,
-b.consignee_contact_name,
-b.consignee_suburb,
-b.consignee_town,
-        b.price,
-        b.zone_label
-       FROM waybills w
-       LEFT JOIN bookings b ON b.id = w.booking_id
-       WHERE w.waybill_no = $1`,
+      `SELECT
+    w.*,
+    b.booking_date,
+    b.service,
+    b.consignor_name,
+    b.consignor_address,
+    b.consignor_contact,
+    b.consignor_contact_name,
+    b.consignor_suburb,
+    b.consignor_town,
+    b.consignor_address2,
+    b.consignor_province,
+    b.consignor_postcode,
+
+    b.consignee_name,
+    b.consignee_address,
+    b.consignee_contact,
+    b.consignee_contact_name,
+    b.consignee_suburb,
+    b.consignee_town,
+    b.consignee_address2,
+    b.consignee_province,
+    b.consignee_postcode,
+
+    b.price,
+    b.zone_label
+
+FROM waybills w
+LEFT JOIN bookings b
+ON b.id = w.booking_id
+WHERE w.waybill_no = $1`,
       [waybillNo]
     );
 
@@ -233,5 +250,8 @@ b.consignee_town,
     res.status(500).json({ error: 'Failed to fetch waybill' });
   }
 };
+
+
+
 
 
