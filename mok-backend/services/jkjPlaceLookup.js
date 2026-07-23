@@ -30,6 +30,9 @@ async function loadPlaces() {
 
         console.log(`✅ Loaded ${places.length} JKJ Places`);
 
+        console.log("First five records:");
+        console.log(places.slice(0, 5));
+
         resolve();
 
       })
@@ -40,53 +43,67 @@ async function loadPlaces() {
 
 function findPlace(postcode, suburb, town) {
 
-    postcode = String(postcode || "").trim();
+  console.log("==================================");
+  console.log("findPlace() called");
+  console.log("POSTCODE:", postcode);
+  console.log("SUBURB :", suburb);
+  console.log("TOWN    :", town);
+  postcode = String(postcode || "").trim();
 
-    suburb = String(suburb || "")
-        .trim()
-        .toUpperCase();
+  suburb = String(suburb || "")
+    .trim()
+    .toUpperCase();
 
-    town = String(town || "")
-        .trim()
-        .toUpperCase();
+  town = String(town || "")
+    .trim()
+    .toUpperCase();
 
-    // First try postcode + suburb
-    let match = places.find(p =>
+  console.log("Searching postcode:", postcode);
 
-        p.postcode === postcode &&
-        (
-            p.place.includes(suburb) ||
-            suburb.includes(p.place)
-        )
+  const postcodeMatches = places.filter(p => p.postcode === postcode);
+
+  console.log("Matches for postcode:", postcodeMatches.length);
+
+  postcodeMatches.slice(0, 5).forEach(p => {
+    console.log("Candidate:", p.place);
+  });
+  // First try postcode + suburb
+  let match = places.find(p =>
+
+    p.postcode === postcode &&
+    (
+      p.place.includes(suburb) ||
+      suburb.includes(p.place)
+    )
+
+  );
+
+  // If not found, try postcode + town
+  if (!match) {
+
+    match = places.find(p =>
+
+      p.postcode === postcode &&
+      (
+        p.place.includes(town) ||
+        town.includes(p.place)
+      )
 
     );
 
-    // If not found, try postcode + town
-    if (!match) {
+  }
 
-        match = places.find(p =>
+  if (match) {
 
-            p.postcode === postcode &&
-            (
-                p.place.includes(town) ||
-                town.includes(p.place)
-            )
+    console.log(`✅ Place matched: ${postcode} -> ${match.place}`);
 
-        );
+    return match.place;
 
-    }
+  }
 
-    if (match) {
+  console.log(`❌ No place match for ${postcode}`);
 
-        console.log(`✅ Place matched: ${postcode} -> ${match.place}`);
-
-        return match.place;
-
-    }
-
-    console.log(`❌ No place match for ${postcode}`);
-
-    return null;
+  return null;
 
 }
 
