@@ -90,8 +90,7 @@ function findPlace(postcode, suburb, town) {
 
     console.log("✅ Place matched:", match.place);
 
-    // TEMPORARY TEST
-    return match.postcode;
+    return match.place;
 
 }
 
