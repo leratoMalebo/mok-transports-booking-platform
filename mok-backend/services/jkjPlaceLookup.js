@@ -38,35 +38,64 @@ async function loadPlaces() {
   });
 }
 
-function findPlace(postcode, town) {
+function findPlace(postcode, suburb, town) {
 
-  postcode = String(postcode || "").trim();
-  town = String(town || "").trim().toUpperCase();
+    postcode = String(postcode || "").trim();
 
-  const match = places.find(p => {
+    suburb = String(suburb || "")
+        .trim()
+        .toUpperCase();
 
-    if (p.postcode !== postcode) return false;
+    town = String(town || "")
+        .trim()
+        .toUpperCase();
 
-    return (
-      p.place.includes(town) ||
-      town.includes(p.place)
+    // First try postcode + suburb
+    let match = places.find(p =>
+
+        p.postcode === postcode &&
+        (
+            p.place.includes(suburb) ||
+            suburb.includes(p.place)
+        )
+
     );
 
-  });
+    // If not found, try postcode + town
+    if (!match) {
 
-  if (match) {
-    console.log(`✅ Place matched: ${postcode} -> ${match.place}`);
-  } else {
-    console.log(`❌ No place match for ${postcode} / ${town}`);
-  }
+        match = places.find(p =>
 
-  return match ? match.place : null;
+            p.postcode === postcode &&
+            (
+                p.place.includes(town) ||
+                town.includes(p.place)
+            )
+
+        );
+
+    }
+
+    if (match) {
+
+        console.log(`✅ Place matched: ${postcode} -> ${match.place}`);
+
+        return match.place;
+
+    }
+
+    console.log(`❌ No place match for ${postcode}`);
+
+    return null;
+
 }
 
 module.exports = {
   loadPlaces,
   findPlace
 };
+
+
 
 
 

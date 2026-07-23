@@ -117,13 +117,20 @@ exports.submitWaybillToJKJ = async (waybill) => {
   // ----------------------------------------------------
   // Find Parcel Perfect Origin & Destination Places
   // ----------------------------------------------------
+  console.log("POSTCODE:", waybill.consignor_postcode);
+  console.log("TOWN:", waybill.consignor_town);
+
+  console.log("DEST POSTCODE:", waybill.consignee_postcode);
+  console.log("DEST TOWN:", waybill.consignee_town);
   const originPlace = findPlace(
     waybill.consignor_postcode,
+    waybill.consignor_suburb,
     waybill.consignor_town
   );
 
   const destinationPlace = findPlace(
     waybill.consignee_postcode,
+    waybill.consignee_suburb,
     waybill.consignee_town
   );
 
