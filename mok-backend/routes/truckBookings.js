@@ -8,7 +8,7 @@ router.post('/',                             controller.createBooking);
 router.patch('/:ref/status',                 controller.updateStatus);
 router.patch('/:ref/pickup-signature',       controller.savePickupSignature);
 router.patch('/:ref/delivery-signature',     controller.saveDeliverySignature);
-router.patch('/:ref', truckBookingController.updateBooking);
+router.patch('/:ref', controller.updateBooking);
 router.patch('/:ref/mark-invoiced',          controller.markInvoiced);
 router.patch('/:ref/notes',                  controller.updateNotes);
 
