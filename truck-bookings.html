@@ -95,6 +95,7 @@
       border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
     .badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
     .b-confirmed{background:#e3f2fd;color:var(--blue)}.b-confirmed::before{background:var(--blue)}
+    .b-quote{background:#f3e5f5;color:#6a1b9a}.b-quote::before{background:#6a1b9a}
     .b-in_transit{background:#fff3e0;color:#e65100}.b-in_transit::before{background:#e65100}
     .b-delivered{background:#e8f5e9;color:var(--green)}.b-delivered::before{background:var(--green)}
     .b-invoiced{background:#f3e5f5;color:#6a1b9a}.b-invoiced::before{background:#6a1b9a}
@@ -352,6 +353,7 @@
     </div>
     <div class="filter-tabs">
       <button class="ftab active" onclick="setFilter('all',this)">All</button>
+      <button class="ftab" onclick="setFilter('quote',this)">Quotes</button>
       <button class="ftab" onclick="setFilter('confirmed',this)">Confirmed</button>
       <button class="ftab" onclick="setFilter('in_transit',this)">In Transit</button>
       <button class="ftab" onclick="setFilter('delivered',this)">Delivered</button>
@@ -470,7 +472,7 @@ function renderTable(data) {
     </td></tr>`; return;
   }
   tbody.innerHTML = data.map(b => {
-    const statusLabel = {confirmed:'Confirmed',in_transit:'In Transit',delivered:'Delivered'}[b.status]||b.status;
+    const statusLabel = {quote:'Quote',confirmed:'Confirmed',in_transit:'In Transit',delivered:'Delivered'}[b.status]||b.status;
     const total = Number(b.price||0) + Number(b.toll_cost||0);
     const shipDate = b.shipment_date
       ? new Date(b.shipment_date).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})
@@ -503,7 +505,9 @@ function renderTable(data) {
       <td onclick="event.stopPropagation()">
         <div class="actions">
           <button class="abt abt-view" onclick="openDrawer('${b.booking_ref}')">View</button>
-          <button class="abt abt-sign" onclick="printDeliveryNote('${b.booking_ref}')" title="Print delivery note for driver">Print</button>
+          ${b.status==='quote'
+            ? `<button class="abt abt-invoice" onclick="window.location.href='trucking.html?edit=${b.booking_ref}'" title="Edit quote and confirm if client accepts">Edit Quote</button>`
+            : `<button class="abt abt-sign" onclick="printDeliveryNote('${b.booking_ref}')" title="Print delivery note for driver">Print</button>
           ${b.status==='confirmed'
             ? `<button class="abt abt-transit" onclick="updateStatus('${b.booking_ref}','in_transit')">In Transit</button>`
             : b.status==='in_transit'
@@ -511,7 +515,7 @@ function renderTable(data) {
             : ''}
           ${!b.invoiced
             ? `<button class="abt abt-invoice" onclick="openInvoiceFlow('${b.booking_ref}')">Invoice</button>`
-            : `<button class="abt abt-disabled" disabled>Invoiced</button>`}
+            : `<button class="abt abt-disabled" disabled>Invoiced</button>`}`}
         </div>
       </td>
     </tr>`;
@@ -1013,9 +1017,6 @@ loadBookings();
 </script>
 </body>
 </html>
-
-
-
 
 
 
