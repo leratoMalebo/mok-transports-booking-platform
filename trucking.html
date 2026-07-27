@@ -1113,8 +1113,26 @@
           <div id="mapContainerCB"></div>
         </div>
 
+        <!-- EDITING QUOTE BANNER -->
+        <div id="editingBanner" style="display:none;background:#fff8e1;border:1px solid #f0d97a;
+          border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#8a6d00;
+          display:flex;align-items:center;gap:8px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a6d00" stroke-width="2">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Editing saved quote <strong id="editingRefLabel"></strong> — changes will update this quote.
+        </div>
+
         <!-- SUBMIT -->
         <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="submit-btn" id="saveQuoteBtn" onclick="saveQuote()"
+            style="background:#546e7a;flex:0 0 auto;padding:0 18px;width:auto">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save Quote
+          </button>
           <button class="submit-btn" id="submitBtn" onclick="submitBooking()" style="flex:1">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M9 11l3 3L22 4" />
@@ -1303,7 +1321,8 @@
       distance: null, tollCost: 0, cbDistance: null,
       cbCountry: '', cbCity: '', cbDir: 'SA_TO_ABROAD',
       cbResult: null, mapsLoaded: false, map: null, mapCB: null,
-      dirRenderer: null, dirRendererCB: null
+      dirRenderer: null, dirRendererCB: null,
+      editingRef: null
     };
 
     // ── SESSION ───────────────────────────────────
@@ -1688,10 +1707,15 @@
         ? `${pickup.split(',')[0]} → ${delivery.split(',')[0]}`
         : `SA → ${state.cbCity}, ${state.cbCountry}`;
 
-      // Quote number
-      let n = Number(localStorage.getItem('mokTruckRef') || 2000); n++;
-      localStorage.setItem('mokTruckRef', n);
-      const ref = `TRK-${n}`;
+      // Quote number — reuse the existing ref when editing a saved quote
+      let ref;
+      if (state.editingRef) {
+        ref = state.editingRef;
+      } else {
+        let n = Number(localStorage.getItem('mokTruckRef') || 2000); n++;
+        localStorage.setItem('mokTruckRef', n);
+        ref = `TRK-${n}`;
+      }
 
       // Receiver details
       const receiverName    = document.getElementById('receiverName')?.value?.trim()    || '';
@@ -1726,6 +1750,94 @@
       };
     }
 
+    // ── Shared: build the API body from a payload ──
+    function buildBookingBody(payload, status) {
+      const contactNote = payload.contact ? `Contact Person: ${payload.contact}` : '';
+      const otherNote   = payload.otherCosts > 0
+        ? `Other Costs: R ${payload.otherCosts.toLocaleString()}${payload.otherCostsLabel ? ' (' + payload.otherCostsLabel + ')' : ''}`
+        : '';
+      const notesText = [contactNote, otherNote].filter(Boolean).join(' | ');
+      return {
+        booking_ref:       payload.ref,
+        client_name:       payload.name,
+        client_phone:      payload.phone,
+        client_email:      payload.email,
+        commodity:         payload.commodity,
+        client_reference:  payload.clientReference || null,
+        requirements:      payload.requirements    || null,
+        shipment_date:     payload.shipDate,
+        processed_by:      payload.agent,
+        type:              payload.type,
+        vehicle:           payload.vehicle,
+        delivery_type:     payload.deliveryType,
+        price:             payload.price,
+        toll_cost:         payload.tollCost,
+        distance_km:       payload.distance,
+        pickup:            payload.pickup,
+        delivery:          payload.delivery,
+        country:           payload.cbCountry || null,
+        city:              payload.cbCity    || null,
+        route:             payload.route,
+        status,
+        notes:             notesText || null,
+        receiver_name:     payload.receiverName    || null,
+        receiver_company:  payload.receiverCompany || null,
+        receiver_phone:    payload.receiverPhone   || null,
+        receiver_email:    payload.receiverEmail   || null
+      };
+    }
+
+    // ── SAVE QUOTE (no confirmation) ───────────────
+    async function saveQuote() {
+      const name = document.getElementById('clientName').value.trim();
+      const phone = document.getElementById('clientPhone').value.trim();
+      if (!name || !phone) { alert('Please enter client name and phone number.'); return; }
+
+      const payload = buildPayload();
+      state.lastPayload = payload;
+      const body = buildBookingBody(payload, 'quote');
+
+      const btn = document.getElementById('saveQuoteBtn');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      try {
+        let res;
+        if (state.editingRef) {
+          res = await fetch(`${API}/truck-bookings/${encodeURIComponent(state.editingRef)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        } else {
+          res = await fetch(`${API}/truck-bookings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        }
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Save failed'); }
+        const saved = await res.json();
+
+        // Once saved, keep editing this same record on further saves —
+        // and reflect the ref in the URL so a page refresh doesn't lose it.
+        state.editingRef = saved.booking_ref;
+        document.getElementById('editingBanner').style.display = 'flex';
+        document.getElementById('editingRefLabel').textContent = saved.booking_ref;
+        const newUrl = `${window.location.pathname}?edit=${encodeURIComponent(saved.booking_ref)}`;
+        window.history.replaceState({}, '', newUrl);
+
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/></svg> Quote Saved ✓';
+        setTimeout(() => {
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Quote';
+        }, 2000);
+      } catch (err) {
+        console.error('Save quote error:', err);
+        alert('Could not save the quote: ' + err.message);
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Quote';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
     // ── SUBMIT + SAVE ─────────────────────────────
     async function submitBooking() {
       const name = document.getElementById('clientName').value.trim();
@@ -1747,48 +1859,28 @@
 
       const payload = buildPayload();
       state.lastPayload = payload;
+      const body = buildBookingBody(payload, 'confirmed');
 
       // Save to DB
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.textContent = 'Saving…';
       try {
-        const contactNote = payload.contact ? `Contact Person: ${payload.contact}` : '';
-        const otherNote   = payload.otherCosts > 0
-          ? `Other Costs: R ${payload.otherCosts.toLocaleString()}${payload.otherCostsLabel ? ' (' + payload.otherCostsLabel + ')' : ''}`
-          : '';
-        const notesText = [contactNote, otherNote].filter(Boolean).join(' | ');
-        const res = await fetch(`${API}/truck-bookings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            booking_ref:       payload.ref,
-            client_name:       payload.name,
-            client_phone:      payload.phone,
-            client_email:      payload.email,
-            commodity:         payload.commodity,
-            client_reference:  payload.clientReference || null,
-            requirements:      payload.requirements    || null,
-            shipment_date:     payload.shipDate,
-            processed_by:      payload.agent,
-            type:              payload.type,
-            vehicle:           payload.vehicle,
-            delivery_type:     payload.deliveryType,
-            price:             payload.price,
-            toll_cost:         payload.tollCost,
-            distance_km:       payload.distance,
-            pickup:            payload.pickup,
-            delivery:          payload.delivery,
-            country:           payload.cbCountry || null,
-            city:              payload.cbCity    || null,
-            route:             payload.route,
-            status:            'confirmed',
-            notes:             notesText || null,
-            receiver_name:     payload.receiverName    || null,
-            receiver_company:  payload.receiverCompany || null,
-            receiver_phone:    payload.receiverPhone   || null,
-            receiver_email:    payload.receiverEmail   || null
-          })
-        });
+        let res;
+        if (state.editingRef) {
+          // Editing a saved quote — update it in place and mark confirmed,
+          // rather than creating a duplicate booking record.
+          res = await fetch(`${API}/truck-bookings/${encodeURIComponent(state.editingRef)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        } else {
+          res = await fetch(`${API}/truck-bookings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        }
         if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Save failed'); }
         const saved = await res.json();
         payload.deliveryNoteNo = saved.delivery_note_no || null;
@@ -2228,6 +2320,8 @@
       document.getElementById('clientPhone').value = '';
       document.getElementById('commodity').value = '';
       state.distance = null; state.tollCost = 0; state.cbResult = null;
+      state.editingRef = null;
+      document.getElementById('editingBanner').style.display = 'none';
       document.getElementById('distResult').classList.remove('show');
       document.getElementById('cbPriceBox').classList.remove('show');
       document.getElementById('mapContainer').classList.remove('show');
@@ -2241,14 +2335,105 @@
       document.getElementById('sumTollRow').style.display = 'none';
       document.getElementById('sumCBRow').style.display = 'none';
     }
+
+    // ── LOAD A SAVED QUOTE FOR EDITING ─────────────
+    // Triggered by trucking.html?edit=<booking_ref> — pulls the saved
+    // quote and pre-fills the entire form so staff can adjust it and
+    // either re-save it as a quote or confirm it as a real booking.
+    async function loadQuoteForEditing(ref) {
+      try {
+        const res = await fetch(`${API}/truck-bookings/${encodeURIComponent(ref)}`);
+        if (!res.ok) throw new Error('Quote not found');
+        const b = await res.json();
+
+        state.editingRef = b.booking_ref;
+        document.getElementById('editingBanner').style.display = 'flex';
+        document.getElementById('editingRefLabel').textContent = b.booking_ref;
+
+        // Client details
+        document.getElementById('clientName').value = b.client_name || '';
+        document.getElementById('clientPhone').value = b.client_phone || '';
+        document.getElementById('clientEmail').value = b.client_email || '';
+        document.getElementById('commodity').value = b.commodity || '';
+        if (document.getElementById('clientReference')) document.getElementById('clientReference').value = b.client_reference || '';
+        if (document.getElementById('requirements')) document.getElementById('requirements').value = b.requirements || '';
+        document.getElementById('shipmentDate').value = b.shipment_date ? b.shipment_date.split('T')[0] : '';
+        if (!isClient && document.getElementById('processedBy') && b.processed_by) {
+          document.getElementById('processedBy').value = b.processed_by;
+        }
+
+        // Receiver details
+        if (document.getElementById('receiverName')) document.getElementById('receiverName').value = b.receiver_name || '';
+        if (document.getElementById('receiverCompany')) document.getElementById('receiverCompany').value = b.receiver_company || '';
+        if (document.getElementById('receiverPhone')) document.getElementById('receiverPhone').value = b.receiver_phone || '';
+        if (document.getElementById('receiverEmail')) document.getElementById('receiverEmail').value = b.receiver_email || '';
+
+        // Type + delivery type
+        setType(b.type === 'Cross Border' ? 'Cross Border' : 'National');
+        setDelivery(b.delivery_type === 'Dedicated' ? 'Dedicated' : 'Standard');
+
+        // Vehicle
+        document.querySelectorAll('.truck-btn').forEach(btn => {
+          if (btn.getAttribute('onclick') === `setVehicle('${b.vehicle}',this)`) {
+            setVehicle(b.vehicle, btn);
+          }
+        });
+
+        if (b.type === 'Cross Border') {
+          document.getElementById('cbPickup').value = b.pickup || '';
+          document.getElementById('cbDelivery').value = b.delivery || '';
+          document.getElementById('cbCountry').value = b.country || '';
+          onCountryChange();
+          document.getElementById('cbCity').value = b.city || '';
+          state.cbCity = b.city || '';
+          updateCBPrice();
+        } else {
+          document.getElementById('pickup').value = b.pickup || '';
+          document.getElementById('delivery').value = b.delivery || '';
+          if (b.distance_km) {
+            state.distance = Number(b.distance_km);
+            state.tollCost = Number(b.toll_cost) || 0;
+            document.getElementById('sumRoute').textContent = b.route || '—';
+            document.getElementById('sumDist').textContent = `${state.distance} km`;
+            document.getElementById('sumToll').textContent = `R ${state.tollCost.toLocaleString()}`;
+            document.getElementById('sumRouteRow').style.display = 'flex';
+            document.getElementById('sumDistRow').style.display = 'flex';
+            document.getElementById('sumTollRow').style.display = 'flex';
+            updateNationalPrice();
+          }
+        }
+
+        // Other costs, folded out of the notes field where they were stored
+        if (b.notes) {
+          const m = b.notes.match(/Other Costs: R ([\d,.]+)(?: \(([^)]*)\))?/);
+          if (m && document.getElementById('otherCosts')) {
+            document.getElementById('otherCosts').value = m[1].replace(/,/g, '');
+            document.getElementById('otherCostsLabel').value = m[2] || '';
+            document.getElementById('otherCostsWrap').style.display = 'block';
+          }
+          const cm = b.notes.match(/Contact Person: ([^|]*)/);
+          if (cm && document.getElementById('contactPerson')) {
+            document.getElementById('contactPerson').value = cm[1].trim();
+          }
+        }
+      } catch (err) {
+        console.error('Load quote for editing error:', err);
+        alert('Could not load that quote. It may have been removed.');
+      }
+    }
+
+    // ── INIT: check for ?edit=<ref> on load ────────
+    (function initEditMode() {
+      const params = new URLSearchParams(window.location.search);
+      const editRef = params.get('edit');
+      if (editRef) loadQuoteForEditing(editRef);
+    })();
   </script>
 
   <!-- Load Google Maps after script so callback is defined -->
 </body>
 
 </html>
-
-
 
 
 
