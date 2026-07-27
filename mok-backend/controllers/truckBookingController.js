@@ -51,6 +51,60 @@ exports.createBooking = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
+// UPDATE BOOKING (full edit)
+// PATCH /api/truck-bookings/:ref
+// Used to edit a saved quote's details (client info, route, price,
+// requirements, etc.) and optionally convert it straight to a
+// confirmed booking by including status: 'confirmed' in the body.
+// Only fields actually present in the request body are updated —
+// anything omitted is left untouched.
+// ─────────────────────────────────────────────
+exports.updateBooking = async (req, res) => {
+  try {
+    const editable = [
+      'client_name', 'client_phone', 'client_email',
+      'commodity', 'client_reference', 'requirements', 'shipment_date', 'processed_by',
+      'type', 'vehicle', 'delivery_type',
+      'price', 'toll_cost', 'distance_km',
+      'pickup', 'delivery', 'country', 'city', 'route', 'notes',
+      'receiver_name', 'receiver_company', 'receiver_phone', 'receiver_email',
+      'status'
+    ];
+
+    const sets = [];
+    const params = [];
+    let idx = 1;
+
+    for (const field of editable) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        sets.push(`${field} = $${idx++}`);
+        params.push(req.body[field]);
+      }
+    }
+
+    if (!sets.length) {
+      return res.status(400).json({ error: 'No editable fields provided' });
+    }
+
+    params.push(req.params.ref);
+
+    const result = await db.query(
+      `UPDATE truck_bookings SET ${sets.join(', ')}
+       WHERE booking_ref = $${idx} OR id::text = $${idx}
+       RETURNING *`,
+      params
+    );
+
+    if (!result.rows.length)
+      return res.status(404).json({ error: 'Booking not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('UPDATE BOOKING ERROR:', err.message);
+    res.status(500).json({ error: 'Failed to update booking' });
+  }
+};
+
+// ─────────────────────────────────────────────
 // GET ALL TRUCK BOOKINGS
 // GET /api/truck-bookings
 // ─────────────────────────────────────────────
@@ -112,7 +166,7 @@ exports.getBooking = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const valid = ['confirmed', 'in_transit', 'delivered'];
+    const valid = ['quote', 'confirmed', 'in_transit', 'delivered'];
     if (!valid.includes(status))
       return res.status(400).json({ error: 'Invalid status' });
 
@@ -256,7 +310,5 @@ exports.updateNotes = async (req, res) => {
     res.status(500).json({ error: 'Failed to update notes' });
   }
 };
-
-
 
 
