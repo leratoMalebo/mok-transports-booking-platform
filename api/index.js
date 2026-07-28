@@ -39,13 +39,21 @@ app.use('/api/truck-bookings', require('../mok-backend/routes/truckBookings'));
 app.use('/api/truck-invoices', require('../mok-backend/routes/truckInvoices'));
 app.use('/api/addresses', require('../mok-backend/routes/addresses'));
 
-app.use('/api/addresses', require('../mok-backend/routes/DHladdresses'));
+// ✅ Fix the casing (Dhladdresses) and change the endpoint route so it doesn't conflict with line 40
+app.use('/api/dhl-addresses', require('../mok-backend/routes/Dhladdresses'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Mok Transports API live' });
 });
 
 module.exports = app;
+
+
+
+
+
+
+
 
 
 
