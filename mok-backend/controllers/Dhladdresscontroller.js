@@ -2,7 +2,12 @@ const db = require('../db');
 
 exports.getCompanies = async (req, res) => {
   try {
-    const result = await db.query(`SELECT DISTINCT company_name FROM dhl_addresses ORDER BY company_name ASC`);
+    const result = await db.query(`SELECT DISTINCT
+company_name,
+city,
+country_code
+FROM dhl_addresses
+ORDER BY company_name;`);
     res.json(result.rows.map(r => r.company_name));
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
@@ -23,7 +28,7 @@ exports.createAddress = async (req, res) => {
   try {
     const { company_name, contact_name, email, phone, country, country_code, address_1, address_2, postal_code, city, suburb, province } = req.body;
     const result = await db.query(`INSERT INTO dhl_addresses (company_name,contact_name,email,phone,country,country_code,address_1,address_2,postal_code,city,suburb,province) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-      [company_name,contact_name||'',email||'',phone||'',country||'',country_code||'',address_1||'',address_2||'',postal_code||'',city||'',suburb||'',province||'']);
+      [company_name, contact_name || '', email || '', phone || '', country || '', country_code || '', address_1 || '', address_2 || '', postal_code || '', city || '', suburb || '', province || '']);
     res.status(201).json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
