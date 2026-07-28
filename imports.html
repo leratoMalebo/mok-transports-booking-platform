@@ -1032,6 +1032,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('shipDate').value = new Date().toISOString().split('T')[0];
       document.getElementById('invDate').value = new Date().toISOString().split('T')[0];
+
       // Pre-fill shipper from Mok Transports defaults
       document.getElementById('shipperCompany').value = 'Mok Transports Services (Pty) Ltd';
       document.getElementById('shipperFullName').value = 'Mavis Selomane';
@@ -1042,7 +1043,11 @@
       document.getElementById('shipperPostal').value = '2092';
       document.getElementById('shipperAddr1').value = '12 Jupiter Road, Crown Mines';
       document.getElementById('shipperCountry').value = 'ZA';
+
       addLineItem(); // start with one line item
+
+      // ✅ Trigger Address Book Quick-Fill Initialization!
+      dhlQfInit();
     });
 
     // ── MODE ──────────────────────────────────────────────────────
@@ -1444,6 +1449,19 @@
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
