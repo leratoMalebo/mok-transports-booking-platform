@@ -1205,12 +1205,12 @@
             <div style="font-size:10px;color:#90a4ae;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">
               Include Tolls in PDF?</div>
             <div style="display:flex;gap:6px">
-              <button onclick="setTollToggle(true)" id="tollYes" style="flex:1;height:32px;border-radius:5px;border:none;cursor:pointer;
+              <button onclick="setTollToggle(true)" id="tollYes" style="flex:1;height:32px;border-radius:5px;border:1px solid rgba(255,255,255,.2);cursor:pointer;
               font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;
-              letter-spacing:.5px;background:#2e7d32;color:#fff">✅ Include</button>
-              <button onclick="setTollToggle(false)" id="tollNo" style="flex:1;height:32px;border-radius:5px;border:1px solid rgba(255,255,255,.2);
+              letter-spacing:.5px;background:transparent;color:#90a4ae">✅ Include</button>
+              <button onclick="setTollToggle(false)" id="tollNo" style="flex:1;height:32px;border-radius:5px;border:none;
               cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:11px;
-              font-weight:800;letter-spacing:.5px;background:transparent;color:#90a4ae">❌ Exclude</button>
+              font-weight:800;letter-spacing:.5px;background:#c62828;color:#fff">❌ Exclude</button>
             </div>
             <div id="tollToggleNote" style="font-size:10px;color:#90a4ae;margin-top:6px;line-height:1.5"></div>
           </div>
@@ -1488,10 +1488,11 @@
           document.getElementById('sumTollRow').style.display = 'flex';
           document.getElementById('sumToll').textContent = `R ${toll.total.toLocaleString()}`;
 
-          // Show toll toggle if tolls > 0
+          // Show toll toggle if tolls > 0 — refresh display only,
+          // never override a choice staff already made this session
           if (toll.total > 0) {
             document.getElementById('tollToggle').style.display = 'block';
-            setTollToggle(true);
+            setTollToggle(includeTolls);
           }
 
           btn.classList.add('calculated');
@@ -1667,7 +1668,7 @@
     }
 
     // ── TOLL TOGGLE ───────────────────────────────
-    let includeTolls = true;
+    let includeTolls = false;
     function setTollToggle(val) {
       includeTolls = val;
       document.getElementById('tollYes').style.background = val ? '#2e7d32' : 'transparent';
@@ -1756,7 +1757,10 @@
       const otherNote   = payload.otherCosts > 0
         ? `Other Costs: R ${payload.otherCosts.toLocaleString()}${payload.otherCostsLabel ? ' (' + payload.otherCostsLabel + ')' : ''}`
         : '';
-      const notesText = [contactNote, otherNote].filter(Boolean).join(' | ');
+      const tollNote    = payload.tollCost > 0
+        ? `Tolls on Quote: ${includeTolls ? 'Included' : 'Excluded'}`
+        : '';
+      const notesText = [contactNote, otherNote, tollNote].filter(Boolean).join(' | ');
       return {
         booking_ref:       payload.ref,
         client_name:       payload.name,
@@ -1967,12 +1971,18 @@
         }
         const metaH = 14 + metaLines.length * 8;
         doc.setFillColor(10, 42, 67); doc.roundedRect(108, 41, 88, metaH, 2, 2, 'F');
+        const metaRightX = 108 + 88 - 3; // actual right edge of the box, with padding
         metaLines.forEach((row, i) => {
           const ry = 51 + i * 8;
           doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(160, 190, 220);
           doc.text(row.label, 111, ry);
-          doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(255, 255, 255);
-          doc.text(String(row.value || '—'), 148, ry, { align: 'right' });
+          const valueStr = String(row.value || '—');
+          // Long values (e.g. a free-text client reference) get a smaller
+          // font so they never run back far enough left to hit the label.
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(valueStr.length > 18 ? 7 : 8.5);
+          doc.setTextColor(255, 255, 255);
+          doc.text(valueStr, metaRightX, ry, { align: 'right' });
         });
 
         // TO box
@@ -2415,6 +2425,11 @@
           if (cm && document.getElementById('contactPerson')) {
             document.getElementById('contactPerson').value = cm[1].trim();
           }
+          const tm = b.notes.match(/Tolls on Quote: (Included|Excluded)/);
+          if (tm && document.getElementById('tollToggle')) {
+            document.getElementById('tollToggle').style.display = 'block';
+            setTollToggle(tm[1] === 'Included');
+          }
         }
       } catch (err) {
         console.error('Load quote for editing error:', err);
@@ -2434,6 +2449,5 @@
 </body>
 
 </html>
-
 
 
