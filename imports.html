@@ -609,7 +609,7 @@
       </button>
     </div>
 
-    <!-- ══ SHIPPER ══════════════════════════════════════════════ -->
+    <!-- ══ SHIPPER / SENDER ═════════════════════════════════════ -->
     <div class="card">
       <div class="card-header">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -618,35 +618,39 @@
         </svg>
         <div class="card-header-title" id="shipperLabel">Shipper / Sender</div>
       </div>
-      <div id="dhlQfPanel" style="display:none;padding:14px 16px;background:#f0f4ff;border-bottom:1px solid #c5d5f5">
+
+      <!-- ⚡ SHIPPER QUICK FILL PANEL -->
+      <div id="dhlQfPanelShipper" style="padding:14px 16px; background:#f0f4ff; border-bottom:1px solid #c5d5f5">
         <div
-          style="font-size:11px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">
-          ⚡ Quick Fill — Address Book</div>
-        <div id="dhlQfCompanyRow" style="margin-bottom:10px">
-          <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Client
+          style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; letter-spacing:.8px; margin-bottom:10px">
+          ⚡ Quick Fill — Sender / Shipper Address Book
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px; color:#607d8b; font-weight:600; display:block; margin-bottom:4px">Client
             Company</label>
-          <select id="dhlQfCompany" onchange="dhlLoadAddresses()"
-            style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
+          <select id="dhlQfCompanyShipper" onchange="dhlLoadAddresses('shipper')"
+            style="width:100%; height:40px; border:1px solid #dce3ec; border-radius:7px; padding:0 12px; font-size:14px; outline:none; background:#fff; color:#1a2535">
             <option value="">— Select company —</option>
           </select>
         </div>
         <div>
-          <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Receiver
+          <label style="font-size:11px; color:#607d8b; font-weight:600; display:block; margin-bottom:4px">Sender
             Address</label>
-          <select id="dhlQfAddr" onchange="dhlApplyAddress(this.value)"
-            style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
-            <option value="">— Select receiver address —</option>
+          <select id="dhlQfAddrShipper" onchange="dhlApplyAddress('shipper', this.value)"
+            style="width:100%; height:40px; border:1px solid #dce3ec; border-radius:7px; padding:0 12px; font-size:14px; outline:none; background:#fff; color:#1a2535">
+            <option value="">— Select sender address —</option>
           </select>
         </div>
       </div>
+
       <div class="card-body">
         <div class="form-grid cols-2">
           <div class="fg"><label>Company / Full Name *</label><input id="shipperCompany"
-              placeholder="e.g. Mok Transports Services"></div>
+              placeholder="Shipper Company Name"></div>
           <div class="fg"><label>Contact Full Name *</label><input id="shipperFullName"
-              placeholder="e.g. Lerato Malebo"></div>
+              placeholder="Contact Person Name"></div>
           <div class="fg"><label>Email Address *</label><input id="shipperEmail" type="email"
-              placeholder="lerato@company.com"></div>
+              placeholder="shipper@company.com"></div>
           <div class="fg"><label>Phone *</label><input id="shipperPhone" placeholder="+27 11 839 6496"></div>
           <div class="fg"><label>Mobile Phone</label><input id="shipperMobile" placeholder="+27 84 902 2258"></div>
           <div class="fg"><label>Country Code *</label>
@@ -686,6 +690,31 @@
         </svg>
         <div class="card-header-title" id="receiverLabel">Consignee / Receiver</div>
       </div>
+
+      <!-- ⚡ RECEIVER QUICK FILL PANEL -->
+      <div id="dhlQfPanelReceiver" style="padding:14px 16px; background:#f0f4ff; border-bottom:1px solid #c5d5f5">
+        <div
+          style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; letter-spacing:.8px; margin-bottom:10px">
+          ⚡ Quick Fill — Receiver Address Book
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px; color:#607d8b; font-weight:600; display:block; margin-bottom:4px">Client
+            Company</label>
+          <select id="dhlQfCompanyReceiver" onchange="dhlLoadAddresses('receiver')"
+            style="width:100%; height:40px; border:1px solid #dce3ec; border-radius:7px; padding:0 12px; font-size:14px; outline:none; background:#fff; color:#1a2535">
+            <option value="">— Select company —</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px; color:#607d8b; font-weight:600; display:block; margin-bottom:4px">Receiver
+            Address</label>
+          <select id="dhlQfAddrReceiver" onchange="dhlApplyAddress('receiver', this.value)"
+            style="width:100%; height:40px; border:1px solid #dce3ec; border-radius:7px; padding:0 12px; font-size:14px; outline:none; background:#fff; color:#1a2535">
+            <option value="">— Select receiver address —</option>
+          </select>
+        </div>
+      </div>
+
       <div class="card-body">
         <div class="form-grid cols-2">
           <div class="fg"><label>Company / Full Name *</label><input id="receiverCompany"
@@ -1069,19 +1098,7 @@
 
 
 
-      const companyLabel =
-        document.querySelector('#dhlQfCompanyRow label');
 
-      const addressLabel =
-        document.querySelectorAll('#dhlQfPanel label')[1];
-
-      if (mode === 'export') {
-        companyLabel.textContent = 'Receiver Company';
-        addressLabel.textContent = 'Receiver Address';
-      } else {
-        companyLabel.textContent = 'Shipper Company';
-        addressLabel.textContent = 'Shipper Address';
-      }
     }
 
     // ── CUSTOMS TOGGLE ────────────────────────────────────────────
@@ -1383,57 +1400,89 @@
       }
     }
 
-    const DHL_API = 'https://bookings.moktransports.com/api';
-    let _dhlCache = [];
-    function dhlSet(id, val) { const el = document.getElementById(id); if (!el) return; el.value = val || ''; el.dispatchEvent(new Event('change')); if (window.M && el.tagName === 'SELECT') M.FormSelect.init(el); }
+    // ── QUICK FILL ADDRESS BOOK LOGIC ─────────────────────────────
+    const DHL_API = API; // Uses the API const defined at the top of script
+    let _dhlCacheShipper = [];
+    let _dhlCacheReceiver = [];
+
+    function dhlSet(id, val) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.value = val || '';
+      el.dispatchEvent(new Event('change'));
+      if (window.M && el.tagName === 'SELECT') M.FormSelect.init(el);
+    }
+
     async function dhlQfInit() {
       try {
         const r = await fetch(DHL_API + '/dhl-addresses/companies');
-        const cos = await r.json(); if (!cos || !cos.length) return;
-        const sel = document.getElementById('dhlQfCompany');
-        sel.innerHTML = '<option value="">— Select company —</option>';
-        cos.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
-        document.getElementById('dhlQfPanel').style.display = 'block';
-      } catch (e) { console.error('DHL QF:', e); }
-    }
-    async function dhlLoadAddresses() {
-      const co = document.getElementById('dhlQfCompany').value;
-      if (!co) { _dhlCache = []; dhlPopulate([]); return; }
-      try { const r = await fetch(DHL_API + '/dhl-addresses?company=' + encodeURIComponent(co)); _dhlCache = await r.json(); dhlPopulate(_dhlCache); } catch (e) { }
-    }
-    function dhlPopulate(arr) {
-      const sel = document.getElementById('dhlQfAddr');
-      sel.innerHTML = '<option value="">— Select receiver address —</option>';
-      arr.forEach((a, i) => {
-        const o = document.createElement('option'); o.value = i; const country =
-          a.country ||
-          a.country_code ||
-          '';
+        const cos = await r.json();
+        if (!cos || !cos.length) return;
 
-        o.textContent =
-          `${a.company_name}
- - ${a.city || ''}
- ${country ? '(' + country + ')' : ''}`; sel.appendChild(o);
+        let options = '<option value="">— Select company —</option>';
+        cos.forEach(c => { options += `<option value="${c}">${c}</option>`; });
+
+        const selShipper = document.getElementById('dhlQfCompanyShipper');
+        const selReceiver = document.getElementById('dhlQfCompanyReceiver');
+
+        if (selShipper) selShipper.innerHTML = options;
+        if (selReceiver) selReceiver.innerHTML = options;
+
+      } catch (e) {
+        console.error('DHL QF Init Error:', e);
+      }
+    }
+
+    async function dhlLoadAddresses(target) {
+      const isShipper = target === 'shipper';
+      const coId = isShipper ? 'dhlQfCompanyShipper' : 'dhlQfCompanyReceiver';
+      const co = document.getElementById(coId)?.value;
+
+      if (!co) {
+        if (isShipper) _dhlCacheShipper = []; else _dhlCacheReceiver = [];
+        dhlPopulate(target, []);
+        return;
+      }
+
+      try {
+        const r = await fetch(DHL_API + '/dhl-addresses?company=' + encodeURIComponent(co));
+        const data = await r.json();
+        if (isShipper) _dhlCacheShipper = data; else _dhlCacheReceiver = data;
+        dhlPopulate(target, data);
+      } catch (e) {
+        console.error('DHL Load Addresses Error:', e);
+      }
+    }
+
+    function dhlPopulate(target, arr) {
+      const selId = target === 'shipper' ? 'dhlQfAddrShipper' : 'dhlQfAddrReceiver';
+      const sel = document.getElementById(selId);
+      if (!sel) return;
+
+      sel.innerHTML = `<option value="">— Select ${target} address —</option>`;
+      arr.forEach((a, i) => {
+        const o = document.createElement('option');
+        o.value = i;
+        const country = a.country || a.country_code || '';
+        o.textContent = `${a.company_name} - ${a.city || ''} ${country ? '(' + country + ')' : ''}`;
+        sel.appendChild(o);
       });
     }
-    function dhlApplyAddress(idx) {
+
+    function dhlApplyAddress(target, idx) {
       if (idx === '') return;
 
-      const a = _dhlCache[parseInt(idx)];
+      const cache = target === 'shipper' ? _dhlCacheShipper : _dhlCacheReceiver;
+      const a = cache[parseInt(idx)];
       if (!a) return;
 
-      // Export -> Address Book fills Receiver
-      // Import -> Address Book fills Shipper
-      const p = currentMode === 'export'
-        ? 'receiver'
-        : 'shipper';
+      const p = target; // target explicitly controls 'shipper' or 'receiver'
 
       dhlSet(`${p}Company`, a.company_name || '');
       dhlSet(`${p}FullName`, a.contact_name || '');
       dhlSet(`${p}Email`, a.email || '');
       dhlSet(`${p}Phone`, a.phone || '');
       dhlSet(`${p}Mobile`, a.phone || '');
-
       dhlSet(`${p}Country`, a.country_code || '');
       dhlSet(`${p}City`, a.city || '');
       dhlSet(`${p}Postal`, a.postal_code || '');
@@ -1449,18 +1498,6 @@
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
