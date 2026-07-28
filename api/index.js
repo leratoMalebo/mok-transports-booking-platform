@@ -38,11 +38,17 @@ app.use('/api/dhl', require('../mok-backend/routes/dhl'));
 app.use('/api/truck-bookings', require('../mok-backend/routes/truckBookings'));
 app.use('/api/truck-invoices', require('../mok-backend/routes/truckInvoices'));
 app.use('/api/addresses', require('../mok-backend/routes/addresses'));
+
+app.use('/api/addresses', require('../mok-backend/routes/DHladdresses'));
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Mok Transports API live' });
 });
 
 module.exports = app;
+
+
+
 
 
 
