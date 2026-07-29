@@ -14,6 +14,9 @@ async function loadPlaces() {
       // Remove custom headers so csv-parser uses the exact column names from line 1 ("PLACE ID", "TOWN", "PCODE")
       .pipe(csv())
       .on("data", (row) => {
+
+        console.log("CSV HEADERS:", Object.keys(row));
+        console.log("FIRST ROW:", row);
         const placeId = row["PLACE ID"] ? String(row["PLACE ID"]).trim() : "";
         const town = row["TOWN"] ? String(row["TOWN"]).toUpperCase().trim() : "";
         const pcode = row["PCODE"] ? String(row["PCODE"]).trim() : "";
