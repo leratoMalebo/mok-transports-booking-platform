@@ -21,8 +21,9 @@ async function loadPlaces() {
         if (!row.PLACE || !row.PCODE) return;
 
         places.push({
-          place: String(row.PLACE).trim().toUpperCase(),
-          postcode: String(row.PCODE).trim()
+          placeId: String(row["PLACE ID"]).trim(),
+          place: String(row["TOWN"]).toUpperCase().trim(),
+          postcode: String(row["PCODE"]).trim()
         });
 
       })
@@ -86,17 +87,17 @@ function findPlace(postcode, suburb, town) {
 
   }
 
- if (match) {
+  if (match) {
 
     console.log("✅ Place matched:", match.place);
 
-    return match.place;
+    return match.placeId;
 
-}
+  }
 
-console.log("❌ No place match for", postcode);
+  console.log("❌ No place match for", postcode);
 
-return null;
+  return null;
 }
 
 module.exports = {
