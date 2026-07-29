@@ -1013,13 +1013,7 @@
         </svg>
         Preview Shipment
       </button>
-      <a class="btn-top btn-green" href="invoice.html" style="height:44px;font-size:14px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-          <line x1="2" y1="10" x2="22" y2="10" />
-        </svg>
-        Create Invoice
-      </a>
+
     </div>
 
   </div>
@@ -1038,7 +1032,8 @@
           Close</button>
       </div>
       <div id="payloadPre"
-        style="flex:1;overflow:auto;padding:22px 24px;font-size:13.5px;color:#1a2535;font-family:'Barlow',sans-serif;line-height:1.6;background:#fff"></div>
+        style="flex:1;overflow:auto;padding:22px 24px;font-size:13.5px;color:#1a2535;font-family:'Barlow',sans-serif;line-height:1.6;background:#fff">
+      </div>
     </div>
   </div>
 
@@ -1357,28 +1352,28 @@
 
       return `
         ${section('Shipment Details', [
-          ['Direction', payload.shipmentDirection || (typeof currentMode !== 'undefined' ? (currentMode === 'export' ? 'Export' : 'Import') : 'Export')],
-          ['Service', payload.productCode === 'P' ? 'DHL Express Worldwide' : (payload.productCode || 'N/A')],
-          ['Shipping Date', payload.plannedShippingDateAndTime ? new Date(payload.plannedShippingDateAndTime).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A']
-        ])}
+        ['Direction', payload.shipmentDirection || (typeof currentMode !== 'undefined' ? (currentMode === 'export' ? 'Export' : 'Import') : 'Export')],
+        ['Service', payload.productCode === 'P' ? 'DHL Express Worldwide' : (payload.productCode || 'N/A')],
+        ['Shipping Date', payload.plannedShippingDateAndTime ? new Date(payload.plannedShippingDateAndTime).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A']
+      ])}
         ${section('Shipper', [
-          ['Company', payload.customerDetails?.shipperDetails?.contactInformation?.companyName || 'N/A'],
-          ['Contact', payload.customerDetails?.shipperDetails?.contactInformation?.fullName || 'N/A'],
-          ['Country', payload.customerDetails?.shipperDetails?.postalAddress?.countryCode || 'ZA']
-        ])}
+        ['Company', payload.customerDetails?.shipperDetails?.contactInformation?.companyName || 'N/A'],
+        ['Contact', payload.customerDetails?.shipperDetails?.contactInformation?.fullName || 'N/A'],
+        ['Country', payload.customerDetails?.shipperDetails?.postalAddress?.countryCode || 'ZA']
+      ])}
         ${section('Receiver', [
-          ['Company', payload.customerDetails?.receiverDetails?.contactInformation?.companyName || 'N/A'],
-          ['Contact', payload.customerDetails?.receiverDetails?.contactInformation?.fullName || 'N/A'],
-          ['Country', payload.customerDetails?.receiverDetails?.postalAddress?.countryCode || 'N/A']
-        ])}
+        ['Company', payload.customerDetails?.receiverDetails?.contactInformation?.companyName || 'N/A'],
+        ['Contact', payload.customerDetails?.receiverDetails?.contactInformation?.fullName || 'N/A'],
+        ['Country', payload.customerDetails?.receiverDetails?.postalAddress?.countryCode || 'N/A']
+      ])}
         ${section('Package', [
-          ['Description', payload.content?.description || 'N/A'],
-          ['Weight', `${pkg.weight || 0} kg`],
-          ['Declared Value', `${declaredVal} ${currency}`]
-        ])}
+        ['Description', payload.content?.description || 'N/A'],
+        ['Weight', `${pkg.weight || 0} kg`],
+        ['Declared Value', `${declaredVal} ${currency}`]
+      ])}
         ${section('Estimated Pricing', [
-          ['Estimated Cost', `R ${totalCost}`]
-        ])}
+        ['Estimated Cost', `R ${totalCost}`]
+      ])}
         <div style="background:#fff8e1;border:1px solid #f0d97a;border-radius:8px;padding:12px 14px;
           margin-top:4px;font-size:12.5px;color:#7a5c00;line-height:1.5">
           <strong>Please note:</strong> the price shown above is an estimate only, not the final
@@ -1543,5 +1538,6 @@
 </body>
 
 </html>
+
 
 
