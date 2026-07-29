@@ -114,14 +114,7 @@ exports.submitWaybillToJKJ = async (waybill) => {
   const actualWeight = Math.max(Number(waybill.weight || 1), 0.5);
   const pieces = Number(waybill.pieces || 1);
 
-  // ----------------------------------------------------
-  // Find Parcel Perfect Origin & Destination Places
-  // ----------------------------------------------------
-  console.log("POSTCODE:", waybill.consignor_postcode);
-  console.log("TOWN:", waybill.consignor_town);
-
-  console.log("DEST POSTCODE:", waybill.consignee_postcode);
-  console.log("DEST TOWN:", waybill.consignee_town);
+  // 1. Resolve Origin & Destination Place IDs
   const originPlace = findPlace(
     waybill.consignor_postcode,
     waybill.consignor_suburb,
@@ -134,8 +127,17 @@ exports.submitWaybillToJKJ = async (waybill) => {
     waybill.consignee_town
   );
 
-  console.log("Origin Place:", originPlace);
-  console.log("Destination Place:", destinationPlace);
+  // Guard against missing Place IDs to avoid sending invalid payloads to JKJ
+  if (!originPlace) {
+    throw new Error(`Could not map consignor postcode '${waybill.consignor_postcode}' / town '${waybill.consignor_town}' to a valid JKJ Place ID.`);
+  }
+  if (!destinationPlace) {
+    throw new Error(`Could not map consignee postcode '${waybill.consignee_postcode}' / town '${waybill.consignee_town}' to a valid JKJ Place ID.`);
+  }
+
+  // Safe Logging (prevents null reference crashes)
+  console.log("origplace length:", originPlace.length, "value:", JSON.stringify(originPlace));
+  console.log("destplace length:", destinationPlace.length, "value:", JSON.stringify(destinationPlace));
 
   const params = {
     details: {
@@ -145,46 +147,32 @@ exports.submitWaybillToJKJ = async (waybill) => {
       waydate: todayDDMMYYYY(),
 
       // Consignor (sender)
-      // Consignor (sender)
       origpers: sanitizeJKJ(
         waybill.consignor_contact_name || waybill.consignor_name || "Mok Transports",
         40
       ),
-
       origperadd1: sanitizeJKJ(waybill.consignor_address, 30),
       origperadd2: sanitizeJKJ(waybill.consignor_address2, 30),
       origperadd3: sanitizeJKJ(waybill.consignor_suburb, 30),
       origperadd4: sanitizeJKJ(waybill.consignor_province, 30),
-
       origperpcode: sanitizeJKJ(waybill.consignor_postcode, 10),
-
       origtown: sanitizeJKJ(waybill.consignor_town, 30),
-      origplace: originPlace || "",
+      origplace: originPlace,
+      origpercontact: (waybill.consignor_contact || "").replace(/\D/g, "").substring(0, 15),
 
-      origpercontact: (waybill.consignor_contact || "")
-        .replace(/\D/g, "")
-        .substring(0, 15),
-
-      // Consignee (receiver)
       // Consignee (receiver)
       destpers: sanitizeJKJ(
         waybill.consignee_contact_name || waybill.consignee_name || "Receiver",
         40
       ),
-
       destperadd1: sanitizeJKJ(waybill.consignee_address, 30),
       destperadd2: sanitizeJKJ(waybill.consignee_address2, 30),
       destperadd3: sanitizeJKJ(waybill.consignee_suburb, 30),
       destperadd4: sanitizeJKJ(waybill.consignee_province, 30),
-
       destperpcode: sanitizeJKJ(waybill.consignee_postcode, 10),
-
       desttown: sanitizeJKJ(waybill.consignee_town, 30),
-      destplace: destinationPlace || "",
-
-      destpercontact: (waybill.consignee_contact || "")
-        .replace(/\D/g, "")
-        .substring(0, 15),
+      destplace: destinationPlace,
+      destpercontact: (waybill.consignee_contact || "").replace(/\D/g, "").substring(0, 15),
 
       reference: sanitizeJKJ(waybill.waybill_no, 30),
       ppcust: JKJ_PPCUST_ID
@@ -207,25 +195,7 @@ exports.submitWaybillToJKJ = async (waybill) => {
     }]
   };
 
-
-  console.log(
-    "origplace length:",
-    originPlace.length,
-    "value:",
-    JSON.stringify(originPlace)
-  );
-
-  console.log(
-    "destplace length:",
-    destinationPlace.length,
-    "value:",
-    JSON.stringify(destinationPlace)
-  );
-
   console.log('[JKJ] Submitting waybill:', waybill.waybill_no);
-
-  console.log("Matched Origin Place:", originPlace);
-  console.log("Matched Destination Place:", destinationPlace);
   console.log('[JKJ] Params:', JSON.stringify(params, null, 2));
 
   const result = await makeCall('Waybill', 'submitWaybill', params);
@@ -239,6 +209,9 @@ exports.submitWaybillToJKJ = async (waybill) => {
   console.log('✅ [JKJ] Waybill submitted successfully:', waybill.waybill_no);
   return result;
 };
+
+
+
 
 
 
