@@ -1011,7 +1011,7 @@
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
-        Preview DHL Payload
+        Preview Shipment
       </button>
       <a class="btn-top btn-green" href="invoice.html" style="height:44px;font-size:14px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1024,24 +1024,21 @@
 
   </div>
 
-  <!-- PAYLOAD PREVIEW MODAL -->
+  <!-- SHIPMENT PREVIEW MODAL -->
   <div id="payloadModal"
     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
     <div
-      style="background:var(--navy);border-radius:10px;width:90vw;max-width:780px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4)">
+      style="background:#fff;border-radius:10px;width:90vw;max-width:620px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4)">
       <div
-        style="padding:16px 20px;border-bottom:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#fff">DHL API
-          Payload Preview</span>
-        <div style="display:flex;gap:8px">
-          <button class="btn-top btn-blue" style="height:30px;font-size:11px" onclick="copyPayload()">Copy JSON</button>
-          <button onclick="closeModal()"
-            style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;padding:6px 14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600">✕
-            Close</button>
-        </div>
+        style="padding:16px 20px;border-bottom:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between;background:var(--navy)">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#fff">Shipment
+          Preview</span>
+        <button onclick="closeModal()"
+          style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;padding:6px 14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600">✕
+          Close</button>
       </div>
-      <pre id="payloadPre"
-        style="flex:1;overflow:auto;padding:20px;font-size:12px;color:#e0e0e0;font-family:monospace;line-height:1.6;background:var(--navy)"></pre>
+      <div id="payloadPre"
+        style="flex:1;overflow:auto;padding:22px 24px;font-size:13.5px;color:#1a2535;font-family:'Barlow',sans-serif;line-height:1.6;background:#fff"></div>
     </div>
   </div>
 
@@ -1340,16 +1337,62 @@
     const process_env_DHL_ACCOUNT = 'SEE_BACKEND';
 
     // ── PREVIEW ───────────────────────────────────────────────────
+    function buildShipmentPreview(payload) {
+      const totalCost = document.getElementById('sumTotal')?.textContent || '0.00';
+      const pkg = payload.content?.packages?.[0] || {};
+      const declaredVal = payload.content?.declaredValue || 'N/A';
+      const currency = payload.content?.declaredValueCurrency || '';
+
+      const section = (title, rows) => `
+        <div style="margin-bottom:18px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:12.5px;font-weight:800;
+            letter-spacing:1px;text-transform:uppercase;color:var(--blue);border-bottom:1px solid var(--border);
+            padding-bottom:6px;margin-bottom:10px">${title}</div>
+          ${rows.map(([label, value]) => `
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:3px 0">
+              <span style="color:#607d8b">${label}</span>
+              <span style="font-weight:600;color:var(--navy);text-align:right">${value}</span>
+            </div>`).join('')}
+        </div>`;
+
+      return `
+        ${section('Shipment Details', [
+          ['Direction', payload.shipmentDirection || (typeof currentMode !== 'undefined' ? (currentMode === 'export' ? 'Export' : 'Import') : 'Export')],
+          ['Service', payload.productCode === 'P' ? 'DHL Express Worldwide' : (payload.productCode || 'N/A')],
+          ['Shipping Date', payload.plannedShippingDateAndTime ? new Date(payload.plannedShippingDateAndTime).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A']
+        ])}
+        ${section('Shipper', [
+          ['Company', payload.customerDetails?.shipperDetails?.contactInformation?.companyName || 'N/A'],
+          ['Contact', payload.customerDetails?.shipperDetails?.contactInformation?.fullName || 'N/A'],
+          ['Country', payload.customerDetails?.shipperDetails?.postalAddress?.countryCode || 'ZA']
+        ])}
+        ${section('Receiver', [
+          ['Company', payload.customerDetails?.receiverDetails?.contactInformation?.companyName || 'N/A'],
+          ['Contact', payload.customerDetails?.receiverDetails?.contactInformation?.fullName || 'N/A'],
+          ['Country', payload.customerDetails?.receiverDetails?.postalAddress?.countryCode || 'N/A']
+        ])}
+        ${section('Package', [
+          ['Description', payload.content?.description || 'N/A'],
+          ['Weight', `${pkg.weight || 0} kg`],
+          ['Declared Value', `${declaredVal} ${currency}`]
+        ])}
+        ${section('Estimated Pricing', [
+          ['Estimated Cost', `R ${totalCost}`]
+        ])}
+        <div style="background:#fff8e1;border:1px solid #f0d97a;border-radius:8px;padding:12px 14px;
+          margin-top:4px;font-size:12.5px;color:#7a5c00;line-height:1.5">
+          <strong>Please note:</strong> the price shown above is an estimate only, not the final
+          billable amount. All shipments are re-weighed and re-measured by DHL before dispatch, and
+          the final price may change based on the verified weight and dimensions.
+        </div>`;
+    }
+
     function previewPayload() {
       const payload = buildPayload();
-      document.getElementById('payloadPre').textContent = JSON.stringify(payload, null, 2);
+      document.getElementById('payloadPre').innerHTML = buildShipmentPreview(payload);
       document.getElementById('payloadModal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('payloadModal').style.display = 'none'; }
-    function copyPayload() {
-      const text = document.getElementById('payloadPre').textContent;
-      navigator.clipboard.writeText(text).then(() => alert('Payload copied to clipboard!'));
-    }
 
     // ── SAVE & SUBMIT ─────────────────────────────────────────────
     async function saveShipment() {
@@ -1500,7 +1543,5 @@
 </body>
 
 </html>
-
-
 
 
