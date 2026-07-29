@@ -17,14 +17,36 @@ async function loadPlaces() {
 
         console.log("CSV HEADERS:", Object.keys(row));
         console.log("FIRST ROW:", row);
-        const placeId = row["PLACE ID"] ? String(row["PLACE ID"]).trim() : "";
-        const town = row["TOWN"] ? String(row["TOWN"]).toUpperCase().trim() : "";
-        const pcode = row["PCODE"] ? String(row["PCODE"]).trim() : "";
+        // Remove BOM from every column name
+        const normalizedRow = {};
+
+        for (const key of Object.keys(row)) {
+          normalizedRow[key.replace(/^\uFEFF/, "").trim()] = row[key];
+        }
+
+        // Read values from normalized headers
+        const placeId = normalizedRow["PLACE ID"]
+          ? String(normalizedRow["PLACE ID"]).replace(/\s+/g, "").trim()
+          : "";
+
+        const town = normalizedRow["TOWN"]
+          ? String(normalizedRow["TOWN"]).toUpperCase().trim()
+          : "";
+
+        const pcode = normalizedRow["PCODE"]
+          ? String(normalizedRow["PCODE"]).trim()
+          : "";
+
+        console.log({
+          placeId,
+          town,
+          pcode
+        });
 
         if (!town || !pcode) return;
 
         places.push({
-          placeId: placeId,
+          placeId: Number(placeId),
           place: town,
           postcode: pcode
         });
