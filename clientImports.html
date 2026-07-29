@@ -675,7 +675,7 @@
           </select>
         </div>
         <div>
-          <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Receiver Address</label>
+          <label id="dhlQfAddrLabel" style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Receiver Address</label>
           <select id="dhlQfAddr" onchange="dhlApplyAddress(this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
             <option value="">— Select receiver address —</option>
           </select>
@@ -1099,6 +1099,10 @@
       } else {
         document.getElementById('shipperCountry').value = 'ZA';
       }
+
+      // Re-apply Otis address defaults for the new mode (shipper = Otis
+      // SA on export; receiver options = Otis SA on import)
+      if (typeof dhlRefreshForMode === 'function') dhlRefreshForMode();
     }
 
     // ── CUSTOMS TOGGLE ────────────────────────────────────────────
@@ -1500,6 +1504,13 @@
             ${row('Total Estimated Cost', 'R ' + (rateResult.price + (parseFloat(document.getElementById('otherCharges')?.value) || 0)).toFixed(2), '#2e7d32')}
           `) : ''}
 
+          <div style="background:#fff8e1;border:1px solid #f0d97a;border-radius:8px;
+            padding:12px 16px;font-size:12.5px;color:#7a5c00;margin-top:4px;line-height:1.5">
+            <strong>Please note:</strong> the price shown above is an estimate only, not the final
+            billable amount. All shipments are re-weighed and re-measured by DHL before dispatch, and
+            the final price may change based on the verified weight and dimensions.
+          </div>
+
           <div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;
             padding:12px 16px;font-size:12px;color:#e65100;margin-top:4px">
             ⚠️ Please review all details carefully. Once submitted, your shipment will be sent to DHL for processing.
@@ -1609,18 +1620,64 @@
     let _dhlCache=[], _dhlSess=JSON.parse(localStorage.getItem('mokSession')||'null');
     let _dhlIsClient=(_dhlSess&&_dhlSess.role)==='client';
     let _dhlCo=((_dhlSess&&(_dhlSess.company||_dhlSess.name))||'').toLowerCase();
+    let _dhlIsOtis=_dhlIsClient&&_dhlCo.indexOf('otis')!==-1;
+
+    // Fallback list used only if the /dhl-addresses API is unreachable.
+    // Includes Otis South Africa alongside the overseas subsidiaries so
+    // both export (foreign receiver) and import (SA receiver) modes have
+    // something to offer.
+    const OTIS_FALLBACK_ADDRESSES = [
+      {company_name:'Otis South Africa (Pty) Ltd',contact_name:'',email:'',phone:'0824185821',country_code:'ZA',country:'South Africa',city:'Longmeadow Business Estate',postal_code:'2090',address_1:'17 Angus Crescent',address_2:'',province:'Gauteng'},
+      {company_name:'Otis Elevator Company Namibia (PTY) Ltd',contact_name:'',email:'Sophia.Coetzee@otis.com',phone:'+270026461228864',country_code:'NA',country:'Namibia',city:'Windhoek',postal_code:'2151',address_1:'21 Mozart Street',address_2:'',province:''},
+      {company_name:'Otis Elevator Botswana Pty (Ltd)',contact_name:'',email:'',phone:'',country_code:'BW',country:'Botswana',city:'Gaborone',postal_code:'',address_1:'Plot 20736, Unit 4 Pharatlhe Crescent Block 3 Industrial',address_2:'',province:''},
+      {company_name:'Otis Elevator Company Kenya',contact_name:'',email:'',phone:'',country_code:'KE',country:'Kenya',city:'Nairobi',postal_code:'',address_1:'53 Butere Road',address_2:'',province:''}
+    ];
 
     function dhlSet(id,val){const el=document.getElementById(id);if(!el)return;el.value=val||'';el.dispatchEvent(new Event('change'));if(window.M&&el.tagName==='SELECT')M.FormSelect.init(el);}
 
+    // Applies the given address to the shipper fields — used to default
+    // an Otis client's shipper section to their own South Africa address
+    // instead of Mok Transports, when shipping export.
+    function dhlApplyShipper(a){
+      if(!a)return;
+      dhlSet('shipperCompany',a.company_name||'');dhlSet('shipperFullName',a.contact_name||'');
+      dhlSet('shipperEmail',a.email||'');dhlSet('shipperPhone',a.phone||'');dhlSet('shipperMobile',a.phone||'');
+      dhlSet('shipperCountry',a.country_code||'');dhlSet('shipperCity',a.city||'');
+      dhlSet('shipperPostal',a.postal_code||'');dhlSet('shipperAddr1',a.address_1||'');dhlSet('shipperAddr2',a.address_2||'');
+    }
+
+    // Re-filters the quick-fill dropdown to match the current mode:
+    // export → foreign Otis subsidiaries (these become the RECEIVER),
+    // import → Otis South Africa addresses (these become the RECEIVER,
+    // since goods arriving in SA are received by Otis SA).
+    // Also keeps the SHIPPER section correct for Otis clients: on
+    // export, shipper defaults to Otis South Africa rather than Mok
+    // Transports, since Otis SA is the actual exporter of record.
+    function dhlRefreshForMode(){
+      if(!_dhlIsOtis||!_dhlCache.length)return;
+      const otisSA = _dhlCache.find(a=>(a.country_code||'').toUpperCase()==='ZA');
+      const foreign = _dhlCache.filter(a=>(a.country_code||'').toUpperCase()!=='ZA');
+      const label = document.getElementById('dhlQfAddrLabel');
+
+      if(currentMode==='export'){
+        if(otisSA) dhlApplyShipper(otisSA);
+        dhlPopulate(foreign.length?foreign:_dhlCache);
+        if(label) label.textContent = 'Receiver Address (Otis destination abroad)';
+      } else {
+        dhlPopulate(otisSA?[otisSA]:_dhlCache);
+        if(label) label.textContent = 'Receiver Address (Otis South Africa)';
+      }
+    }
+
     async function dhlQfInit(){
-      if(_dhlIsClient&&_dhlCo.indexOf('otis')!==-1){
-        try{const r=await fetch(DHL_API+'/dhl-addresses?company=Otis');const d=await r.json();if(d&&d.length){_dhlCache=d;dhlPopulate(d);document.getElementById('dhlQfPanel').style.display='block';return;}}catch(e){}
-        _dhlCache=[
-          {company_name:'Otis Elevator Company Namibia (PTY) Ltd',contact_name:'',email:'Sophia.Coetzee@otis.com',phone:'+270026461228864',country_code:'NA',country:'Namibia',city:'Windhoek',postal_code:'2151',address_1:'21 Mozart Street',address_2:'',province:''},
-          {company_name:'Otis Elevator Botswana Pty (Ltd)',contact_name:'',email:'',phone:'',country_code:'BW',country:'Botswana',city:'Gaborone',postal_code:'',address_1:'Plot 20736, Unit 4 Pharatlhe Crescent Block 3 Industrial',address_2:'',province:''},
-          {company_name:'Otis Elevator Company Kenya',contact_name:'',email:'',phone:'',country_code:'KE',country:'Kenya',city:'Nairobi',postal_code:'',address_1:'53 Butere Road',address_2:'',province:''}
-        ];
-        dhlPopulate(_dhlCache);document.getElementById('dhlQfPanel').style.display='block';return;
+      if(_dhlIsOtis){
+        try{
+          const r=await fetch(DHL_API+'/dhl-addresses?company=Otis');const d=await r.json();
+          if(d&&d.length){_dhlCache=d;}else{_dhlCache=OTIS_FALLBACK_ADDRESSES;}
+        }catch(e){_dhlCache=OTIS_FALLBACK_ADDRESSES;}
+        document.getElementById('dhlQfPanel').style.display='block';
+        dhlRefreshForMode();
+        return;
       }
       try{
         const r=await fetch(DHL_API+'/dhl-addresses/companies');const cos=await r.json();
@@ -1644,10 +1701,15 @@
       const sel=document.getElementById('dhlQfAddr');
       sel.innerHTML='<option value="">— Select receiver address —</option>';
       arr.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(a.company_name||a.contact_name||'—')+(a.city?' — '+a.city:'')+(a.country?', '+a.country:'');sel.appendChild(o);});
+      // Keep a reference to exactly the list currently shown, so
+      // dhlApplyAddress(idx) always applies the right entry.
+      dhlPopulate._current = arr;
     }
 
     function dhlApplyAddress(idx){
-      if(idx==='')return;const a=_dhlCache[parseInt(idx)];if(!a)return;
+      if(idx==='')return;
+      const list = dhlPopulate._current || _dhlCache;
+      const a=list[parseInt(idx)];if(!a)return;
       dhlSet('receiverCompany',a.company_name||'');dhlSet('receiverFullName',a.contact_name||'');
       dhlSet('receiverEmail',a.email||'');dhlSet('receiverPhone',a.phone||'');dhlSet('receiverMobile',a.phone||'');
       dhlSet('receiverCountry',a.country_code||'');dhlSet('receiverCity',a.city||'');
