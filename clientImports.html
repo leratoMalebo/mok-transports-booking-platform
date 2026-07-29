@@ -619,6 +619,15 @@
         </svg>
         <div class="card-header-title" id="shipperLabel">Shipper / Sender</div>
       </div>
+      <div id="dhlQfPanelShipper" style="display:none;padding:14px 16px;background:#f0f4ff;border-bottom:1px solid #c5d5f5">
+        <div style="font-size:11px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">⚡ Quick Fill — Address Book</div>
+        <div>
+          <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Shipper Address</label>
+          <select id="dhlQfAddrShipper" onchange="dhlApplyAddressShipper(this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
+            <option value="">— Select shipper address —</option>
+          </select>
+        </div>
+      </div>
       <div class="card-body">
         <div class="form-grid cols-2">
           <div class="fg"><label>Company / Full Name *</label><input id="shipperCompany"
@@ -1099,10 +1108,6 @@
       } else {
         document.getElementById('shipperCountry').value = 'ZA';
       }
-
-      // Re-apply Otis address defaults for the new mode (shipper = Otis
-      // SA on export; receiver options = Otis SA on import)
-      if (typeof dhlRefreshForMode === 'function') dhlRefreshForMode();
     }
 
     // ── CUSTOMS TOGGLE ────────────────────────────────────────────
@@ -1623,9 +1628,6 @@
     let _dhlIsOtis=_dhlIsClient&&_dhlCo.indexOf('otis')!==-1;
 
     // Fallback list used only if the /dhl-addresses API is unreachable.
-    // Includes Otis South Africa alongside the overseas subsidiaries so
-    // both export (foreign receiver) and import (SA receiver) modes have
-    // something to offer.
     const OTIS_FALLBACK_ADDRESSES = [
       {company_name:'Otis South Africa (Pty) Ltd',contact_name:'',email:'',phone:'0824185821',country_code:'ZA',country:'South Africa',city:'Longmeadow Business Estate',postal_code:'2090',address_1:'17 Angus Crescent',address_2:'',province:'Gauteng'},
       {company_name:'Otis Elevator Company Namibia (PTY) Ltd',contact_name:'',email:'Sophia.Coetzee@otis.com',phone:'+270026461228864',country_code:'NA',country:'Namibia',city:'Windhoek',postal_code:'2151',address_1:'21 Mozart Street',address_2:'',province:''},
@@ -1635,48 +1637,21 @@
 
     function dhlSet(id,val){const el=document.getElementById(id);if(!el)return;el.value=val||'';el.dispatchEvent(new Event('change'));if(window.M&&el.tagName==='SELECT')M.FormSelect.init(el);}
 
-    // Applies the given address to the shipper fields — used to default
-    // an Otis client's shipper section to their own South Africa address
-    // instead of Mok Transports, when shipping export.
-    function dhlApplyShipper(a){
-      if(!a)return;
-      dhlSet('shipperCompany',a.company_name||'');dhlSet('shipperFullName',a.contact_name||'');
-      dhlSet('shipperEmail',a.email||'');dhlSet('shipperPhone',a.phone||'');dhlSet('shipperMobile',a.phone||'');
-      dhlSet('shipperCountry',a.country_code||'');dhlSet('shipperCity',a.city||'');
-      dhlSet('shipperPostal',a.postal_code||'');dhlSet('shipperAddr1',a.address_1||'');dhlSet('shipperAddr2',a.address_2||'');
-    }
-
-    // Re-filters the quick-fill dropdown to match the current mode:
-    // export → foreign Otis subsidiaries (these become the RECEIVER),
-    // import → Otis South Africa addresses (these become the RECEIVER,
-    // since goods arriving in SA are received by Otis SA).
-    // Also keeps the SHIPPER section correct for Otis clients: on
-    // export, shipper defaults to Otis South Africa rather than Mok
-    // Transports, since Otis SA is the actual exporter of record.
-    function dhlRefreshForMode(){
-      if(!_dhlIsOtis||!_dhlCache.length)return;
-      const otisSA = _dhlCache.find(a=>(a.country_code||'').toUpperCase()==='ZA');
-      const foreign = _dhlCache.filter(a=>(a.country_code||'').toUpperCase()!=='ZA');
-      const label = document.getElementById('dhlQfAddrLabel');
-
-      if(currentMode==='export'){
-        if(otisSA) dhlApplyShipper(otisSA);
-        dhlPopulate(foreign.length?foreign:_dhlCache);
-        if(label) label.textContent = 'Receiver Address (Otis destination abroad)';
-      } else {
-        dhlPopulate(otisSA?[otisSA]:_dhlCache);
-        if(label) label.textContent = 'Receiver Address (Otis South Africa)';
-      }
-    }
-
+    // Both cards show the FULL address list (every Otis branch, SA and
+    // overseas) — nothing is auto-applied or guessed. The client picks
+    // the correct branch for shipper and receiver explicitly, on both
+    // export and import, which avoids stale/mismatched data lingering
+    // when switching modes.
     async function dhlQfInit(){
       if(_dhlIsOtis){
         try{
           const r=await fetch(DHL_API+'/dhl-addresses?company=Otis');const d=await r.json();
-          if(d&&d.length){_dhlCache=d;}else{_dhlCache=OTIS_FALLBACK_ADDRESSES;}
+          _dhlCache = (d&&d.length) ? d : OTIS_FALLBACK_ADDRESSES;
         }catch(e){_dhlCache=OTIS_FALLBACK_ADDRESSES;}
         document.getElementById('dhlQfPanel').style.display='block';
-        dhlRefreshForMode();
+        document.getElementById('dhlQfPanelShipper').style.display='block';
+        dhlPopulateSelect('dhlQfAddr', _dhlCache, 'Select receiver address');
+        dhlPopulateSelect('dhlQfAddrShipper', _dhlCache, 'Select shipper address');
         return;
       }
       try{
@@ -1693,23 +1668,19 @@
 
     async function dhlLoadAddresses(){
       const co=document.getElementById('dhlQfCompany').value;
-      if(!co){_dhlCache=[];dhlPopulate([]);return;}
-      try{const r=await fetch(DHL_API+'/dhl-addresses?company='+encodeURIComponent(co));_dhlCache=await r.json();dhlPopulate(_dhlCache);}catch(e){}
+      if(!co){_dhlCache=[];dhlPopulateSelect('dhlQfAddr',[],'Select receiver address');return;}
+      try{const r=await fetch(DHL_API+'/dhl-addresses?company='+encodeURIComponent(co));_dhlCache=await r.json();dhlPopulateSelect('dhlQfAddr',_dhlCache,'Select receiver address');}catch(e){}
     }
 
-    function dhlPopulate(arr){
-      const sel=document.getElementById('dhlQfAddr');
-      sel.innerHTML='<option value="">— Select receiver address —</option>';
+    function dhlPopulateSelect(selectId, arr, placeholder){
+      const sel=document.getElementById(selectId);
+      if(!sel)return;
+      sel.innerHTML=`<option value="">— ${placeholder} —</option>`;
       arr.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(a.company_name||a.contact_name||'—')+(a.city?' — '+a.city:'')+(a.country?', '+a.country:'');sel.appendChild(o);});
-      // Keep a reference to exactly the list currently shown, so
-      // dhlApplyAddress(idx) always applies the right entry.
-      dhlPopulate._current = arr;
     }
 
     function dhlApplyAddress(idx){
-      if(idx==='')return;
-      const list = dhlPopulate._current || _dhlCache;
-      const a=list[parseInt(idx)];if(!a)return;
+      if(idx==='')return;const a=_dhlCache[parseInt(idx)];if(!a)return;
       dhlSet('receiverCompany',a.company_name||'');dhlSet('receiverFullName',a.contact_name||'');
       dhlSet('receiverEmail',a.email||'');dhlSet('receiverPhone',a.phone||'');dhlSet('receiverMobile',a.phone||'');
       dhlSet('receiverCountry',a.country_code||'');dhlSet('receiverCity',a.city||'');
@@ -1717,11 +1688,20 @@
       dhlSet('receiverAddr1',a.address_1||'');dhlSet('receiverAddr2',a.address_2||'');
     }
 
+    function dhlApplyAddressShipper(idx){
+      if(idx==='')return;const a=_dhlCache[parseInt(idx)];if(!a)return;
+      dhlSet('shipperCompany',a.company_name||'');dhlSet('shipperFullName',a.contact_name||'');
+      dhlSet('shipperEmail',a.email||'');dhlSet('shipperPhone',a.phone||'');dhlSet('shipperMobile',a.phone||'');
+      dhlSet('shipperCountry',a.country_code||'');dhlSet('shipperCity',a.city||'');
+      dhlSet('shipperPostal',a.postal_code||'');dhlSet('shipperAddr1',a.address_1||'');dhlSet('shipperAddr2',a.address_2||'');
+    }
+
     document.addEventListener('DOMContentLoaded',()=>dhlQfInit());
 </script>
 </body>
 
 </html>
+
 
 
 
