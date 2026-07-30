@@ -771,11 +771,28 @@
           <div class="fg">
             <label>Pickup Requested</label>
             <div class="radio-group">
-              <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupYes" value="true" checked><label
+              <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupYes" value="true" checked
+                  onchange="togglePickupTimeFields()"><label
                   for="pickupYes">Yes — Request Pickup</label></div>
-              <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupNo" value="false"><label
+              <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupNo" value="false"
+                  onchange="togglePickupTimeFields()"><label
                   for="pickupNo">No — Drop Off</label></div>
             </div>
+          </div>
+        </div>
+
+        <div id="pickupTimeFields" class="form-grid cols-3" style="margin-top:14px">
+          <div class="fg">
+            <label>Pickup Ready Time *</label>
+            <input type="time" id="pickupReadyTime" value="09:00">
+          </div>
+          <div class="fg">
+            <label>Pickup Close Time *</label>
+            <input type="time" id="pickupCloseTime" value="17:00">
+          </div>
+          <div class="fg">
+            <label>Pickup Location</label>
+            <input type="text" id="pickupLocation" placeholder="e.g. Reception, Front Desk" value="Reception">
           </div>
         </div>
 
@@ -1116,6 +1133,11 @@
       document.getElementById('customsFields').style.display = dec ? 'block' : 'none';
     }
 
+    function togglePickupTimeFields() {
+      const pickup = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
+      document.getElementById('pickupTimeFields').style.display = pickup ? 'grid' : 'none';
+    }
+
     // ── LINE ITEMS ────────────────────────────────────────────────
     function addLineItem(prefill = {}) {
       lineItemId++;
@@ -1261,6 +1283,9 @@
     function buildPayload() {
       const shipDate = document.getElementById('shipDate').value;
       const pickup = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
+      const pickupReadyTime = document.getElementById('pickupReadyTime').value || '09:00';
+      const pickupCloseTime = document.getElementById('pickupCloseTime').value || '17:00';
+      const pickupLocation = document.getElementById('pickupLocation').value || 'Reception';
       const productCode = document.getElementById('productCode').value;
       const isDec = document.querySelector('input[name="customsDec"]:checked').value === 'true';
       const actual = parseFloat(document.getElementById('actualWeight').value) || 1;
@@ -1271,8 +1296,14 @@
       const notifyMsg = document.getElementById('notifyMsg').value;
 
       const payload = {
-        plannedShippingDateAndTime: `${shipDate}T08:00:00 GMT+02:00`,
-        pickup: { isRequested: pickup },
+        // The ready time (not a fixed 08:00) drives DHL's pickup window
+        // calculation — without it DHL has nothing to schedule against.
+        plannedShippingDateAndTime: `${shipDate}T${pickupReadyTime}:00 GMT+02:00`,
+        pickup: pickup ? {
+          isRequested: true,
+          closeTime: pickupCloseTime,
+          location: pickupLocation
+        } : { isRequested: false },
         productCode,
         localProductCode: productCode,
         getRateEstimates: false,
@@ -1467,6 +1498,8 @@
             ${row('DHL Product Code', product)}
             ${row('Planned Ship Date', shipDate)}
             ${row('Pickup Requested', pickup ? '✅ Yes — DHL will collect' : '❌ No — Drop off at DHL')}
+            ${pickup ? row('Pickup Window', `${document.getElementById('pickupReadyTime')?.value || '—'} – ${document.getElementById('pickupCloseTime')?.value || '—'}`) : ''}
+            ${pickup ? row('Pickup Location', document.getElementById('pickupLocation')?.value || '—') : ''}
             ${row('Content Type', contentType === 'documents' ? '📄 Documents' : '📦 Packages')}
           `)}
 
@@ -1531,9 +1564,11 @@
     // ── SUBMIT SHIPMENT — passes client_id so staff can see who submitted ──
     async function saveShipment() {
       // Basic validation
+      const pickupRequested = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
       const required = ['shipperCompany', 'shipperEmail', 'shipperPhone', 'shipperCity', 'shipperAddr1',
         'receiverCompany', 'receiverEmail', 'receiverPhone', 'receiverCity', 'receiverAddr1',
         'actualWeight', 'shipDescription'];
+      if (pickupRequested) required.push('pickupReadyTime', 'pickupCloseTime');
       let valid = true;
       required.forEach(id => {
         const el = document.getElementById(id);
@@ -1701,7 +1736,5 @@
 </body>
 
 </html>
-
-
 
 
