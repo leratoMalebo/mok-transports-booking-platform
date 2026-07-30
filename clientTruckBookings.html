@@ -250,15 +250,12 @@
 
   async function loadBookings() {
     try {
-      // Fetch all truck bookings and filter by client email/name client-side
-      const res  = await fetch(`${API}/truck-bookings`);
-      const all  = await res.json();
-
-      // Match by client email or name
-      const mine = all.filter(b =>
-        (b.client_email && b.client_email.toLowerCase() === clientEmail.toLowerCase()) ||
-        (b.client_name  && b.client_name.toLowerCase()  === clientName.toLowerCase())
-      );
+      // Server-side filtered — only this client's own truck bookings
+      // are ever sent to the browser (quotes not yet accepted are
+      // excluded automatically since this page is for confirmed shipments).
+      const clientId = session?.user?.id || session?.id;
+      const res  = await fetch(`${API}/client/${clientId}/truck-bookings`);
+      const mine  = await res.json();
 
       // Update chips
       document.getElementById('chipTotal').textContent     = mine.length;
@@ -395,8 +392,6 @@
 </script>
 </body>
 </html>
-
-
 
 
 
