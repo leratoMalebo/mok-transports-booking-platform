@@ -72,44 +72,38 @@ exports.getClientStatement = async (req, res) => {
     let invoiceQuery = `
       SELECT
         i.id,
-        i.invoice_no,
-        i.invoice_date,
-        i.subtotal,
-        i.vat_total,
-        i.total,
-        i.status,
-        i.created_at,
-        i.client_name,
-        COALESCE(
-          (SELECT STRING_AGG(w2.waybill_no, ', ' ORDER BY w2.waybill_no)
-           FROM invoice_waybills iw
-           JOIN waybills w2 ON w2.id = iw.waybill_id
-           WHERE iw.invoice_id = i.id),
-          w.waybill_no
-        ) AS waybill_nos
-      FROM invoices i
-      LEFT JOIN waybills w ON w.id = i.waybill_id
-      WHERE i.client_id = ANY($1::int[])
+        COALESCE(i.invoice_no, CONCAT('WB-', w.waybill_no)) AS invoice_no,
+        COALESCE(i.invoice_date, w.created_at) AS invoice_date,
+        COALESCE(i.subtotal, b.price, 0) AS subtotal,
+        COALESCE(i.vat_total, ROUND(COALESCE(b.price, 0) * 0.15, 2), 0) AS vat_total,
+        COALESCE(i.total, ROUND(COALESCE(b.price, 0) * 1.15, 2), 0) AS total,
+        COALESCE(i.status, 'unpaid') AS status,
+        COALESCE(i.created_at, w.created_at) AS created_at,
+        COALESCE(i.client_name, b.consignor_name) AS client_name,
+        w.waybill_no AS waybill_nos
+      FROM waybills w
+      JOIN bookings b ON b.id = w.booking_id
+      LEFT JOIN invoices i ON i.waybill_id = w.id
+      WHERE b.user_id = ANY($1::int[])
     `;
     const params = [clientIds];
     let paramIdx = 2;
 
     if (from) {
-      invoiceQuery += ` AND i.invoice_date >= $${paramIdx}`;
+      invoiceQuery += ` AND COALESCE(i.invoice_date, w.created_at::date) >= $${paramIdx}`;
       params.push(from); paramIdx++;
     }
     if (to) {
-      invoiceQuery += ` AND i.invoice_date <= $${paramIdx}`;
+      invoiceQuery += ` AND COALESCE(i.invoice_date, w.created_at::date) <= $${paramIdx}`;
       params.push(to); paramIdx++;
     }
-    invoiceQuery += ' ORDER BY i.invoice_date DESC, i.created_at DESC';
-
+    invoiceQuery += ' ORDER BY invoice_date DESC, created_at DESC';
     const invoicesResult = await db.query(invoiceQuery, params);
     const invoices = invoicesResult.rows;
 
     // 4. Calculate summary
-    let totalInvoiced    = 0;
-    let totalPaid        = 0;
+    let totalInvoiced = 0;
+    let totalPaid = 0;
     let outstandingBalance = 0;
 
     invoices.forEach(inv => {
@@ -125,10 +119,10 @@ exports.getClientStatement = async (req, res) => {
     res.json({
       success: true,
       client: {
-        id:      clientId,
-        name:    client.name,
+        id: clientId,
+        name: client.name,
         company: companyName,
-        email:   client.email
+        email: client.email
       },
       summary: { totalInvoiced, totalPaid, outstandingBalance },
       invoices
@@ -139,4 +133,6 @@ exports.getClientStatement = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+
 
