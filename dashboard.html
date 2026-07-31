@@ -13,19 +13,35 @@
 
   <style>
     :root {
-      --navy: #0d2137;
-      --blue: #1565c0;
-      --sky: #1e88e5;
-      --orange: #f57c00;
-      --green: #2e7d32;
-      --red: #c62828;
-      --teal: #00796b;
-      --purple: #6a1b9a;
-      --bg: #f0f4f8;
+      /* Brand palette — sampled directly from the MTRS logo. Blue, silver-gray, black/graphite and white only. */
+      --navy: #041b33;
+      /* deep brand blue-black — sidebar, header text */
+      --blue: #0049ad;
+      /* primary brand blue (logo chevron) — International / DHL */
+      --sky: #2f6fc9;
+      /* lighter blue — hovers, links */
+      --blue-tint: #e8f0fb;
+      --orange: #55636f;
+      /* slate gray (logo silver, deepened for contrast) — Local / JKJ */
+      --orange-tint: #eef1f4;
+      --green: #16191d;
+      /* graphite / near-black (logo mark) — Truck Freight */
+      --green-tint: #e9eaec;
+      --purple: #8a95a1;
+      /* mid silver-gray — Finance / secondary */
+      --purple-tint: #eef0f3;
+      --teal: #2f6fc9;
+      /* alias of sky — Tracking */
+      --teal-tint: #e8f0fb;
+      --red: #16191d;
+      /* graphite substitute for destructive/negative states */
+      --silver: #a9a9a9;
+      /* logo silver chevron, raw */
+      --bg: #f2f4f6;
       --card: #ffffff;
-      --border: #dce3ec;
-      --text: #1a2535;
-      --muted: #607d8b;
+      --border: #dde2e7;
+      --text: #16191d;
+      --muted: #5c6773;
     }
 
     * {
@@ -241,16 +257,17 @@
     }
 
     .welcome-card {
-      background: linear-gradient(135deg, var(--navy), #12395f);
+      background: linear-gradient(135deg, var(--navy), #0a2f57);
       color: #fff;
       border-radius: 14px;
-      padding: 24px 26px;
-      margin-bottom: 22px;
+      padding: 22px 26px;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 18px;
-      box-shadow: 0 12px 30px rgba(13, 33, 55, .18);
+      flex-wrap: wrap;
+      box-shadow: 0 12px 30px rgba(4, 27, 51, .22);
     }
 
     .welcome-title {
@@ -261,21 +278,153 @@
     }
 
     .welcome-text {
-      color: #b0bec5;
+      color: #a9c0d9;
       font-size: 13px;
       margin-top: 4px;
     }
 
-    .welcome-badge {
-      background: rgba(255, 255, 255, .1);
+    .welcome-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .clock-badge {
+      background: rgba(255, 255, 255, .07);
       border: 1px solid rgba(255, 255, 255, .16);
-      padding: 10px 14px;
+      padding: 10px 18px;
       border-radius: 10px;
-      font-size: 12px;
-      color: #d7e3ea;
+      text-align: right;
       white-space: nowrap;
     }
 
+    .clock-time {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: .5px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .clock-time .secs {
+      font-size: 13px;
+      color: var(--sky);
+      font-weight: 700;
+      width: 22px;
+      text-align: left;
+    }
+
+    .clock-date {
+      font-size: 11px;
+      color: #a9c0d9;
+      margin-top: 2px;
+      letter-spacing: .3px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--sky);
+      display: inline-block;
+      margin-right: 6px;
+      box-shadow: 0 0 0 0 rgba(47, 111, 201, .6);
+      animation: pulse-dot 1.8s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0% {
+        box-shadow: 0 0 0 0 rgba(47, 111, 201, .55);
+      }
+
+      70% {
+        box-shadow: 0 0 0 7px rgba(47, 111, 201, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(47, 111, 201, 0);
+      }
+    }
+
+    .staff-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, .07);
+      border: 1px solid rgba(255, 255, 255, .16);
+      padding: 8px 14px;
+      border-radius: 10px;
+    }
+
+    .staff-strip-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #a9c0d9;
+      white-space: nowrap;
+    }
+
+    .staff-avatars {
+      display: flex;
+    }
+
+    .staff-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--sky);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #0a2f57;
+      margin-left: -8px;
+      position: relative;
+    }
+
+    .staff-avatar:first-child {
+      margin-left: 0;
+    }
+
+    .staff-avatar.you {
+      background: #fff;
+      color: var(--navy);
+    }
+
+    .staff-avatar::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4fd17d;
+      border: 2px solid #0a2f57;
+    }
+
+    /* ── EQUAL SERVICE NAV TABS ─────────────────────── */
+    .service-nav {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .service-nav a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* ── STATS ─────────────────────── */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -326,6 +475,192 @@
       font-size: 12px;
       color: var(--muted);
       margin-top: 2px;
+    }
+
+    /* ── EQUAL SERVICE HUB (Local / DHL / Trucking) ─────────────────────── */
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .hub-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(4, 27, 51, .06);
+      display: flex;
+      flex-direction: column;
+      scroll-margin-top: 90px;
+    }
+
+    .hub-head {
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+    }
+
+    .hub-head.blue {
+      background: linear-gradient(120deg, var(--blue), var(--navy));
+    }
+
+    .hub-head.slate {
+      background: linear-gradient(120deg, var(--orange), #2f363d);
+    }
+
+    .hub-head.graphite {
+      background: linear-gradient(120deg, #3a3f45, var(--green));
+    }
+
+    .hub-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .hub-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: .3px;
+    }
+
+    .hub-sub {
+      font-size: 10.5px;
+      color: rgba(255, 255, 255, .78);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 1px;
+    }
+
+    .hub-body {
+      padding: 16px 18px 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .hub-kpis {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .hub-kpi {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .hub-kpi-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1;
+    }
+
+    .hub-kpi-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-top: 4px;
+      font-weight: 700;
+    }
+
+    .hub-chart-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+    }
+
+    .mini-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      height: 56px;
+      padding: 0 2px;
+    }
+
+    .mini-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      gap: 4px;
+    }
+
+    .mini-bar {
+      width: 100%;
+      max-width: 22px;
+      border-radius: 4px 4px 2px 2px;
+      background: var(--blue);
+      min-height: 3px;
+      transition: height .4s ease;
+    }
+
+    .mini-bar-tick {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: .3px;
+    }
+
+    .hub-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .hub-btn {
+      flex: 1;
+      text-align: center;
+      padding: 9px 6px;
+      border-radius: 7px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      color: var(--navy);
+      background: var(--card);
+    }
+
+    .hub-btn.solid {
+      background: var(--navy);
+      color: #fff;
+      border-color: var(--navy);
+    }
+
+    @media (max-width: 1100px) {
+      .hub-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .service-nav {
+        grid-template-columns: 1fr;
+      }
     }
 
     .content-grid {
@@ -433,18 +768,18 @@
     }
 
     .status-pending {
-      background: #fff4d6;
-      color: #9a6a00;
+      background: var(--orange-tint);
+      color: var(--orange);
     }
 
     .status-transit {
-      background: #e3f7ec;
-      color: #177245;
+      background: var(--blue-tint);
+      color: var(--blue);
     }
 
     .status-created {
       background: #e3f2fd;
-      color: #1565c0;
+      color: var(--blue);
     }
 
     .actions {
@@ -523,19 +858,19 @@
     }
 
     .action-icon.orange {
-      background: #fff3e0;
+      background: var(--orange-tint);
     }
 
     .action-icon.green {
-      background: #e8f5e9;
+      background: var(--green-tint);
     }
 
     .action-icon.purple {
-      background: #f3e5f5;
+      background: var(--purple-tint);
     }
 
     .action-icon.teal {
-      background: #e0f2f1;
+      background: var(--teal-tint);
     }
 
     .action-label {
@@ -705,15 +1040,15 @@
     }
 
     .local {
-      border-top: 5px solid #f57c00;
+      border-top: 5px solid var(--orange);
     }
 
     .international {
-      border-top: 5px solid #1565c0;
+      border-top: 5px solid var(--blue);
     }
 
     .freight {
-      border-top: 5px solid #2e7d32;
+      border-top: 5px solid var(--green);
     }
 
     .service-title {
@@ -1022,7 +1357,7 @@
     <div class="topbar">
       <div>
         <div class="topbar-title">Office Dashboard</div>
-        <div class="topbar-subtitle">Operations, waybills, JKJ dispatch and invoicing control centre.</div>
+        <div class="topbar-subtitle">Local courier, DHL international &amp; truck freight — one control centre.</div>
       </div>
 
       <div class="topbar-actions">
@@ -1041,14 +1376,41 @@
           <div class="welcome-text">Use this portal to create shipments, manage waybills, dispatch to JKJ and generate
             invoices.</div>
         </div>
-        <div class="welcome-badge" id="todayLabel">—</div>
+
+        <div class="welcome-right">
+          <div class="staff-strip">
+            <span class="staff-strip-label">On&nbsp;Duty</span>
+            <div class="staff-avatars" id="staffAvatars"></div>
+          </div>
+
+          <div class="clock-badge">
+            <div class="clock-time"><span class="live-dot"></span><span id="clockTime">--:--</span><span class="secs"
+                id="clockSecs">--</span></div>
+            <div class="clock-date" id="todayLabel">—</div>
+          </div>
+        </div>
       </section>
+
+      <nav class="service-nav">
+        <a href="#hub-local">
+          <div class="hub-btn solid" style="background:var(--orange);border-color:var(--orange);">📦 Local Courier
+          </div>
+        </a>
+        <a href="#hub-dhl">
+          <div class="hub-btn solid" style="background:var(--blue);border-color:var(--blue);">🌍 International (DHL)
+          </div>
+        </a>
+        <a href="#hub-trucking">
+          <div class="hub-btn solid" style="background:var(--green);border-color:var(--green);">🚛 Truck Freight
+          </div>
+        </a>
+      </nav>
 
       <section class="stats-grid">
         <div class="stat-card">
           <div class="stat-label">Total Shipments</div>
           <div class="stat-value" id="statShipments">0</div>
-          <div class="stat-sub">All saved waybills</div>
+          <div class="stat-sub">Across all three services</div>
         </div>
 
         <div class="stat-card orange">
@@ -1058,9 +1420,9 @@
         </div>
 
         <div class="stat-card green">
-          <div class="stat-label">Sent to JKJ</div>
-          <div class="stat-value" id="statSent">0</div>
-          <div class="stat-sub">Successfully submitted</div>
+          <div class="stat-label">Active Today</div>
+          <div class="stat-value" id="statToday">0</div>
+          <div class="stat-sub">Local + DHL + Trucking, today</div>
         </div>
 
         <div class="stat-card purple">
@@ -1068,6 +1430,127 @@
           <div class="stat-value" id="statInvoices">0</div>
           <div class="stat-sub">Saved invoice records</div>
         </div>
+      </section>
+
+      <section class="hub-grid">
+
+        <!-- LOCAL COURIER (JKJ) -->
+        <div class="hub-card" id="hub-local">
+          <div class="hub-head slate">
+            <div class="hub-icon">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <path d="M21 8l-9-5-9 5 9 5 9-5z" />
+                <path d="M3 8v8l9 5 9-5V8" />
+              </svg>
+            </div>
+            <div>
+              <div class="hub-name">Local Courier</div>
+              <div class="hub-sub">JKJ Express</div>
+            </div>
+          </div>
+          <div class="hub-body">
+            <div class="hub-kpis">
+              <div class="hub-kpi">
+                <div class="hub-kpi-val" id="localToday">0</div>
+                <div class="hub-kpi-label">Today</div>
+              </div>
+              <div class="hub-kpi">
+                <div class="hub-kpi-val" id="localWeek">0</div>
+                <div class="hub-kpi-label">This week</div>
+              </div>
+            </div>
+            <div>
+              <div class="hub-chart-label"><span>Last 7 days</span><span id="localTrend">—</span></div>
+              <div class="mini-chart" id="localChart"></div>
+            </div>
+            <div class="hub-actions">
+              <a class="hub-btn solid" href="booking.html" style="background:var(--orange);border-color:var(--orange);">+
+                New</a>
+              <a class="hub-btn" href="waybills.html">Waybills</a>
+              <a class="hub-btn" href="track.html">Track</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- INTERNATIONAL (DHL) -->
+        <div class="hub-card" id="hub-dhl">
+          <div class="hub-head blue">
+            <div class="hub-icon">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <path
+                  d="M21 16V8a2 2 0 0 0-1-1.73L13 2.27a2 2 0 0 0-2 0L4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <path d="M3.3 7L12 12l8.7-5" />
+                <path d="M12 22V12" />
+              </svg>
+            </div>
+            <div>
+              <div class="hub-name">International</div>
+              <div class="hub-sub">DHL Express</div>
+            </div>
+          </div>
+          <div class="hub-body">
+            <div class="hub-kpis">
+              <div class="hub-kpi">
+                <div class="hub-kpi-val" id="dhlToday">0</div>
+                <div class="hub-kpi-label">Today</div>
+              </div>
+              <div class="hub-kpi">
+                <div class="hub-kpi-val" id="dhlWeek">0</div>
+                <div class="hub-kpi-label">This week</div>
+              </div>
+            </div>
+            <div>
+              <div class="hub-chart-label"><span>Last 7 days</span><span id="dhlTrend">—</span></div>
+              <div class="mini-chart" id="dhlChart"></div>
+            </div>
+            <div class="hub-actions">
+              <a class="hub-btn solid" href="imports.html">+ New</a>
+              <a class="hub-btn" href="dhlShipments.html">Shipments</a>
+              <a class="hub-btn" href="track.html">Track</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRUCK FREIGHT -->
+        <div class="hub-card" id="hub-trucking">
+          <div class="hub-head graphite">
+            <div class="hub-icon">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <rect x="1" y="3" width="15" height="13" rx="1" />
+                <path d="M16 8h4l3 5v3h-7V8z" />
+                <circle cx="5.5" cy="18.5" r="2.5" />
+                <circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+            </div>
+            <div>
+              <div class="hub-name">Truck Freight</div>
+              <div class="hub-sub">Mok Fleet Ops</div>
+            </div>
+          </div>
+          <div class="hub-body">
+            <div class="hub-kpis">
+              <div class="hub-kpi">
+                <div class="hub-kpi-val" id="truckToday">0</div>
+                <div class="hub-kpi-label">Today</div>
+              </div>
+              <div class="hub-kpi">
+                <div class="hub-kpi-val" id="truckWeek">0</div>
+                <div class="hub-kpi-label">This week</div>
+              </div>
+            </div>
+            <div>
+              <div class="hub-chart-label"><span>Last 7 days</span><span id="truckTrend">—</span></div>
+              <div class="mini-chart" id="truckChart"></div>
+            </div>
+            <div class="hub-actions">
+              <a class="hub-btn solid" href="trucking.html"
+                style="background:var(--green);border-color:var(--green);">+ New</a>
+              <a class="hub-btn" href="truck-bookings.html">Bookings</a>
+              <a class="hub-btn" href="truck-invoices.html">Invoices</a>
+            </div>
+          </div>
+        </div>
+
       </section>
 
       <section class="content-grid">
@@ -1107,7 +1590,7 @@
 
           <div class="action-tile" onclick="openShipmentServices()" style="cursor:pointer;">
             <div class="action-icon blue">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2.2">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2">
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </div>
@@ -1119,8 +1602,8 @@
           </div>
 
           <a class="action-tile" href="trucking.html">
-            <div class="action-icon" style="background:#fff3e0">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2">
+            <div class="action-icon" style="background:var(--orange-tint)">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2">
                 <rect x="1" y="3" width="15" height="13" rx="1" />
                 <path d="M16 8h4l3 5v3h-7V8z" />
                 <circle cx="5.5" cy="18.5" r="2.5" />
@@ -1135,8 +1618,8 @@
           </a>
 
           <a class="action-tile" href="truck-bookings.html">
-            <div class="action-icon" style="background:#e8f5e9">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2">
+            <div class="action-icon" style="background:var(--green-tint)">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
                 <rect x="1" y="3" width="15" height="13" rx="1" />
                 <path d="M16 8h4l3 5v3h-7V8z" />
                 <circle cx="5.5" cy="18.5" r="2.5" />
@@ -1153,7 +1636,7 @@
 
           <a class="action-tile" href="truck-invoices.html">
             <div class="action-icon blue">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
                 <rect x="1" y="3" width="15" height="13" rx="1" />
                 <path d="M16 8h4l3 5v3h-7V8z" />
                 <circle cx="5.5" cy="18.5" r="2.5" />
@@ -1170,7 +1653,7 @@
 
           <a class="action-tile" href="waybills.html">
             <div class="action-icon orange">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
               </svg>
@@ -1184,8 +1667,8 @@
 
 
           <a class="action-tile" href="dhlShipments.html">
-            <div class="action-icon" style="background:#fff3e0">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2">
+            <div class="action-icon" style="background:var(--orange-tint)">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2">
                 <path
                   d="M21 16V8a2 2 0 0 0-1-1.73L13 2.27a2 2 0 0 0-2 0L4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                 <path d="M3.3 7L12 12l8.7-5" />
@@ -1203,7 +1686,7 @@
 
           <a class="action-tile" href="invoices.html">
             <div class="action-icon green">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
                 <rect x="2" y="5" width="20" height="14" rx="2" />
                 <line x1="2" y1="10" x2="22" y2="10" />
               </svg>
@@ -1217,7 +1700,7 @@
 
           <div class="action-tile" onclick="openInvoiceModal()" style="cursor:pointer">
             <div class="action-icon purple">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6a1b9a" stroke-width="2">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                 <path d="M9 13h6M9 17h6M9 9h2" />
               </svg>
@@ -1230,8 +1713,8 @@
           </div>
 
           <a class="action-tile" href="statements.html">
-            <div class="action-icon" style="background:#e8f5e9">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2">
+            <div class="action-icon" style="background:var(--green-tint)">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                 <line x1="9" y1="13" x2="15" y2="13" />
                 <line x1="9" y1="17" x2="15" y2="17" />
@@ -1246,7 +1729,7 @@
 
           <a class="action-tile" href="track.html">
             <div class="action-icon teal">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2">
                 <circle cx="12" cy="12" r="10" />
                 <circle cx="12" cy="12" r="3" />
               </svg>
@@ -1284,30 +1767,95 @@
     document.getElementById("welcomeName").textContent =
       staffName.split(" ")[0] || "there";
 
-    document.getElementById("todayLabel").textContent =
-      new Date().toLocaleDateString("en-ZA", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "2-digit"
+    // ── LIVE CLOCK ──────────────────────────────────────────────
+    // Ticks every second, and refreshes the date label at midnight automatically.
+    function tickClock() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ss = String(now.getSeconds()).padStart(2, "0");
+      document.getElementById("clockTime").textContent = `${hh}:${mm}`;
+      document.getElementById("clockSecs").textContent = ss;
+      document.getElementById("todayLabel").textContent =
+        now.toLocaleDateString("en-ZA", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "2-digit"
+        });
+    }
+    tickClock();
+    setInterval(tickClock, 1000);
+
+    // ── STAFF ON DUTY ───────────────────────────────────────────
+    // Shows the logged-in user plus any colleagues who saved a record in the
+    // last 2 hours (derived from real waybill/DHL/trucking activity — not
+    // simulated). Wire ENDPOINTS.staffOnline to a real presence endpoint
+    // later for true live multi-user presence.
+    function initials(name) {
+      return (name || "?").trim().split(/\s+/).slice(0, 2).map(p => p[0]?.toUpperCase() || "").join("") || "?";
+    }
+
+    function renderStaffStrip(recentNames) {
+      const el = document.getElementById("staffAvatars");
+      const names = [staffName, ...recentNames.filter(n => n && n !== staffName)].slice(0, 5);
+      el.innerHTML = names.map((n, i) =>
+        `<div class="staff-avatar ${i === 0 ? 'you' : ''}" title="${n}${i === 0 ? ' (you)' : ''}">${initials(n)}</div>`
+      ).join("");
+    }
+
+    function recentActiveStaff(records, dateField, nameFields, withinMs) {
+      const cutoff = Date.now() - withinMs;
+      const names = new Set();
+      (records || []).forEach(r => {
+        const t = new Date(r[dateField] || 0).getTime();
+        if (t >= cutoff) {
+          for (const f of nameFields) {
+            if (r[f]) { names.add(r[f]); break; }
+          }
+        }
       });
+      return [...names];
+    }
 
     let waybills = [];
     let invoices = [];
+    let dhlShipments = [];
+    let truckBookings = [];
+
+    // Central place to point each service's data source — update the
+    // trucking path to match your real trucking bookings endpoint.
+    const ENDPOINTS = {
+      waybills: `${API_BASE}/waybills`,
+      invoices: `${API_BASE}/invoices`,
+      dhl: `${API_BASE}/dhl/shipments`,
+      trucking: `${API_BASE}/truck-bookings`
+    };
 
     async function loadDashboard() {
       await Promise.allSettled([
         loadWaybills(),
-        loadInvoices()
+        loadInvoices(),
+        loadDhlForAnalytics(),
+        loadTrucking()
       ]);
 
       updateStats();
       renderRecentShipments();
+      renderServiceHubs();
+
+      const activeStaff = recentActiveStaff(
+        [...waybills, ...dhlShipments, ...truckBookings],
+        "created_at",
+        ["staff_name", "created_by", "agent_name", "user_name", "processed_by"],
+        2 * 60 * 60 * 1000 // last 2 hours
+      );
+      renderStaffStrip(activeStaff);
     }
 
     async function loadWaybills() {
       try {
-        const res = await fetch(`${API_BASE}/waybills`);
+        const res = await fetch(ENDPOINTS.waybills);
         if (!res.ok) throw new Error("Failed to load waybills");
         waybills = await res.json();
       } catch (err) {
@@ -1318,7 +1866,7 @@
 
     async function loadInvoices() {
       try {
-        const res = await fetch(`${API_BASE}/invoices`);
+        const res = await fetch(ENDPOINTS.invoices);
         if (!res.ok) throw new Error("Failed to load invoices");
         invoices = await res.json();
       } catch (err) {
@@ -1327,16 +1875,142 @@
       }
     }
 
+    // Separate lightweight loader for the dashboard's own analytics use
+    // (the DHL table further down the page has its own loadDHLShipments()).
+    async function loadDhlForAnalytics() {
+      try {
+        const res = await fetch(ENDPOINTS.dhl);
+        if (!res.ok) throw new Error("Failed to load DHL shipments");
+        dhlShipments = await res.json();
+      } catch (err) {
+        console.error("DHL analytics load error:", err);
+        dhlShipments = [];
+      }
+    }
+
+    async function loadTrucking() {
+      try {
+        const res = await fetch(ENDPOINTS.trucking);
+        if (!res.ok) throw new Error("Failed to load trucking bookings");
+        truckBookings = await res.json();
+      } catch (err) {
+        console.error("Trucking load error:", err);
+        truckBookings = [];
+      }
+    }
+
     function updateStats() {
       const total = Array.isArray(waybills) ? waybills.length : 0;
       const sent = waybills.filter(w => w.sent_to_jkj === true || w.sent_to_jkj === "true").length;
       const pending = total - sent;
 
-      document.getElementById("statShipments").textContent = total;
+      const totalAll = total + (dhlShipments?.length || 0) + (truckBookings?.length || 0);
+      const isToday = (d) => {
+        if (!d) return false;
+        const x = new Date(d), n = new Date();
+        return x.getFullYear() === n.getFullYear() && x.getMonth() === n.getMonth() && x.getDate() === n.getDate();
+      };
+      const activeToday =
+        waybills.filter(w => isToday(w.created_at)).length +
+        dhlShipments.filter(s => isToday(s.created_at)).length +
+        truckBookings.filter(t => isToday(t.created_at)).length;
+
+      document.getElementById("statShipments").textContent = totalAll;
       document.getElementById("statPending").textContent = pending < 0 ? 0 : pending;
-      document.getElementById("statSent").textContent = sent;
+      document.getElementById("statToday").textContent = activeToday;
       document.getElementById("statInvoices").textContent = Array.isArray(invoices) ? invoices.length : 0;
     }
+
+    // ── PER-SERVICE ANALYTICS (daily / weekly) ───────────────────
+    // Buckets a set of records into counts for the last `days` calendar days.
+    function bucketLastDays(records, dateField, days) {
+      const counts = new Array(days).fill(0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      (records || []).forEach(r => {
+        const raw = r[dateField];
+        if (!raw) return;
+        const d = new Date(raw);
+        d.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((today - d) / 86400000);
+        if (diffDays >= 0 && diffDays < days) {
+          counts[days - 1 - diffDays]++;
+        }
+      });
+      return counts;
+    }
+
+    function sameWeekCount(records, dateField) {
+      const now = new Date();
+      const day = (now.getDay() + 6) % 7; // Mon = 0
+      const monday = new Date(now);
+      monday.setHours(0, 0, 0, 0);
+      monday.setDate(now.getDate() - day);
+      return (records || []).filter(r => {
+        if (!r[dateField]) return false;
+        return new Date(r[dateField]) >= monday;
+      }).length;
+    }
+
+    function renderMiniChart(containerId, counts, colorVar) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const max = Math.max(1, ...counts);
+      const dayLetters = ["M", "T", "W", "T", "F", "S", "S"];
+      const today = new Date();
+      el.innerHTML = counts.map((c, i) => {
+        const dayIdx = new Date(today.getTime() - (counts.length - 1 - i) * 86400000).getDay();
+        const letter = ["S", "M", "T", "W", "T", "F", "S"][dayIdx];
+        const h = Math.max(3, Math.round((c / max) * 52));
+        return `<div class="mini-bar-col">
+                  <div class="mini-bar" style="height:${h}px;background:var(${colorVar});" title="${c} on this day"></div>
+                  <div class="mini-bar-tick">${letter}</div>
+                </div>`;
+      }).join("");
+    }
+
+    function trendLabel(counts) {
+      const half = Math.floor(counts.length / 2) || 1;
+      const firstHalf = counts.slice(0, half).reduce((a, b) => a + b, 0);
+      const secondHalf = counts.slice(half).reduce((a, b) => a + b, 0);
+      if (firstHalf === 0 && secondHalf === 0) return "No activity";
+      if (secondHalf > firstHalf) return "▲ Trending up";
+      if (secondHalf < firstHalf) return "▼ Trending down";
+      return "→ Steady";
+    }
+
+    function renderServiceHubs() {
+      const isToday = (d) => {
+        if (!d) return false;
+        const x = new Date(d), n = new Date();
+        return x.getFullYear() === n.getFullYear() && x.getMonth() === n.getMonth() && x.getDate() === n.getDate();
+      };
+
+      // Local courier (JKJ) — sourced from waybills
+      document.getElementById("localToday").textContent = waybills.filter(w => isToday(w.created_at)).length;
+      document.getElementById("localWeek").textContent = sameWeekCount(waybills, "created_at");
+      const localCounts = bucketLastDays(waybills, "created_at", 7);
+      renderMiniChart("localChart", localCounts, "--orange");
+      document.getElementById("localTrend").textContent = trendLabel(localCounts);
+
+      // International (DHL)
+      document.getElementById("dhlToday").textContent = dhlShipments.filter(s => isToday(s.created_at)).length;
+      document.getElementById("dhlWeek").textContent = sameWeekCount(dhlShipments, "created_at");
+      const dhlCounts = bucketLastDays(dhlShipments, "created_at", 7);
+      renderMiniChart("dhlChart", dhlCounts, "--blue");
+      document.getElementById("dhlTrend").textContent = trendLabel(dhlCounts);
+
+      // Truck freight
+      document.getElementById("truckToday").textContent = truckBookings.filter(t => isToday(t.created_at)).length;
+      document.getElementById("truckWeek").textContent = sameWeekCount(truckBookings, "created_at");
+      const truckCounts = bucketLastDays(truckBookings, "created_at", 7);
+      renderMiniChart("truckChart", truckCounts, "--green");
+      document.getElementById("truckTrend").textContent = trendLabel(truckCounts);
+    }
+
+    // Real-time refresh: re-pull data every 60s so counts/charts stay current
+    // without requiring a page reload.
+    setInterval(loadDashboard, 60000);
 
     function renderRecentShipments() {
       const tbody = document.getElementById("recentTable");
@@ -1691,7 +2365,6 @@
 </body>
 
 </html>
-
 
 
 
