@@ -8,10 +8,11 @@ function savePDF() {
   const element = document.getElementById("waybillContent");
   html2pdf()
     .set({
-      margin: [10, 10, 10, 10],
+      margin: [8, 8, 8, 8],
       filename: `Waybill_${document.getElementById("waybillNumber").innerText}.pdf`,
       html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all"] }
     })
     .from(element)
     .save();
@@ -116,10 +117,10 @@ function renderBarcode(wb) {
   JsBarcode(svg, wb, {
     format: "CODE128",
     width: 2,
-    height: 60,
+    height: 48,
     displayValue: true,
-    fontSize: 13,
-    margin: 6,
+    fontSize: 12,
+    margin: 4,
     background: "#ffffff",
     lineColor: "#000000"
   });
@@ -233,14 +234,6 @@ async function loadWaybillFromDatabase(waybillNo) {
     alert("Could not load saved waybill from database.");
   }
 }
-
-
-
-
-
-
-
-
 
 
 
