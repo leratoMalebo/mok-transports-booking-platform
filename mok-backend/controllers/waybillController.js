@@ -22,17 +22,22 @@ exports.createWaybill = async (req, res) => {
       volumetric_weight,
       length,
       width,
-      height
+      height,
+      items
     } = req.body;
 
     const waybill_no = await generateWaybillNumber();
 
     const result = await db.query(
       `INSERT INTO waybills 
-      (booking_id, waybill_no, weight, volumetric_weight, length, width, height)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      (booking_id, waybill_no, weight, volumetric_weight, length, width, height, items)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *`,
-      [booking_id, waybill_no, weight, volumetric_weight, length || null, width || null, height || null]
+      [
+        booking_id, waybill_no, weight, volumetric_weight,
+        length || null, width || null, height || null,
+        items && items.length ? JSON.stringify(items) : null
+      ]
     );
 
     const waybill = result.rows[0];
@@ -91,33 +96,25 @@ exports.sendToJKJ = async (req, res) => {
     const { waybillNo } = req.params;
 
     const check = await db.query(
-      `SELECT
-    w.*,
-
-    b.booking_date,
-    b.service,
-
-    b.consignor_contact_name,
-    b.consignor_suburb,
-    b.consignor_town,
-    b.consignor_address2,
-    b.consignor_province,
-    b.consignor_postcode,
-
-    b.consignee_contact_name,
-    b.consignee_suburb,
-    b.consignee_town,
-    b.consignee_address2,
-    b.consignee_province,
-    b.consignee_postcode,
-
-    b.price,
-    b.zone_label
-
-FROM waybills w
-LEFT JOIN bookings b
-ON b.id = w.booking_id
-WHERE w.waybill_no = $1`,
+      `SELECT 
+        w.*,
+        b.service,
+        b.consignor_name,
+        b.consignor_address,
+       b.consignor_contact,
+b.consignor_contact_name,
+b.consignor_suburb,
+b.consignor_town,
+b.consignee_name,
+b.consignee_address,
+b.consignee_contact,
+b.consignee_contact_name,
+b.consignee_suburb,
+b.consignee_town,
+        b.price
+      FROM waybills w
+      LEFT JOIN bookings b ON b.id = w.booking_id
+      WHERE w.waybill_no = $1`,
       [waybillNo]
     );
 
@@ -205,37 +202,28 @@ exports.getWaybillByNumber = async (req, res) => {
     const { waybillNo } = req.params;
 
     const result = await db.query(
-      `SELECT
-    w.*,
-    b.booking_date,
-    b.service,
-    b.consignor_name,
-    b.consignor_address,
-    b.consignor_contact,
-    b.consignor_contact_name,
-    b.consignor_suburb,
-    b.consignor_town,
-    b.consignor_address2,
-    b.consignor_province,
-    b.consignor_postcode,
-
-    b.consignee_name,
-    b.consignee_address,
-    b.consignee_contact,
-    b.consignee_contact_name,
-    b.consignee_suburb,
-    b.consignee_town,
-    b.consignee_address2,
-    b.consignee_province,
-    b.consignee_postcode,
-
-    b.price,
-    b.zone_label
-
-FROM waybills w
-LEFT JOIN bookings b
-ON b.id = w.booking_id
-WHERE w.waybill_no = $1`,
+      `SELECT 
+        w.*,
+        b.booking_date,
+        b.service,
+        b.consignor_name,
+        b.consignor_address,
+       b.consignor_contact,
+b.consignor_contact,
+b.consignor_contact_name,
+b.consignor_suburb,
+b.consignor_town,
+b.consignee_name,
+b.consignee_address,
+b.consignee_contact,
+b.consignee_contact_name,
+b.consignee_suburb,
+b.consignee_town,
+        b.price,
+        b.zone_label
+       FROM waybills w
+       LEFT JOIN bookings b ON b.id = w.booking_id
+       WHERE w.waybill_no = $1`,
       [waybillNo]
     );
 

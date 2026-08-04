@@ -570,7 +570,8 @@ async function confirmBooking() {
         volumetric_weight: parseFloat(data.volWeight || 0),
         length: parseFloat(data.length || 0),
         width: parseFloat(data.width || 0),
-        height: parseFloat(data.height || 0)
+        height: parseFloat(data.height || 0),
+        items: data.items || []
       })
     });
 
@@ -730,6 +731,8 @@ function fallbackDistance() {
   document.getElementById("distance").innerText = dist;
   calculateAll();
 }
+
+
 
 
 

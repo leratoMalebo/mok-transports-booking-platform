@@ -51,11 +51,8 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("pieces").innerText = data.pieces || "—";
   document.getElementById("weight").innerText = data.weight || "—";
   document.getElementById("volumetricWeight").innerText = data.volumetricWeight || "—";
-  document.getElementById("dimensions").innerText =
-    (data.length && data.width && data.height)
-      ? `${data.length} × ${data.width} × ${data.height}`
-      : "—";
   document.getElementById("description").innerText = data.description || "—";
+  renderPackages(data.items);
 
   const priceEl = document.getElementById("waybillPrice");
   if (priceEl) priceEl.innerText = data.price ? `R ${data.price}` : "—";
@@ -85,6 +82,33 @@ window.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("localWaybill");
   localStorage.setItem("lastWaybillData", JSON.stringify(data));
 });
+
+function renderPackages(items) {
+  const tbody = document.getElementById("packagesTableBody");
+  if (!tbody) return;
+
+  // items may arrive as a JSON string (from a raw DB column) or already
+  // as a parsed array (from the localStorage handoff) — handle both.
+  let list = items;
+  if (typeof list === "string") {
+    try { list = JSON.parse(list); } catch { list = []; }
+  }
+
+  if (!Array.isArray(list) || !list.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#90a4ae">—</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(i => {
+    const qty = i.qty || 1;
+    const desc = i.desc || "—";
+    const weight = i.weight || "0";
+    const dims = (i.length && i.width && i.height)
+      ? `${i.length} × ${i.width} × ${i.height}`
+      : "—";
+    return `<tr><td>${qty}</td><td>${desc}</td><td>${weight}</td><td>${dims}</td></tr>`;
+  }).join("");
+}
 
 function renderBarcode(wb) {
   const svg = document.getElementById("waybillBarcode");
@@ -190,11 +214,8 @@ async function loadWaybillFromDatabase(waybillNo) {
     document.getElementById("pieces").innerText = data.pieces || "1";
     document.getElementById("weight").innerText = data.weight || "—";
     document.getElementById("volumetricWeight").innerText = data.volumetric_weight || "—";
-    document.getElementById("dimensions").innerText =
-      (data.length && data.width && data.height)
-        ? `${data.length} × ${data.width} × ${data.height}`
-        : "—";
     document.getElementById("description").innerText = data.description || "General Cargo";
+    renderPackages(data.items);
 
     const zoneEl = document.getElementById("waybillZone");
     if (zoneEl) {
@@ -212,5 +233,14 @@ async function loadWaybillFromDatabase(waybillNo) {
     alert("Could not load saved waybill from database.");
   }
 }
+
+
+
+
+
+
+
+
+
 
 

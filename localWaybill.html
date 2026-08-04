@@ -102,6 +102,31 @@
       gap: 12px;
     }
 
+    .package-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .package-table thead th {
+      background: #eceff1;
+      color: var(--mok-navy);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--mok-border);
+    }
+    .package-table tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--mok-border);
+    }
+    .package-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
     .cost-bar {
       background: var(--mok-navy);
       color: #fff;
@@ -260,9 +285,28 @@
             <p><strong>Pieces:</strong> <span id="pieces">—</span></p>
             <p><strong>Weight:</strong> <span id="weight">—</span> kg</p>
             <p><strong>Volumetric Weight:</strong> <span id="volumetricWeight">—</span> kg</p>
-            <p><strong>Dimensions (L×W×H):</strong> <span id="dimensions">—</span> cm</p>
           </div>
           <p style="margin-top:8px"><strong>Description:</strong> <span id="description">—</span></p>
+        </div>
+      </div>
+
+      <!-- PACKAGE DETAILS -->
+      <div class="waybill-section">
+        <div class="waybill-section-title">Package Details</div>
+        <div class="waybill-section-body" style="padding:0">
+          <table class="package-table">
+            <thead>
+              <tr>
+                <th style="width:50px">Qty</th>
+                <th>Description</th>
+                <th style="width:90px">Weight (kg)</th>
+                <th style="width:130px">Dimensions L×W×H (cm)</th>
+              </tr>
+            </thead>
+            <tbody id="packagesTableBody">
+              <tr><td colspan="4" style="text-align:center;color:#90a4ae">—</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -331,6 +375,7 @@
 </body>
 
 </html>
+
 
 
 
