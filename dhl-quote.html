@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mok Transports | DHL Export Quote</title>
+  <title>Mok Transports | DHL Quote Calculator</title>
   <link rel="icon" type="image/png" href="assets/images/favicon.png">
 
   <link
@@ -84,7 +84,10 @@
     .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 7px; }
     .form-input, .form-select { width: 100%; height: 44px; border: 1px solid var(--border); border-radius: 6px; padding: 0 14px; font-family: 'Barlow', sans-serif; font-size: 14px; outline: none; background: #fff; color: var(--text); }
     .form-input:focus, .form-select:focus { border-color: var(--blue); }
+    .form-input:disabled { background: #f2f4f6; color: var(--muted); }
     .form-hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
     .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .type-btn { height: 62px; border: 1px solid var(--border); border-radius: 9px; background: #fff; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; transition: .15s; }
@@ -92,7 +95,15 @@
     .type-btn.active { border-color: var(--blue); background: var(--blue-tint); color: var(--blue); }
     .type-btn.active .sub { color: var(--sky); }
 
+    .dir-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .dir-btn { height: 54px; border: 1px solid var(--border); border-radius: 9px; background: #fff; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 8px; transition: .15s; }
+    .dir-btn.active.export { border-color: var(--blue); background: var(--blue-tint); color: var(--blue); }
+    .dir-btn.active.import { border-color: var(--green); background: var(--green-tint); color: var(--green); }
+
     .calc-btn { width: 100%; height: 48px; margin-top: 4px; }
+
+    .vol-preview { display: flex; justify-content: space-between; align-items: center; background: #fafbfc; border: 1px dashed var(--border); border-radius: 8px; padding: 10px 14px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+    .vol-preview strong { color: var(--navy); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; }
 
     .result-empty { padding: 60px 30px; text-align: center; color: var(--muted); }
     .result-empty svg { color: #c6ced5; margin-bottom: 14px; }
@@ -100,10 +111,11 @@
     .result-empty-sub { font-size: 13px; max-width: 320px; margin: 0 auto; line-height: 1.5; }
 
     .result-body { padding: 24px; }
-    .result-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
-    .result-dest { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--navy); }
-    .result-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
-    .zone-badge { display: inline-flex; align-items: center; background: var(--navy); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: .8px; padding: 6px 12px; border-radius: 20px; text-transform: uppercase; }
+    .route-line { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
+    .route-country { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; color: var(--navy); }
+    .route-arrow { color: var(--silver); }
+    .route-meta { font-size: 12px; color: var(--muted); width: 100%; margin-top: 2px; }
+    .zone-badge { display: inline-flex; align-items: center; background: var(--navy); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: .8px; padding: 6px 12px; border-radius: 20px; text-transform: uppercase; margin-left: auto; }
 
     .price-block { background: linear-gradient(135deg, var(--navy), #0a2f57); border-radius: 13px; padding: 26px 26px; color: #fff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; margin-bottom: 20px; }
     .price-label { font-size: 11px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #9fb3bf; margin-bottom: 6px; }
@@ -111,9 +123,10 @@
     .price-value span { font-size: 20px; font-weight: 700; color: #9fb3bf; margin-right: 4px; }
     .price-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
-    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-    @media (max-width: 640px) { .detail-grid { grid-template-columns: 1fr; } }
+    .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 720px) { .detail-grid { grid-template-columns: 1fr 1fr; } }
     .detail-item { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .detail-item.highlight { border-color: var(--blue); background: var(--blue-tint); }
     .detail-label { font-size: 10px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
     .detail-value { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--navy); }
 
@@ -159,7 +172,7 @@
     </div>
 
     <div class="sidebar-user">
-      <div class="sidebar-user-name" id="sidebarName">—</div>
+      <div class="sidebar-user-name" id="sidebarName">&mdash;</div>
       <div class="sidebar-user-role" id="sidebarRole">Office Staff</div>
     </div>
 
@@ -287,8 +300,8 @@
   <main class="main">
     <div class="topbar">
       <div>
-        <div class="topbar-title">DHL Export Quote Calculator</div>
-        <div class="topbar-subtitle">Instant customer quotes — DHL cost rates + 45% margin, by destination and weight.</div>
+        <div class="topbar-title">DHL Quote Calculator</div>
+        <div class="topbar-subtitle">Export &amp; import quotes &mdash; DHL cost rates + 45% margin, by zone, weight and volume.</div>
       </div>
       <div class="topbar-actions">
         <a class="btn-primary dark" href="dashboard.html">Dashboard</a>
@@ -305,8 +318,22 @@
           </div>
           <div class="panel-body">
 
+            <div class="dir-toggle">
+              <button type="button" class="dir-btn active export" id="dirExportBtn" onclick="setDirection('export')">
+                &#128230; Export (from SA)
+              </button>
+              <button type="button" class="dir-btn import" id="dirImportBtn" onclick="setDirection('import')">
+                &#127760; Import (into SA)
+              </button>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="originLabel">Origin Country</label>
+              <input class="form-input" type="text" id="originInput" value="South Africa" disabled>
+            </div>
+
             <div class="form-group" id="countrySearch">
-              <label class="form-label">Destination Country</label>
+              <label class="form-label" id="destLabel">Destination Country</label>
               <input class="form-input" type="text" id="countryInput" placeholder="Start typing a country..." autocomplete="off">
               <div class="country-list" id="countryList"></div>
               <div class="form-hint" id="zonePreview">&nbsp;</div>
@@ -327,9 +354,22 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">Weight (kg)</label>
-              <input class="form-input" type="number" id="weightInput" min="0.1" step="0.1" placeholder="e.g. 2.5">
-              <div class="form-hint">DHL charges by chargeable weight bands — this quote rounds up to the next official rate band automatically.</div>
+              <label class="form-label">Actual Weight (kg)</label>
+              <input class="form-input" type="number" id="weightInput" min="0.1" step="0.1" placeholder="e.g. 2.5" oninput="updateVolPreview()">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Dimensions (cm) &mdash; per piece</label>
+              <div class="form-row-3">
+                <input class="form-input" type="number" id="lengthInput" min="0" step="0.5" placeholder="Length" oninput="updateVolPreview()">
+                <input class="form-input" type="number" id="widthInput" min="0" step="0.5" placeholder="Width" oninput="updateVolPreview()">
+                <input class="form-input" type="number" id="heightInput" min="0" step="0.5" placeholder="Height" oninput="updateVolPreview()">
+              </div>
+              <div class="form-hint">Used to work out volumetric weight (DHL divisor: 5000). Leave blank if unknown &mdash; the quote will just use actual weight.</div>
+              <div class="vol-preview" id="volPreview" style="display:none;">
+                <span>Volumetric weight</span>
+                <strong id="volValue">&mdash;</strong>
+              </div>
             </div>
 
             <button class="btn-primary calc-btn" onclick="calculateQuote()">Calculate Quote</button>
@@ -348,7 +388,7 @@
                 <path d="M12 22V12" />
               </svg>
               <div class="result-empty-title">No Quote Yet</div>
-              <div class="result-empty-sub">Choose a destination country, shipment type and weight, then click Calculate Quote to generate a customer-ready price.</div>
+              <div class="result-empty-sub">Choose a direction, country, shipment type, weight and (optionally) dimensions, then click Calculate Quote.</div>
             </div>
           </div>
         </div>
@@ -360,12 +400,12 @@
           <div class="panel-title">How This Quote Is Built</div>
         </div>
         <ul class="disclaimer-list">
-          <li>Prices are calculated from Mok Transports&rsquo; current DHL Express export cost rate card, with a flat <strong>45% margin</strong> applied on top.</li>
-          <li>Zones follow the DHL Express Zone Guide 2026. Air Zones <strong>0, 1 and 1A</strong> (Ireland, UK) are quoted on rate-card <strong>Zone 1</strong>, and Air Zone <strong>10</strong> is quoted on rate-card <strong>Zone 9</strong>, since the current rate card only defines 9 pricing zones &mdash; confirm this mapping against your DHL account if it&rsquo;s ever customised.</li>
-          <li>Chargeable weight is rounded up to DHL&rsquo;s next official weight band, not the exact entered weight &mdash; this matches how DHL invoices Mok Transports.</li>
-          <li>Quotes exclude customs duties, taxes, and any DHL fuel/emergency surcharge, which are not part of the uploaded rate sheet &mdash; add these separately if applicable.</li>
-          <li>Prices shown are in South African Rand (R) &mdash; update the currency label in the page if your DHL account is billed in a different currency.</li>
-          <li>Covers parcels up to 70kg (the range in the current rate card). Heavier shipments need a manual DHL quote.</li>
+          <li>Prices are calculated from Mok Transports&rsquo; official DHL Express rate card (Activation ID ZA102368677, rate card as of 18-Feb-2026), with a flat <strong>45% margin</strong> applied on top &mdash; the same margin is applied to both export and import quotes.</li>
+          <li>Zones use DHL&rsquo;s customised zoning for this account (the combined Export &amp; Import zone list on your rate card) &mdash; not the generic published DHL zone guide.</li>
+          <li><strong>Volumetric weight</strong> is calculated as (Length &times; Width &times; Height in cm) &divide; 5000, DHL&rsquo;s standard express divisor. The quote always charges on whichever is higher: actual weight or volumetric weight, then rounds up to DHL&rsquo;s next official weight band.</li>
+          <li>Export quotes are priced from South Africa outward by destination zone; import quotes are priced into South Africa by origin zone, using DHL&rsquo;s Import Express Worldwide rates.</li>
+          <li>Quotes exclude customs duties, taxes, and any DHL demand/fuel surcharge (published separately by DHL and not fixed amounts on the rate card).</li>
+          <li>Prices shown are in South African Rand (R). Covers single-piece shipments up to 70kg chargeable weight &mdash; heavier or multi-piece shipments need a manual DHL quote.</li>
         </ul>
       </div>
 
@@ -390,19 +430,51 @@
       window.location.href = "login.html";
     }
 
-    // ---- Data: DHL Zone Guide 2026 (country -> air zone -> rate-card zone) ----
-    const ZONES = [{"country":"Afghanistan","air_zone":"10","zone":9},{"country":"Albania","air_zone":"8","zone":8},{"country":"Algeria","air_zone":"10","zone":9},{"country":"American Samoa","air_zone":"10","zone":9},{"country":"Andorra","air_zone":"5","zone":5},{"country":"Angola","air_zone":"10","zone":9},{"country":"Anguilla","air_zone":"9","zone":9},{"country":"Antigua","air_zone":"9","zone":9},{"country":"Argentina","air_zone":"9","zone":9},{"country":"Armenia","air_zone":"10","zone":9},{"country":"Aruba","air_zone":"9","zone":9},{"country":"Australia","air_zone":"7","zone":7},{"country":"Austria","air_zone":"3","zone":3},{"country":"Azerbaijan","air_zone":"10","zone":9},{"country":"Bahamas","air_zone":"9","zone":9},{"country":"Bahrain","air_zone":"8","zone":8},{"country":"Bangladesh","air_zone":"9","zone":9},{"country":"Barbados","air_zone":"9","zone":9},{"country":"Belarus","air_zone":"10","zone":9},{"country":"Belgium","air_zone":"2","zone":2},{"country":"Belize","air_zone":"9","zone":9},{"country":"Benin","air_zone":"10","zone":9},{"country":"Bermuda","air_zone":"9","zone":9},{"country":"Bhutan","air_zone":"9","zone":9},{"country":"Bolivia","air_zone":"9","zone":9},{"country":"Bonaire","air_zone":"9","zone":9},{"country":"Bosnia and Herzegovina","air_zone":"8","zone":8},{"country":"Botswana","air_zone":"10","zone":9},{"country":"Brazil","air_zone":"9","zone":9},{"country":"Brunei","air_zone":"9","zone":9},{"country":"Bulgaria","air_zone":"4","zone":4},{"country":"Burkina Faso","air_zone":"10","zone":9},{"country":"Burundi","air_zone":"10","zone":9},{"country":"Cambodia","air_zone":"9","zone":9},{"country":"Cameroon","air_zone":"10","zone":9},{"country":"Canada","air_zone":"6","zone":6},{"country":"Canary Islands","air_zone":"5","zone":5},{"country":"Cape Verde","air_zone":"10","zone":9},{"country":"Cayman Islands","air_zone":"9","zone":9},{"country":"Central African Republic","air_zone":"10","zone":9},{"country":"Chad","air_zone":"10","zone":9},{"country":"Chile","air_zone":"9","zone":9},{"country":"China, People's Republic of","air_zone":"7","zone":7},{"country":"Colombia","air_zone":"9","zone":9},{"country":"Comoros","air_zone":"10","zone":9},{"country":"Congo","air_zone":"10","zone":9},{"country":"Congo, The Democratic Republic of","air_zone":"10","zone":9},{"country":"Cook Islands","air_zone":"9","zone":9},{"country":"Costa Rica","air_zone":"9","zone":9},{"country":"Cote d'Ivoire","air_zone":"10","zone":9},{"country":"Croatia","air_zone":"4","zone":4},{"country":"Cuba","air_zone":"9","zone":9},{"country":"Curacao","air_zone":"9","zone":9},{"country":"Cyprus","air_zone":"4","zone":4},{"country":"Czech Republic","air_zone":"4","zone":4},{"country":"Denmark","air_zone":"3","zone":3},{"country":"Djibouti","air_zone":"10","zone":9},{"country":"Dominica","air_zone":"9","zone":9},{"country":"Dominican Republic","air_zone":"9","zone":9},{"country":"Ecuador","air_zone":"9","zone":9},{"country":"Egypt","air_zone":"8","zone":8},{"country":"El Salvador","air_zone":"9","zone":9},{"country":"Eritrea","air_zone":"10","zone":9},{"country":"Estonia","air_zone":"4","zone":4},{"country":"Eswatini","air_zone":"10","zone":9},{"country":"Ethiopia","air_zone":"10","zone":9},{"country":"Falkland Islands","air_zone":"10","zone":9},{"country":"Faroe Islands","air_zone":"8","zone":8},{"country":"Fiji","air_zone":"9","zone":9},{"country":"Finland","air_zone":"3","zone":3},{"country":"France","air_zone":"2","zone":2},{"country":"French Guiana","air_zone":"9","zone":9},{"country":"Gabon","air_zone":"10","zone":9},{"country":"Gambia","air_zone":"10","zone":9},{"country":"Georgia","air_zone":"10","zone":9},{"country":"Germany","air_zone":"2","zone":2},{"country":"Ghana","air_zone":"10","zone":9},{"country":"Gibraltar","air_zone":"5","zone":5},{"country":"Greece","air_zone":"3","zone":3},{"country":"Greenland","air_zone":"10","zone":9},{"country":"Grenada","air_zone":"9","zone":9},{"country":"Guadeloupe","air_zone":"9","zone":9},{"country":"Guam","air_zone":"10","zone":9},{"country":"Guatemala","air_zone":"9","zone":9},{"country":"Guernsey","air_zone":"5","zone":5},{"country":"Guinea Republic","air_zone":"10","zone":9},{"country":"Guinea-Bissau","air_zone":"10","zone":9},{"country":"Guinea-Equatorial","air_zone":"10","zone":9},{"country":"Guyana","air_zone":"9","zone":9},{"country":"Haiti","air_zone":"9","zone":9},{"country":"Honduras","air_zone":"9","zone":9},{"country":"Hong Kong SAR China","air_zone":"7","zone":7},{"country":"Hungary","air_zone":"4","zone":4},{"country":"Iceland","air_zone":"5","zone":5},{"country":"India","air_zone":"7","zone":7},{"country":"Indonesia","air_zone":"7","zone":7},{"country":"Iran (Islamic Republic of)","air_zone":"10","zone":9},{"country":"Iraq","air_zone":"10","zone":9},{"country":"Ireland","air_zone":"0","zone":1},{"country":"Israel","air_zone":"8","zone":8},{"country":"Italy","air_zone":"3","zone":3},{"country":"Jamaica","air_zone":"9","zone":9},{"country":"Japan","air_zone":"7","zone":7},{"country":"Jersey","air_zone":"5","zone":5},{"country":"Jordan","air_zone":"8","zone":8},{"country":"Kazakhstan","air_zone":"9","zone":9},{"country":"Kenya","air_zone":"10","zone":9},{"country":"Kiribati","air_zone":"9","zone":9},{"country":"Korea, Republic Of","air_zone":"7","zone":7},{"country":"Korea, The D.P.R. of","air_zone":"9","zone":9},{"country":"Kosovo","air_zone":"8","zone":8},{"country":"Kuwait","air_zone":"8","zone":8},{"country":"Kyrgyzstan","air_zone":"10","zone":9},{"country":"Lao People's Democratic Republic","air_zone":"9","zone":9},{"country":"Latvia","air_zone":"4","zone":4},{"country":"Lebanon","air_zone":"8","zone":8},{"country":"Lesotho","air_zone":"10","zone":9},{"country":"Liberia","air_zone":"10","zone":9},{"country":"Libya","air_zone":"10","zone":9},{"country":"Liechtenstein","air_zone":"5","zone":5},{"country":"Lithuania","air_zone":"4","zone":4},{"country":"Luxembourg","air_zone":"2","zone":2},{"country":"Macau SAR China","air_zone":"7","zone":7},{"country":"Madagascar","air_zone":"10","zone":9},{"country":"Malawi","air_zone":"10","zone":9},{"country":"Malaysia","air_zone":"7","zone":7},{"country":"Maldives","air_zone":"9","zone":9},{"country":"Mali","air_zone":"10","zone":9},{"country":"Malta","air_zone":"4","zone":4},{"country":"Mariana Islands, Commonwealth","air_zone":"10","zone":9},{"country":"Marshall Islands","air_zone":"10","zone":9},{"country":"Martinique","air_zone":"9","zone":9},{"country":"Mauritania","air_zone":"10","zone":9},{"country":"Mauritius","air_zone":"10","zone":9},{"country":"Mayotte","air_zone":"10","zone":9},{"country":"Mexico","air_zone":"9","zone":9},{"country":"Micronesia","air_zone":"10","zone":9},{"country":"Moldova, Republic Of","air_zone":"10","zone":9},{"country":"Monaco","air_zone":"2","zone":2},{"country":"Mongolia","air_zone":"9","zone":9},{"country":"Montenegro","air_zone":"8","zone":8},{"country":"Montserrat","air_zone":"9","zone":9},{"country":"Morocco","air_zone":"10","zone":9},{"country":"Mozambique","air_zone":"10","zone":9},{"country":"Myanmar","air_zone":"9","zone":9},{"country":"Namibia","air_zone":"10","zone":9},{"country":"Nauru, Republic Of","air_zone":"9","zone":9},{"country":"Nepal","air_zone":"9","zone":9},{"country":"Netherlands","air_zone":"2","zone":2},{"country":"Nevis","air_zone":"9","zone":9},{"country":"New Caledonia","air_zone":"9","zone":9},{"country":"New Zealand","air_zone":"7","zone":7},{"country":"Nicaragua","air_zone":"9","zone":9},{"country":"Niger","air_zone":"10","zone":9},{"country":"Nigeria","air_zone":"10","zone":9},{"country":"Niue","air_zone":"9","zone":9},{"country":"North Macedonia","air_zone":"8","zone":8},{"country":"Norway","air_zone":"5","zone":5},{"country":"Oman","air_zone":"8","zone":8},{"country":"Pakistan","air_zone":"9","zone":9},{"country":"Palau","air_zone":"10","zone":9},{"country":"Panama","air_zone":"9","zone":9},{"country":"Papua New Guinea","air_zone":"9","zone":9},{"country":"Paraguay","air_zone":"9","zone":9},{"country":"Peru","air_zone":"9","zone":9},{"country":"Philippines","air_zone":"7","zone":7},{"country":"Poland","air_zone":"4","zone":4},{"country":"Portugal","air_zone":"3","zone":3},{"country":"Puerto Rico","air_zone":"9","zone":9},{"country":"Qatar","air_zone":"8","zone":8},{"country":"Reunion, Island Of","air_zone":"10","zone":9},{"country":"Romania","air_zone":"4","zone":4},{"country":"Russian Federation","air_zone":"10","zone":9},{"country":"Rwanda","air_zone":"10","zone":9},{"country":"Saint Helena","air_zone":"10","zone":9},{"country":"Samoa","air_zone":"9","zone":9},{"country":"San Marino","air_zone":"5","zone":5},{"country":"Sao Tome and Principe","air_zone":"10","zone":9},{"country":"Saudi Arabia","air_zone":"8","zone":8},{"country":"Senegal","air_zone":"10","zone":9},{"country":"Serbia, Republic of","air_zone":"8","zone":8},{"country":"Seychelles","air_zone":"10","zone":9},{"country":"Sierra Leone","air_zone":"10","zone":9},{"country":"Singapore","air_zone":"7","zone":7},{"country":"Slovakia","air_zone":"4","zone":4},{"country":"Slovenia","air_zone":"4","zone":4},{"country":"Solomon Islands","air_zone":"9","zone":9},{"country":"Somalia, Federal Republic of","air_zone":"10","zone":9},{"country":"Somaliland, Republic of","air_zone":"10","zone":9},{"country":"South Africa","air_zone":"8","zone":8},{"country":"South Sudan","air_zone":"10","zone":9},{"country":"Spain","air_zone":"3","zone":3},{"country":"Sri Lanka","air_zone":"9","zone":9},{"country":"St. Barthelemy","air_zone":"9","zone":9},{"country":"St. Eustatius","air_zone":"9","zone":9},{"country":"St. Helena","air_zone":"10","zone":9},{"country":"St. Kitts","air_zone":"9","zone":9},{"country":"St. Lucia","air_zone":"9","zone":9},{"country":"St. Maarten","air_zone":"9","zone":9},{"country":"St. Vincent","air_zone":"9","zone":9},{"country":"Sudan","air_zone":"10","zone":9},{"country":"Suriname","air_zone":"9","zone":9},{"country":"Sweden","air_zone":"3","zone":3},{"country":"Switzerland","air_zone":"5","zone":5},{"country":"Syria","air_zone":"8","zone":8},{"country":"Tahiti","air_zone":"9","zone":9},{"country":"Taiwan","air_zone":"7","zone":7},{"country":"Tajikistan","air_zone":"10","zone":9},{"country":"Tanzania","air_zone":"10","zone":9},{"country":"Thailand","air_zone":"7","zone":7},{"country":"Timor-Leste","air_zone":"9","zone":9},{"country":"Togo","air_zone":"10","zone":9},{"country":"Tonga","air_zone":"9","zone":9},{"country":"Trinidad and Tobago","air_zone":"9","zone":9},{"country":"Tunisia","air_zone":"10","zone":9},{"country":"Turkey","air_zone":"8","zone":8},{"country":"Turkmenistan","air_zone":"10","zone":9},{"country":"Turks and Caicos Islands","air_zone":"9","zone":9},{"country":"Tuvalu","air_zone":"9","zone":9},{"country":"Uganda","air_zone":"10","zone":9},{"country":"Ukraine","air_zone":"8","zone":8},{"country":"United Arab Emirates","air_zone":"8","zone":8},{"country":"United Kingdom - Northern Ireland","air_zone":"1A","zone":1},{"country":"United Kingdom - Great Britain","air_zone":"1","zone":1},{"country":"United States Of America","air_zone":"6","zone":6},{"country":"Uruguay","air_zone":"9","zone":9},{"country":"Uzbekistan","air_zone":"10","zone":9},{"country":"Vanuatu","air_zone":"9","zone":9},{"country":"Vatican City State","air_zone":"3","zone":3},{"country":"Venezuela","air_zone":"9","zone":9},{"country":"Vietnam","air_zone":"7","zone":7},{"country":"Virgin Islands (British)","air_zone":"9","zone":9},{"country":"Virgin Islands (US)","air_zone":"9","zone":9},{"country":"Yemen","air_zone":"10","zone":9},{"country":"Zambia","air_zone":"10","zone":9},{"country":"Zimbabwe","air_zone":"10","zone":9}];
+    // ---- Data: DHL customised zone list for this account (covers both export & import) ----
+    const ZONES = [{"country":"Afghanistan","code":"AF","zone":9},{"country":"Ecuador","code":"EC","zone":9},{"country":"Liberia","code":"LR","zone":4},{"country":"Samoa","code":"WS","zone":9},{"country":"Albania","code":"AL","zone":9},{"country":"Egypt","code":"EG","zone":4},{"country":"Libya","code":"LY","zone":4},{"country":"San Marino","code":"SM","zone":5},{"country":"Algeria","code":"DZ","zone":4},{"country":"El Salvador","code":"SV","zone":9},{"country":"Liechtenstein","code":"LI","zone":5},{"country":"Sao Tome And Principe","code":"ST","zone":4},{"country":"American Samoa","code":"AS","zone":9},{"country":"Eritrea","code":"ER","zone":4},{"country":"Lithuania","code":"LT","zone":5},{"country":"Saudi Arabia","code":"SA","zone":7},{"country":"Andorra","code":"AD","zone":7},{"country":"Estonia","code":"EE","zone":5},{"country":"Luxembourg","code":"LU","zone":5},{"country":"Senegal","code":"SN","zone":4},{"country":"Angola","code":"AO","zone":4},{"country":"Eswatini","code":"SZ","zone":1},{"country":"Macau SAR China","code":"MO","zone":8},{"country":"Serbia, Rep. Of","code":"RS","zone":5},{"country":"Anguilla","code":"AI","zone":9},{"country":"Ethiopia","code":"ET","zone":4},{"country":"Madagascar","code":"MG","zone":4},{"country":"Seychelles","code":"SC","zone":4},{"country":"Antigua","code":"AG","zone":9},{"country":"Falkland Islands","code":"FK","zone":9},{"country":"Malawi","code":"MW","zone":3},{"country":"Sierra Leone","code":"SL","zone":4},{"country":"Argentina","code":"AR","zone":9},{"country":"Faroe Islands","code":"FO","zone":9},{"country":"Malaysia","code":"MY","zone":8},{"country":"Singapore","code":"SG","zone":8},{"country":"Armenia","code":"AM","zone":9},{"country":"Fiji","code":"FJ","zone":9},{"country":"Maldives","code":"MV","zone":9},{"country":"Slovakia","code":"SK","zone":5},{"country":"Aruba","code":"AW","zone":9},{"country":"Finland","code":"FI","zone":5},{"country":"Mali","code":"ML","zone":4},{"country":"Slovenia","code":"SI","zone":5},{"country":"Australia","code":"AU","zone":8},{"country":"France","code":"FR","zone":5},{"country":"Malta","code":"MT","zone":5},{"country":"Solomon Islands","code":"SB","zone":9},{"country":"Austria","code":"AT","zone":5},{"country":"French Guyana","code":"GF","zone":9},{"country":"Marshall Islands","code":"MH","zone":9},{"country":"Somalia Hargeisa","code":"XS","zone":4},{"country":"Azerbaijan","code":"AZ","zone":9},{"country":"Gabon","code":"GA","zone":4},{"country":"Martinique","code":"MQ","zone":9},{"country":"Somalia Mogadishu","code":"SO","zone":4},{"country":"Bahamas","code":"BS","zone":9},{"country":"Gambia","code":"GM","zone":4},{"country":"Mauritania","code":"MR","zone":4},{"country":"South Sudan","code":"SS","zone":4},{"country":"Bahrain","code":"BH","zone":8},{"country":"Georgia","code":"GE","zone":9},{"country":"Mauritius","code":"MU","zone":3},{"country":"Spain","code":"ES","zone":5},{"country":"Bangladesh","code":"BD","zone":8},{"country":"Germany","code":"DE","zone":5},{"country":"Mayotte","code":"YT","zone":4},{"country":"Sri Lanka","code":"LK","zone":8},{"country":"Barbados","code":"BB","zone":9},{"country":"Ghana","code":"GH","zone":4},{"country":"Mexico","code":"MX","zone":7},{"country":"St. Barthelemy","code":"XY","zone":9},{"country":"Belarus","code":"BY","zone":9},{"country":"Gibraltar","code":"GI","zone":7},{"country":"Micronesia","code":"FM","zone":9},{"country":"St. Eustatius","code":"XE","zone":9},{"country":"Belgium","code":"BE","zone":5},{"country":"Greece","code":"GR","zone":5},{"country":"Moldova, Rep. Of","code":"MD","zone":5},{"country":"St. Kitts","code":"KN","zone":9},{"country":"Belize","code":"BZ","zone":9},{"country":"Greenland","code":"GL","zone":9},{"country":"Monaco","code":"MC","zone":5},{"country":"St. Lucia","code":"LC","zone":9},{"country":"Benin","code":"BJ","zone":4},{"country":"Grenada","code":"GD","zone":9},{"country":"Mongolia","code":"MN","zone":9},{"country":"St. Maarten","code":"XM","zone":9},{"country":"Bermuda","code":"BM","zone":9},{"country":"Guadeloupe","code":"GP","zone":9},{"country":"Montenegro, Rep Of","code":"ME","zone":5},{"country":"St. Vincent","code":"VC","zone":9},{"country":"Bhutan","code":"BT","zone":8},{"country":"Guam","code":"GU","zone":9},{"country":"Montserrat","code":"MS","zone":9},{"country":"Sudan","code":"SD","zone":4},{"country":"Bolivia","code":"BO","zone":9},{"country":"Guatemala","code":"GT","zone":9},{"country":"Morocco","code":"MA","zone":4},{"country":"Suriname","code":"SR","zone":9},{"country":"Bonaire","code":"XB","zone":9},{"country":"Guernsey","code":"GG","zone":5},{"country":"Mozambique","code":"MZ","zone":3},{"country":"Sweden","code":"SE","zone":5},{"country":"Bosnia & Herzegovina(BA)","code":null,"zone":5},{"country":"Guinea Rep.","code":"GN","zone":4},{"country":"Myanmar","code":"MM","zone":8},{"country":"Switzerland","code":"CH","zone":5},{"country":"Botswana","code":"BW","zone":1},{"country":"Guinea-Bissau","code":"GW","zone":4},{"country":"Namibia","code":"NA","zone":2},{"country":"Syria","code":"SY","zone":9},{"country":"Brazil","code":"BR","zone":9},{"country":"Guinea-Equatorial","code":"GQ","zone":4},{"country":"Nauru, Rep. Of","code":"NR","zone":9},{"country":"Tahiti","code":"PF","zone":9},{"country":"Brunei","code":"BN","zone":9},{"country":"Guyana (British)","code":"GY","zone":9},{"country":"Nepal","code":"NP","zone":8},{"country":"Taiwan","code":"TW","zone":8},{"country":"Bulgaria","code":"BG","zone":5},{"country":"Haiti","code":"HT","zone":9},{"country":"Netherlands, The","code":"NL","zone":5},{"country":"Tajikistan","code":"TJ","zone":9},{"country":"Burkina Faso","code":"BF","zone":4},{"country":"Honduras","code":"HN","zone":9},{"country":"Nevis","code":"XN","zone":9},{"country":"Tanzania","code":"TZ","zone":4},{"country":"Burundi","code":"BI","zone":4},{"country":"Hong Kong SAR China","code":"HK","zone":8},{"country":"New Caledonia","code":"NC","zone":9},{"country":"Thailand","code":"TH","zone":8},{"country":"Cambodia","code":"KH","zone":8},{"country":"Hungary","code":"HU","zone":5},{"country":"New Zealand","code":"NZ","zone":8},{"country":"Timor-Leste","code":"TL","zone":9},{"country":"Cameroon","code":"CM","zone":4},{"country":"Iceland","code":"IS","zone":9},{"country":"Nicaragua","code":"NI","zone":9},{"country":"Togo","code":"TG","zone":4},{"country":"Canada","code":"CA","zone":7},{"country":"India","code":"IN","zone":8},{"country":"Niger","code":"NE","zone":4},{"country":"Tonga","code":"TO","zone":9},{"country":"Canary Islands, The","code":"IC","zone":9},{"country":"Indonesia","code":"ID","zone":8},{"country":"Nigeria","code":"NG","zone":4},{"country":"Trinidad And Tobago","code":"TT","zone":7},{"country":"Cape Verde","code":"CV","zone":4},{"country":"Iran","code":"IR","zone":9},{"country":"Niue","code":"NU","zone":9},{"country":"Tunisia","code":"TN","zone":4},{"country":"Cayman Islands","code":"KY","zone":9},{"country":"Iraq","code":"IQ","zone":9},{"country":"North Macedonia","code":"MK","zone":5},{"country":"Turkey","code":"TR","zone":7},{"country":"Central African Rep(CF)","code":null,"zone":4},{"country":"Ireland, Rep. Of","code":"IE","zone":5},{"country":"Northern Mariana Islands","code":"MP","zone":9},{"country":"Turkmenistan","code":"TM","zone":9},{"country":"Chad","code":"TD","zone":4},{"country":"Israel","code":"IL","zone":7},{"country":"Norway","code":"NO","zone":5},{"country":"Turks & Caicos","code":"TC","zone":9},{"country":"Chile","code":"CL","zone":9},{"country":"Italy","code":"IT","zone":5},{"country":"Oman","code":"OM","zone":9},{"country":"Tuvalu","code":"TV","zone":9},{"country":"China","code":"CN","zone":8},{"country":"Jamaica","code":"JM","zone":9},{"country":"Pakistan","code":"PK","zone":8},{"country":"USA","code":"US","zone":6},{"country":"Colombia","code":"CO","zone":9},{"country":"Japan","code":"JP","zone":8},{"country":"Palau","code":"PW","zone":9},{"country":"Uganda","code":"UG","zone":4},{"country":"Comoros","code":"KM","zone":4},{"country":"Jersey","code":"JE","zone":5},{"country":"Panama","code":"PA","zone":9},{"country":"Ukraine","code":"UA","zone":9},{"country":"Congo","code":"CG","zone":4},{"country":"Jordan","code":"JO","zone":7},{"country":"Papua New Guinea","code":"PG","zone":8},{"country":"United Arab Emirates","code":"AE","zone":7},{"country":"Congo, DPR","code":"CD","zone":4},{"country":"Kazakhstan","code":"KZ","zone":9},{"country":"Paraguay","code":"PY","zone":9},{"country":"United Kingdom","code":"GB","zone":5},{"country":"Cook Islands","code":"CK","zone":9},{"country":"Kenya","code":"KE","zone":3},{"country":"Peru","code":"PE","zone":9},{"country":"Uruguay","code":"UY","zone":9},{"country":"Costa Rica","code":"CR","zone":9},{"country":"Kiribati","code":"KI","zone":9},{"country":"Philippines, The","code":"PH","zone":8},{"country":"Uzbekistan","code":"UZ","zone":9},{"country":"Cote D Ivoire","code":"CI","zone":4},{"country":"Korea, Rep. Of","code":"KR","zone":8},{"country":"Poland","code":"PL","zone":5},{"country":"Vanuatu","code":"VU","zone":9},{"country":"Croatia","code":"HR","zone":5},{"country":"Korea, \u00a0D.P.R Of","code":"KP","zone":9},{"country":"Portugal","code":"PT","zone":5},{"country":"Vatican City","code":"VA","zone":5},{"country":"Cuba","code":"CU","zone":9},{"country":"Kosovo","code":"KV","zone":5},{"country":"Puerto Rico","code":"PR","zone":7},{"country":"Venezuela","code":"VE","zone":9},{"country":"Curacao","code":"XC","zone":9},{"country":"Kuwait","code":"KW","zone":7},{"country":"Qatar","code":"QA","zone":7},{"country":"Vietnam","code":"VN","zone":8},{"country":"Cyprus","code":"CY","zone":5},{"country":"Kyrgyzstan","code":"KG","zone":9},{"country":"Reunion, Island Of","code":"RE","zone":4},{"country":"Virgin Islands-British","code":"VG","zone":9},{"country":"Czech Rep., The","code":"CZ","zone":5},{"country":"Laos","code":"LA","zone":8},{"country":"Romania","code":"RO","zone":5},{"country":"Virgin Islands-US","code":"VI","zone":9},{"country":"Denmark","code":"DK","zone":5},{"country":"Latvia","code":"LV","zone":5},{"country":"Russian Federation","code":"RU","zone":9},{"country":"Yemen, Rep. Of","code":"YE","zone":9},{"country":"Djibouti","code":"DJ","zone":4},{"country":"Lebanon","code":"LB","zone":9},{"country":"Rwanda","code":"RW","zone":4},{"country":"Zambia","code":"ZM","zone":3},{"country":"Dominica","code":"DM","zone":9},{"country":"Lesotho","code":"LS","zone":1},{"country":"Saint Helena","code":"SH","zone":4},{"country":"Zimbabwe","code":"ZW","zone":2},{"country":"Dominican Rep.","code":"DO","zone":7}];
 
-    // ---- Data: Mok Transports DHL export cost rates (from uploaded rate card) ----
-    const RATES = {"documents":[{"kg":0.5,"rates":[217.62,238.08,245.52,285.2,293.88,305.35,341.62,390.6,475.54]},{"kg":1.0,"rates":[305.97,356.19,452.6,560.17,588.07,603.57,651.62,752.37,919.46]},{"kg":1.5,"rates":[383.16,461.59,628.99,869.24,918.84,951.08,1021.45,1122.2,1341.68]},{"kg":2.0,"rates":[460.35,566.99,805.38,1178.31,1249.61,1298.59,1391.28,1492.03,1763.9]}],"nondocuments":[{"kg":0.5,"rates":[250.17,274.66,282.72,328.6,338.21,350.61,393.7,450.12,546.53]},{"kg":1.0,"rates":[351.54,406.72,520.49,642.94,674.56,692.23,750.2,865.83,1055.24]},{"kg":1.5,"rates":[413.54,506.54,690.68,975.88,1030.75,1061.75,1142.04,1246.2,1487.38]},{"kg":2.0,"rates":[475.54,606.36,860.87,1308.82,1386.94,1431.27,1533.88,1626.57,1919.52]},{"kg":2.5,"rates":[527.93,678.28,985.18,1497.3,1588.75,1640.52,1759.25,1851.32,2184.88]},{"kg":3.0,"rates":[556.14,723.85,1057.41,1609.52,1708.72,1766.69,1892.24,1992.06,2357.24]},{"kg":3.5,"rates":[584.35,769.42,1129.64,1721.74,1828.69,1892.86,2025.23,2132.8,2529.6]},{"kg":4.0,"rates":[612.56,814.99,1201.87,1833.96,1948.66,2019.03,2158.22,2273.54,2701.96]},{"kg":4.5,"rates":[640.77,860.56,1274.1,1946.18,2068.63,2145.2,2291.21,2414.28,2874.32]},{"kg":5.0,"rates":[668.98,906.13,1346.33,2058.4,2188.6,2271.37,2424.2,2555.02,3046.68]},{"kg":5.5,"rates":[696.57,939.61,1387.56,2123.5,2253.7,2343.91,2506.66,2637.48,3147.74]},{"kg":6.0,"rates":[724.16,973.09,1428.79,2188.6,2318.8,2416.45,2589.12,2719.94,3248.8]},{"kg":6.5,"rates":[751.75,1006.57,1470.02,2253.7,2383.9,2488.99,2671.58,2802.4,3349.86]},{"kg":7.0,"rates":[779.34,1040.05,1511.25,2318.8,2449.0,2561.53,2754.04,2884.86,3450.92]},{"kg":7.5,"rates":[806.93,1073.53,1552.48,2383.9,2514.1,2634.07,2836.5,2967.32,3551.98]},{"kg":8.0,"rates":[834.52,1107.01,1593.71,2449.0,2579.2,2706.61,2918.96,3049.78,3653.04]},{"kg":8.5,"rates":[862.11,1140.49,1634.94,2514.1,2644.3,2779.15,3001.42,3132.24,3754.1]},{"kg":9.0,"rates":[889.7,1173.97,1676.17,2579.2,2709.4,2851.69,3083.88,3214.7,3855.16]},{"kg":9.5,"rates":[917.29,1207.45,1717.4,2644.3,2774.5,2924.23,3166.34,3297.16,3956.22]},{"kg":10.0,"rates":[944.88,1240.93,1758.63,2709.4,2839.6,2996.77,3248.8,3379.62,4057.28]},{"kg":10.5,"rates":[967.2,1269.76,1792.11,2771.09,2901.6,3065.28,3321.34,3458.05,4150.9]},{"kg":11.0,"rates":[989.52,1298.59,1825.59,2832.78,2963.6,3133.79,3393.88,3536.48,4244.52]},{"kg":11.5,"rates":[1011.84,1327.42,1859.07,2894.47,3025.6,3202.3,3466.42,3614.91,4338.14]},{"kg":12.0,"rates":[1034.16,1356.25,1892.55,2956.16,3087.6,3270.81,3538.96,3693.34,4431.76]},{"kg":12.5,"rates":[1056.48,1385.08,1926.03,3017.85,3149.6,3339.32,3611.5,3771.77,4525.38]},{"kg":13.0,"rates":[1078.8,1413.91,1959.51,3079.54,3211.6,3407.83,3684.04,3850.2,4619.0]},{"kg":13.5,"rates":[1101.12,1442.74,1992.99,3141.23,3273.6,3476.34,3756.58,3928.63,4712.62]},{"kg":14.0,"rates":[1123.44,1471.57,2026.47,3202.92,3335.6,3544.85,3829.12,4007.06,4806.24]},{"kg":14.5,"rates":[1145.76,1500.4,2059.95,3264.61,3397.6,3613.36,3901.66,4085.49,4899.86]},{"kg":15.0,"rates":[1168.08,1529.23,2093.43,3326.3,3459.6,3681.87,3974.2,4163.92,4993.48]},{"kg":15.5,"rates":[1190.4,1558.06,2126.91,3387.99,3521.6,3750.38,4046.74,4242.35,5087.1]},{"kg":16.0,"rates":[1212.72,1586.89,2160.39,3449.68,3583.6,3818.89,4119.28,4320.78,5180.72]},{"kg":16.5,"rates":[1235.04,1615.72,2193.87,3511.37,3645.6,3887.4,4191.82,4399.21,5274.34]},{"kg":17.0,"rates":[1257.36,1644.55,2227.35,3573.06,3707.6,3955.91,4264.36,4477.64,5367.96]},{"kg":17.5,"rates":[1279.68,1673.38,2260.83,3634.75,3769.6,4024.42,4336.9,4556.07,5461.58]},{"kg":18.0,"rates":[1302.0,1702.21,2294.31,3696.44,3831.6,4092.93,4409.44,4634.5,5555.2]},{"kg":18.5,"rates":[1324.32,1731.04,2327.79,3758.13,3893.6,4161.44,4481.98,4712.93,5648.82]},{"kg":19.0,"rates":[1346.64,1759.87,2361.27,3819.82,3955.6,4229.95,4554.52,4791.36,5742.44]},{"kg":19.5,"rates":[1368.96,1788.7,2394.75,3881.51,4017.6,4298.46,4627.06,4869.79,5836.06]},{"kg":20.0,"rates":[1391.28,1817.53,2428.23,3943.2,4079.6,4366.97,4699.6,4948.22,5929.68]},{"kg":20.5,"rates":[1412.36,1843.26,2456.44,4004.27,4140.67,4433.31,4769.66,5025.41,6021.13]},{"kg":21.0,"rates":[1433.44,1868.99,2484.65,4065.34,4201.74,4499.65,4839.72,5102.6,6112.58]},{"kg":21.5,"rates":[1454.52,1894.72,2512.86,4126.41,4262.81,4565.99,4909.78,5179.79,6204.03]},{"kg":22.0,"rates":[1475.6,1920.45,2541.07,4187.48,4323.88,4632.33,4979.84,5256.98,6295.48]},{"kg":22.5,"rates":[1496.68,1946.18,2569.28,4248.55,4384.95,4698.67,5049.9,5334.17,6386.93]},{"kg":23.0,"rates":[1517.76,1971.91,2597.49,4309.62,4446.02,4765.01,5119.96,5411.36,6478.38]},{"kg":23.5,"rates":[1538.84,1997.64,2625.7,4370.69,4507.09,4831.35,5190.02,5488.55,6569.83]},{"kg":24.0,"rates":[1559.92,2023.37,2653.91,4431.76,4568.16,4897.69,5260.08,5565.74,6661.28]},{"kg":24.5,"rates":[1581.0,2049.1,2682.12,4492.83,4629.23,4964.03,5330.14,5642.93,6752.73]},{"kg":25.0,"rates":[1602.08,2074.83,2710.33,4553.9,4690.3,5030.37,5400.2,5720.12,6844.18]},{"kg":25.5,"rates":[1623.16,2100.56,2738.54,4614.97,4751.37,5096.71,5470.26,5797.31,6935.63]},{"kg":26.0,"rates":[1644.24,2126.29,2766.75,4676.04,4812.44,5163.05,5540.32,5874.5,7027.08]},{"kg":26.5,"rates":[1665.32,2152.02,2794.96,4737.11,4873.51,5229.39,5610.38,5951.69,7118.53]},{"kg":27.0,"rates":[1686.4,2177.75,2823.17,4798.18,4934.58,5295.73,5680.44,6028.88,7209.98]},{"kg":27.5,"rates":[1707.48,2203.48,2851.38,4859.25,4995.65,5362.07,5750.5,6106.07,7301.43]},{"kg":28.0,"rates":[1728.56,2229.21,2879.59,4920.32,5056.72,5428.41,5820.56,6183.26,7392.88]},{"kg":28.5,"rates":[1749.64,2254.94,2907.8,4981.39,5117.79,5494.75,5890.62,6260.45,7484.33]},{"kg":29.0,"rates":[1770.72,2280.67,2936.01,5042.46,5178.86,5561.09,5960.68,6337.64,7575.78]},{"kg":29.5,"rates":[1791.8,2306.4,2964.22,5103.53,5239.93,5627.43,6030.74,6414.83,7667.23]},{"kg":30.0,"rates":[1812.88,2332.13,2992.43,5164.6,5301.0,5693.77,6100.8,6492.02,7758.68]},{"kg":31.0,"rates":[1864.96,2390.1,3059.08,5305.03,5441.43,5850.32,6262.93,6667.79,7970.72]},{"kg":32.0,"rates":[1917.04,2448.07,3125.73,5445.46,5581.86,6006.87,6425.06,6843.56,8182.76]},{"kg":33.0,"rates":[1969.12,2506.04,3192.38,5585.89,5722.29,6163.42,6587.19,7019.33,8394.8]},{"kg":34.0,"rates":[2021.2,2564.01,3259.03,5726.32,5862.72,6319.97,6749.32,7195.1,8606.84]},{"kg":35.0,"rates":[2073.28,2621.98,3325.68,5866.75,6003.15,6476.52,6911.45,7370.87,8818.88]},{"kg":36.0,"rates":[2125.36,2679.95,3392.33,6007.18,6143.58,6633.07,7073.58,7546.64,9030.92]},{"kg":37.0,"rates":[2177.44,2737.92,3458.98,6147.61,6284.01,6789.62,7235.71,7722.41,9242.96]},{"kg":38.0,"rates":[2229.52,2795.89,3525.63,6288.04,6424.44,6946.17,7397.84,7898.18,9455.0]},{"kg":39.0,"rates":[2281.6,2853.86,3592.28,6428.47,6564.87,7102.72,7559.97,8073.95,9667.04]},{"kg":40.0,"rates":[2333.68,2911.83,3658.93,6568.9,6705.3,7259.27,7722.1,8249.72,9879.08]},{"kg":41.0,"rates":[2385.76,2969.8,3725.58,6709.33,6845.73,7415.82,7884.23,8425.49,10091.12]},{"kg":42.0,"rates":[2437.84,3027.77,3792.23,6849.76,6986.16,7572.37,8046.36,8601.26,10303.16]},{"kg":43.0,"rates":[2489.92,3085.74,3858.88,6990.19,7126.59,7728.92,8208.49,8777.03,10515.2]},{"kg":44.0,"rates":[2542.0,3143.71,3925.53,7130.62,7267.02,7885.47,8370.62,8952.8,10727.24]},{"kg":45.0,"rates":[2594.08,3201.68,3992.18,7271.05,7407.45,8042.02,8532.75,9128.57,10939.28]},{"kg":46.0,"rates":[2646.16,3259.65,4058.83,7411.48,7547.88,8198.57,8694.88,9304.34,11151.32]},{"kg":47.0,"rates":[2698.24,3317.62,4125.48,7551.91,7688.31,8355.12,8857.01,9480.11,11363.36]},{"kg":48.0,"rates":[2750.32,3375.59,4192.13,7692.34,7828.74,8511.67,9019.14,9655.88,11575.4]},{"kg":49.0,"rates":[2802.4,3433.56,4258.78,7832.77,7969.17,8668.22,9181.27,9831.65,11787.44]},{"kg":50.0,"rates":[2854.48,3491.53,4325.43,7973.2,8109.6,8824.77,9343.4,10007.42,11999.48]},{"kg":51.0,"rates":[2906.56,3549.5,4392.08,8113.63,8250.03,8981.32,9505.53,10183.19,12211.52]},{"kg":52.0,"rates":[2958.64,3607.47,4458.73,8254.06,8390.46,9137.87,9667.66,10358.96,12423.56]},{"kg":53.0,"rates":[3010.72,3665.44,4525.38,8394.49,8530.89,9294.42,9829.79,10534.73,12635.6]},{"kg":54.0,"rates":[3062.8,3723.41,4592.03,8534.92,8671.32,9450.97,9991.92,10710.5,12847.64]},{"kg":55.0,"rates":[3114.88,3781.38,4658.68,8675.35,8811.75,9607.52,10154.05,10886.27,13059.68]},{"kg":56.0,"rates":[3166.96,3839.35,4725.33,8815.78,8952.18,9764.07,10316.18,11062.04,13271.72]},{"kg":57.0,"rates":[3219.04,3897.32,4791.98,8956.21,9092.61,9920.62,10478.31,11237.81,13483.76]},{"kg":58.0,"rates":[3271.12,3955.29,4858.63,9096.64,9233.04,10077.17,10640.44,11413.58,13695.8]},{"kg":59.0,"rates":[3323.2,4013.26,4925.28,9237.07,9373.47,10233.72,10802.57,11589.35,13907.84]},{"kg":60.0,"rates":[3375.28,4071.23,4991.93,9377.5,9513.9,10390.27,10964.7,11765.12,14119.88]},{"kg":61.0,"rates":[3427.36,4129.2,5058.58,9517.93,9654.33,10546.82,11126.83,11940.89,14331.92]},{"kg":62.0,"rates":[3479.44,4187.17,5125.23,9658.36,9794.76,10703.37,11288.96,12116.66,14543.96]},{"kg":63.0,"rates":[3531.52,4245.14,5191.88,9798.79,9935.19,10859.92,11451.09,12292.43,14756.0]},{"kg":64.0,"rates":[3583.6,4303.11,5258.53,9939.22,10075.62,11016.47,11613.22,12468.2,14968.04]},{"kg":65.0,"rates":[3635.68,4361.08,5325.18,10079.65,10216.05,11173.02,11775.35,12643.97,15180.08]},{"kg":66.0,"rates":[3687.76,4419.05,5391.83,10220.08,10356.48,11329.57,11937.48,12819.74,15392.12]},{"kg":67.0,"rates":[3739.84,4477.02,5458.48,10360.51,10496.91,11486.12,12099.61,12995.51,15604.16]},{"kg":68.0,"rates":[3791.92,4534.99,5525.13,10500.94,10637.34,11642.67,12261.74,13171.28,15816.2]},{"kg":69.0,"rates":[3844.0,4592.96,5591.78,10641.37,10777.77,11799.22,12423.87,13347.05,16028.24]},{"kg":70.0,"rates":[3896.08,4650.93,5658.43,10781.8,10918.2,11955.77,12586.0,13522.82,16240.28]}]};
+    // ---- Data: DHL Express Worldwide EXPORT rates (South Africa outward) ----
+    const RATES_EXPORT = {"documents":[{"kg":0.5,"rates":[217.62,238.08,245.52,285.2,293.88,305.35,341.62,390.6,475.54]},{"kg":1.0,"rates":[305.97,356.19,452.6,560.17,588.07,603.57,651.62,752.37,919.46]},{"kg":1.5,"rates":[383.16,461.59,628.99,869.24,918.84,951.08,1021.45,1122.2,1341.68]},{"kg":2.0,"rates":[460.35,566.99,805.38,1178.31,1249.61,1298.59,1391.28,1492.03,1763.9]}],"nondocuments":[{"kg":0.5,"rates":[250.17,274.66,282.72,328.6,338.21,350.61,393.7,450.12,546.53]},{"kg":1.0,"rates":[351.54,406.72,520.49,642.94,674.56,692.23,750.2,865.83,1055.24]},{"kg":1.5,"rates":[413.54,506.54,690.68,975.88,1030.75,1061.75,1142.04,1246.2,1487.38]},{"kg":2.0,"rates":[475.54,606.36,860.87,1308.82,1386.94,1431.27,1533.88,1626.57,1919.52]},{"kg":2.5,"rates":[527.93,678.28,985.18,1497.3,1588.75,1640.52,1759.25,1851.32,2184.88]},{"kg":3.0,"rates":[556.14,723.85,1057.41,1609.52,1708.72,1766.69,1892.24,1992.06,2357.24]},{"kg":3.5,"rates":[584.35,769.42,1129.64,1721.74,1828.69,1892.86,2025.23,2132.8,2529.6]},{"kg":4.0,"rates":[612.56,814.99,1201.87,1833.96,1948.66,2019.03,2158.22,2273.54,2701.96]},{"kg":4.5,"rates":[640.77,860.56,1274.1,1946.18,2068.63,2145.2,2291.21,2414.28,2874.32]},{"kg":5.0,"rates":[668.98,906.13,1346.33,2058.4,2188.6,2271.37,2424.2,2555.02,3046.68]},{"kg":5.5,"rates":[696.57,939.61,1387.56,2123.5,2253.7,2343.91,2506.66,2637.48,3147.74]},{"kg":6.0,"rates":[724.16,973.09,1428.79,2188.6,2318.8,2416.45,2589.12,2719.94,3248.8]},{"kg":6.5,"rates":[751.75,1006.57,1470.02,2253.7,2383.9,2488.99,2671.58,2802.4,3349.86]},{"kg":7.0,"rates":[779.34,1040.05,1511.25,2318.8,2449.0,2561.53,2754.04,2884.86,3450.92]},{"kg":7.5,"rates":[806.93,1073.53,1552.48,2383.9,2514.1,2634.07,2836.5,2967.32,3551.98]},{"kg":8.0,"rates":[834.52,1107.01,1593.71,2449.0,2579.2,2706.61,2918.96,3049.78,3653.04]},{"kg":8.5,"rates":[862.11,1140.49,1634.94,2514.1,2644.3,2779.15,3001.42,3132.24,3754.1]},{"kg":9.0,"rates":[889.7,1173.97,1676.17,2579.2,2709.4,2851.69,3083.88,3214.7,3855.16]},{"kg":9.5,"rates":[917.29,1207.45,1717.4,2644.3,2774.5,2924.23,3166.34,3297.16,3956.22]},{"kg":10.0,"rates":[944.88,1240.93,1758.63,2709.4,2839.6,2996.77,3248.8,3379.62,4057.28]},{"kg":10.5,"rates":[967.2,1269.76,1792.11,2771.09,2901.6,3065.28,3321.34,3458.05,4150.9]},{"kg":11.0,"rates":[989.52,1298.59,1825.59,2832.78,2963.6,3133.79,3393.88,3536.48,4244.52]},{"kg":11.5,"rates":[1011.84,1327.42,1859.07,2894.47,3025.6,3202.3,3466.42,3614.91,4338.14]},{"kg":12.0,"rates":[1034.16,1356.25,1892.55,2956.16,3087.6,3270.81,3538.96,3693.34,4431.76]},{"kg":12.5,"rates":[1056.48,1385.08,1926.03,3017.85,3149.6,3339.32,3611.5,3771.77,4525.38]},{"kg":13.0,"rates":[1078.8,1413.91,1959.51,3079.54,3211.6,3407.83,3684.04,3850.2,4619.0]},{"kg":13.5,"rates":[1101.12,1442.74,1992.99,3141.23,3273.6,3476.34,3756.58,3928.63,4712.62]},{"kg":14.0,"rates":[1123.44,1471.57,2026.47,3202.92,3335.6,3544.85,3829.12,4007.06,4806.24]},{"kg":14.5,"rates":[1145.76,1500.4,2059.95,3264.61,3397.6,3613.36,3901.66,4085.49,4899.86]},{"kg":15.0,"rates":[1168.08,1529.23,2093.43,3326.3,3459.6,3681.87,3974.2,4163.92,4993.48]},{"kg":15.5,"rates":[1190.4,1558.06,2126.91,3387.99,3521.6,3750.38,4046.74,4242.35,5087.1]},{"kg":16.0,"rates":[1212.72,1586.89,2160.39,3449.68,3583.6,3818.89,4119.28,4320.78,5180.72]},{"kg":16.5,"rates":[1235.04,1615.72,2193.87,3511.37,3645.6,3887.4,4191.82,4399.21,5274.34]},{"kg":17.0,"rates":[1257.36,1644.55,2227.35,3573.06,3707.6,3955.91,4264.36,4477.64,5367.96]},{"kg":17.5,"rates":[1279.68,1673.38,2260.83,3634.75,3769.6,4024.42,4336.9,4556.07,5461.58]},{"kg":18.0,"rates":[1302.0,1702.21,2294.31,3696.44,3831.6,4092.93,4409.44,4634.5,5555.2]},{"kg":18.5,"rates":[1324.32,1731.04,2327.79,3758.13,3893.6,4161.44,4481.98,4712.93,5648.82]},{"kg":19.0,"rates":[1346.64,1759.87,2361.27,3819.82,3955.6,4229.95,4554.52,4791.36,5742.44]},{"kg":19.5,"rates":[1368.96,1788.7,2394.75,3881.51,4017.6,4298.46,4627.06,4869.79,5836.06]},{"kg":20.0,"rates":[1391.28,1817.53,2428.23,3943.2,4079.6,4366.97,4699.6,4948.22,5929.68]},{"kg":20.5,"rates":[1412.36,1843.26,2456.44,4004.27,4140.67,4433.31,4769.66,5025.41,6021.13]},{"kg":21.0,"rates":[1433.44,1868.99,2484.65,4065.34,4201.74,4499.65,4839.72,5102.6,6112.58]},{"kg":21.5,"rates":[1454.52,1894.72,2512.86,4126.41,4262.81,4565.99,4909.78,5179.79,6204.03]},{"kg":22.0,"rates":[1475.6,1920.45,2541.07,4187.48,4323.88,4632.33,4979.84,5256.98,6295.48]},{"kg":22.5,"rates":[1496.68,1946.18,2569.28,4248.55,4384.95,4698.67,5049.9,5334.17,6386.93]},{"kg":23.0,"rates":[1517.76,1971.91,2597.49,4309.62,4446.02,4765.01,5119.96,5411.36,6478.38]},{"kg":23.5,"rates":[1538.84,1997.64,2625.7,4370.69,4507.09,4831.35,5190.02,5488.55,6569.83]},{"kg":24.0,"rates":[1559.92,2023.37,2653.91,4431.76,4568.16,4897.69,5260.08,5565.74,6661.28]},{"kg":24.5,"rates":[1581.0,2049.1,2682.12,4492.83,4629.23,4964.03,5330.14,5642.93,6752.73]},{"kg":25.0,"rates":[1602.08,2074.83,2710.33,4553.9,4690.3,5030.37,5400.2,5720.12,6844.18]},{"kg":25.5,"rates":[1623.16,2100.56,2738.54,4614.97,4751.37,5096.71,5470.26,5797.31,6935.63]},{"kg":26.0,"rates":[1644.24,2126.29,2766.75,4676.04,4812.44,5163.05,5540.32,5874.5,7027.08]},{"kg":26.5,"rates":[1665.32,2152.02,2794.96,4737.11,4873.51,5229.39,5610.38,5951.69,7118.53]},{"kg":27.0,"rates":[1686.4,2177.75,2823.17,4798.18,4934.58,5295.73,5680.44,6028.88,7209.98]},{"kg":27.5,"rates":[1707.48,2203.48,2851.38,4859.25,4995.65,5362.07,5750.5,6106.07,7301.43]},{"kg":28.0,"rates":[1728.56,2229.21,2879.59,4920.32,5056.72,5428.41,5820.56,6183.26,7392.88]},{"kg":28.5,"rates":[1749.64,2254.94,2907.8,4981.39,5117.79,5494.75,5890.62,6260.45,7484.33]},{"kg":29.0,"rates":[1770.72,2280.67,2936.01,5042.46,5178.86,5561.09,5960.68,6337.64,7575.78]},{"kg":29.5,"rates":[1791.8,2306.4,2964.22,5103.53,5239.93,5627.43,6030.74,6414.83,7667.23]},{"kg":30.0,"rates":[1812.88,2332.13,2992.43,5164.6,5301.0,5693.77,6100.8,6492.02,7758.68]},{"kg":31.0,"rates":[1864.96,2390.1,3059.08,5305.03,5441.43,5850.32,6262.93,6667.79,7970.72]},{"kg":32.0,"rates":[1917.04,2448.07,3125.73,5445.46,5581.86,6006.87,6425.06,6843.56,8182.76]},{"kg":33.0,"rates":[1969.12,2506.04,3192.38,5585.89,5722.29,6163.42,6587.19,7019.33,8394.8]},{"kg":34.0,"rates":[2021.2,2564.01,3259.03,5726.32,5862.72,6319.97,6749.32,7195.1,8606.84]},{"kg":35.0,"rates":[2073.28,2621.98,3325.68,5866.75,6003.15,6476.52,6911.45,7370.87,8818.88]},{"kg":36.0,"rates":[2125.36,2679.95,3392.33,6007.18,6143.58,6633.07,7073.58,7546.64,9030.92]},{"kg":37.0,"rates":[2177.44,2737.92,3458.98,6147.61,6284.01,6789.62,7235.71,7722.41,9242.96]},{"kg":38.0,"rates":[2229.52,2795.89,3525.63,6288.04,6424.44,6946.17,7397.84,7898.18,9455.0]},{"kg":39.0,"rates":[2281.6,2853.86,3592.28,6428.47,6564.87,7102.72,7559.97,8073.95,9667.04]},{"kg":40.0,"rates":[2333.68,2911.83,3658.93,6568.9,6705.3,7259.27,7722.1,8249.72,9879.08]},{"kg":41.0,"rates":[2385.76,2969.8,3725.58,6709.33,6845.73,7415.82,7884.23,8425.49,10091.12]},{"kg":42.0,"rates":[2437.84,3027.77,3792.23,6849.76,6986.16,7572.37,8046.36,8601.26,10303.16]},{"kg":43.0,"rates":[2489.92,3085.74,3858.88,6990.19,7126.59,7728.92,8208.49,8777.03,10515.2]},{"kg":44.0,"rates":[2542.0,3143.71,3925.53,7130.62,7267.02,7885.47,8370.62,8952.8,10727.24]},{"kg":45.0,"rates":[2594.08,3201.68,3992.18,7271.05,7407.45,8042.02,8532.75,9128.57,10939.28]},{"kg":46.0,"rates":[2646.16,3259.65,4058.83,7411.48,7547.88,8198.57,8694.88,9304.34,11151.32]},{"kg":47.0,"rates":[2698.24,3317.62,4125.48,7551.91,7688.31,8355.12,8857.01,9480.11,11363.36]},{"kg":48.0,"rates":[2750.32,3375.59,4192.13,7692.34,7828.74,8511.67,9019.14,9655.88,11575.4]},{"kg":49.0,"rates":[2802.4,3433.56,4258.78,7832.77,7969.17,8668.22,9181.27,9831.65,11787.44]},{"kg":50.0,"rates":[2854.48,3491.53,4325.43,7973.2,8109.6,8824.77,9343.4,10007.42,11999.48]},{"kg":51.0,"rates":[2906.56,3549.5,4392.08,8113.63,8250.03,8981.32,9505.53,10183.19,12211.52]},{"kg":52.0,"rates":[2958.64,3607.47,4458.73,8254.06,8390.46,9137.87,9667.66,10358.96,12423.56]},{"kg":53.0,"rates":[3010.72,3665.44,4525.38,8394.49,8530.89,9294.42,9829.79,10534.73,12635.6]},{"kg":54.0,"rates":[3062.8,3723.41,4592.03,8534.92,8671.32,9450.97,9991.92,10710.5,12847.64]},{"kg":55.0,"rates":[3114.88,3781.38,4658.68,8675.35,8811.75,9607.52,10154.05,10886.27,13059.68]},{"kg":56.0,"rates":[3166.96,3839.35,4725.33,8815.78,8952.18,9764.07,10316.18,11062.04,13271.72]},{"kg":57.0,"rates":[3219.04,3897.32,4791.98,8956.21,9092.61,9920.62,10478.31,11237.81,13483.76]},{"kg":58.0,"rates":[3271.12,3955.29,4858.63,9096.64,9233.04,10077.17,10640.44,11413.58,13695.8]},{"kg":59.0,"rates":[3323.2,4013.26,4925.28,9237.07,9373.47,10233.72,10802.57,11589.35,13907.84]},{"kg":60.0,"rates":[3375.28,4071.23,4991.93,9377.5,9513.9,10390.27,10964.7,11765.12,14119.88]},{"kg":61.0,"rates":[3427.36,4129.2,5058.58,9517.93,9654.33,10546.82,11126.83,11940.89,14331.92]},{"kg":62.0,"rates":[3479.44,4187.17,5125.23,9658.36,9794.76,10703.37,11288.96,12116.66,14543.96]},{"kg":63.0,"rates":[3531.52,4245.14,5191.88,9798.79,9935.19,10859.92,11451.09,12292.43,14756.0]},{"kg":64.0,"rates":[3583.6,4303.11,5258.53,9939.22,10075.62,11016.47,11613.22,12468.2,14968.04]},{"kg":65.0,"rates":[3635.68,4361.08,5325.18,10079.65,10216.05,11173.02,11775.35,12643.97,15180.08]},{"kg":66.0,"rates":[3687.76,4419.05,5391.83,10220.08,10356.48,11329.57,11937.48,12819.74,15392.12]},{"kg":67.0,"rates":[3739.84,4477.02,5458.48,10360.51,10496.91,11486.12,12099.61,12995.51,15604.16]},{"kg":68.0,"rates":[3791.92,4534.99,5525.13,10500.94,10637.34,11642.67,12261.74,13171.28,15816.2]},{"kg":69.0,"rates":[3844.0,4592.96,5591.78,10641.37,10777.77,11799.22,12423.87,13347.05,16028.24]},{"kg":70.0,"rates":[3896.08,4650.93,5658.43,10781.8,10918.2,11955.77,12586.0,13522.82,16240.28]}]};
+
+    // ---- Data: DHL Import Express Worldwide rates (into South Africa) ----
+    const RATES_IMPORT = {"documents":[{"kg":0.5,"rates":[239.63,261.64,270.32,314.65,324.26,336.35,377.27,429.97,522.35]},{"kg":1.0,"rates":[337.28,390.29,497.86,617.52,627.44,663.71,718.27,828.94,1009.67]},{"kg":1.5,"rates":[421.6,506.54,692.85,956.66,966.58,1044.08,1126.85,1237.52,1474.67]},{"kg":2.0,"rates":[505.92,622.79,887.84,1295.8,1305.72,1424.45,1535.43,1646.1,1939.67]}],"nondocuments":[{"kg":0.5,"rates":[274.04,298.53,310.0,360.84,371.69,385.64,431.52,493.52,601.09]},{"kg":1.0,"rates":[386.57,447.95,571.95,708.35,743.38,762.91,823.36,951.39,1160.64]},{"kg":1.5,"rates":[455.08,557.69,760.12,1073.53,1133.98,1169.94,1253.95,1369.27,1636.49]},{"kg":2.0,"rates":[523.59,667.43,948.29,1438.71,1524.58,1576.97,1684.54,1787.15,2112.34]},{"kg":2.5,"rates":[581.56,746.17,1085.0,1645.79,1746.23,1807.3,1931.61,2034.53,2404.36]},{"kg":3.0,"rates":[613.49,795.15,1163.74,1770.1,1879.22,1944.32,2077.93,2189.84,2595.01]},{"kg":3.5,"rates":[645.42,844.13,1242.48,1894.41,2012.21,2081.34,2224.25,2345.15,2785.66]},{"kg":4.0,"rates":[677.35,893.11,1321.22,2018.72,2145.2,2218.36,2370.57,2500.46,2976.31]},{"kg":4.5,"rates":[709.28,942.09,1399.96,2143.03,2278.19,2355.38,2516.89,2655.77,3166.96]},{"kg":5.0,"rates":[741.21,991.07,1478.7,2267.34,2411.18,2492.4,2663.21,2811.08,3357.61]},{"kg":5.5,"rates":[772.52,1028.89,1524.27,2333.68,2482.17,2572.38,2754.04,2901.91,3469.21]},{"kg":6.0,"rates":[803.83,1066.71,1569.84,2400.02,2553.16,2652.36,2844.87,2992.74,3580.81]},{"kg":6.5,"rates":[835.14,1104.53,1615.41,2466.36,2624.15,2732.34,2935.7,3083.57,3692.41]},{"kg":7.0,"rates":[866.45,1142.35,1660.98,2532.7,2695.14,2812.32,3026.53,3174.4,3804.01]},{"kg":7.5,"rates":[897.76,1180.17,1706.55,2599.04,2766.13,2892.3,3117.36,3265.23,3915.61]},{"kg":8.0,"rates":[929.07,1217.99,1752.12,2665.38,2837.12,2972.28,3208.19,3356.06,4027.21]},{"kg":8.5,"rates":[960.38,1255.81,1797.69,2731.72,2908.11,3052.26,3299.02,3446.89,4138.81]},{"kg":9.0,"rates":[991.69,1293.63,1843.26,2798.06,2979.1,3132.24,3389.85,3537.72,4250.41]},{"kg":9.5,"rates":[1023.0,1331.45,1888.83,2864.4,3050.09,3212.22,3480.68,3628.55,4362.01]},{"kg":10.0,"rates":[1054.31,1369.27,1934.4,2930.74,3121.08,3292.2,3571.51,3719.38,4473.61]},{"kg":10.5,"rates":[1078.8,1401.2,1969.12,2994.91,3189.59,3367.53,3651.49,3805.87,4578.08]},{"kg":11.0,"rates":[1103.29,1433.13,2003.84,3059.08,3258.1,3442.86,3731.47,3892.36,4682.55]},{"kg":11.5,"rates":[1127.78,1465.06,2038.56,3123.25,3326.61,3518.19,3811.45,3978.85,4787.02]},{"kg":12.0,"rates":[1152.27,1496.99,2073.28,3187.42,3395.12,3593.52,3891.43,4065.34,4891.49]},{"kg":12.5,"rates":[1176.76,1528.92,2108.0,3251.59,3463.63,3668.85,3971.41,4151.83,4995.96]},{"kg":13.0,"rates":[1201.25,1560.85,2142.72,3315.76,3532.14,3744.18,4051.39,4238.32,5100.43]},{"kg":13.5,"rates":[1225.74,1592.78,2177.44,3379.93,3600.65,3819.51,4131.37,4324.81,5204.9]},{"kg":14.0,"rates":[1250.23,1624.71,2212.16,3444.1,3669.16,3894.84,4211.35,4411.3,5309.37]},{"kg":14.5,"rates":[1274.72,1656.64,2246.88,3508.27,3737.67,3970.17,4291.33,4497.79,5413.84]},{"kg":15.0,"rates":[1299.21,1688.57,2281.6,3572.44,3806.18,4045.5,4371.31,4584.28,5518.31]},{"kg":15.5,"rates":[1323.7,1720.5,2316.32,3636.61,3874.69,4120.83,4451.29,4670.77,5622.78]},{"kg":16.0,"rates":[1348.19,1752.43,2351.04,3700.78,3943.2,4196.16,4531.27,4757.26,5727.25]},{"kg":16.5,"rates":[1372.68,1784.36,2385.76,3764.95,4011.71,4271.49,4611.25,4843.75,5831.72]},{"kg":17.0,"rates":[1397.17,1816.29,2420.48,3829.12,4080.22,4346.82,4691.23,4930.24,5936.19]},{"kg":17.5,"rates":[1421.66,1848.22,2455.2,3893.29,4148.73,4422.15,4771.21,5016.73,6040.66]},{"kg":18.0,"rates":[1446.15,1880.15,2489.92,3957.46,4217.24,4497.48,4851.19,5103.22,6145.13]},{"kg":18.5,"rates":[1470.64,1912.08,2524.64,4021.63,4285.75,4572.81,4931.17,5189.71,6249.6]},{"kg":19.0,"rates":[1495.13,1944.01,2559.36,4085.8,4354.26,4648.14,5011.15,5276.2,6354.07]},{"kg":19.5,"rates":[1519.62,1975.94,2594.08,4149.97,4422.77,4723.47,5091.13,5362.69,6458.54]},{"kg":20.0,"rates":[1544.11,2007.87,2628.8,4214.14,4491.28,4798.8,5171.11,5449.18,6563.01]},{"kg":20.5,"rates":[1567.98,2036.08,2660.73,4276.14,4557.93,4871.34,5248.3,5533.5,6663.14]},{"kg":21.0,"rates":[1591.85,2064.29,2692.66,4338.14,4624.58,4943.88,5325.49,5617.82,6763.27]},{"kg":21.5,"rates":[1615.72,2092.5,2724.59,4400.14,4691.23,5016.42,5402.68,5702.14,6863.4]},{"kg":22.0,"rates":[1639.59,2120.71,2756.52,4462.14,4757.88,5088.96,5479.87,5786.46,6963.53]},{"kg":22.5,"rates":[1663.46,2148.92,2788.45,4524.14,4824.53,5161.5,5557.06,5870.78,7063.66]},{"kg":23.0,"rates":[1687.33,2177.13,2820.38,4586.14,4891.18,5234.04,5634.25,5955.1,7163.79]},{"kg":23.5,"rates":[1711.2,2205.34,2852.31,4648.14,4957.83,5306.58,5711.44,6039.42,7263.92]},{"kg":24.0,"rates":[1735.07,2233.55,2884.24,4710.14,5024.48,5379.12,5788.63,6123.74,7364.05]},{"kg":24.5,"rates":[1758.94,2261.76,2916.17,4772.14,5091.13,5451.66,5865.82,6208.06,7464.18]},{"kg":25.0,"rates":[1782.81,2289.97,2948.1,4834.14,5157.78,5524.2,5943.01,6292.38,7564.31]},{"kg":25.5,"rates":[1806.68,2318.18,2980.03,4896.14,5224.43,5596.74,6020.2,6376.7,7664.44]},{"kg":26.0,"rates":[1830.55,2346.39,3011.96,4958.14,5291.08,5669.28,6097.39,6461.02,7764.57]},{"kg":26.5,"rates":[1854.42,2374.6,3043.89,5020.14,5357.73,5741.82,6174.58,6545.34,7864.7]},{"kg":27.0,"rates":[1878.29,2402.81,3075.82,5082.14,5424.38,5814.36,6251.77,6629.66,7964.83]},{"kg":27.5,"rates":[1902.16,2431.02,3107.75,5144.14,5491.03,5886.9,6328.96,6713.98,8064.96]},{"kg":28.0,"rates":[1926.03,2459.23,3139.68,5206.14,5557.68,5959.44,6406.15,6798.3,8165.09]},{"kg":28.5,"rates":[1949.9,2487.44,3171.61,5268.14,5624.33,6031.98,6483.34,6882.62,8265.22]},{"kg":29.0,"rates":[1973.77,2515.65,3203.54,5330.14,5690.98,6104.52,6560.53,6966.94,8365.35]},{"kg":29.5,"rates":[1997.64,2543.86,3235.47,5392.14,5757.63,6177.06,6637.72,7051.26,8465.48]},{"kg":30.0,"rates":[2021.51,2572.07,3267.4,5454.14,5824.28,6249.6,6714.91,7135.58,8565.61]},{"kg":31.0,"rates":[2077.31,2633.76,3334.05,5590.23,5970.29,6414.83,6880.76,7320.03,8784.78]},{"kg":32.0,"rates":[2133.11,2695.45,3400.7,5726.32,6116.3,6580.06,7046.61,7504.48,9003.95]},{"kg":33.0,"rates":[2188.91,2757.14,3467.35,5862.41,6262.31,6745.29,7212.46,7688.93,9223.12]},{"kg":34.0,"rates":[2244.71,2818.83,3534.0,5998.5,6408.32,6910.52,7378.31,7873.38,9442.29]},{"kg":35.0,"rates":[2300.51,2880.52,3600.65,6134.59,6554.33,7075.75,7544.16,8057.83,9661.46]},{"kg":36.0,"rates":[2356.31,2942.21,3667.3,6270.68,6700.34,7240.98,7710.01,8242.28,9880.63]},{"kg":37.0,"rates":[2412.11,3003.9,3733.95,6406.77,6846.35,7406.21,7875.86,8426.73,10099.8]},{"kg":38.0,"rates":[2467.91,3065.59,3800.6,6542.86,6992.36,7571.44,8041.71,8611.18,10318.97]},{"kg":39.0,"rates":[2523.71,3127.28,3867.25,6678.95,7138.37,7736.67,8207.56,8795.63,10538.14]},{"kg":40.0,"rates":[2579.51,3188.97,3933.9,6815.04,7284.38,7901.9,8373.41,8980.08,10757.31]},{"kg":41.0,"rates":[2635.31,3250.66,4000.55,6951.13,7430.39,8067.13,8539.26,9164.53,10976.48]},{"kg":42.0,"rates":[2691.11,3312.35,4067.2,7087.22,7576.4,8232.36,8705.11,9348.98,11195.65]},{"kg":43.0,"rates":[2746.91,3374.04,4133.85,7223.31,7722.41,8397.59,8870.96,9533.43,11414.82]},{"kg":44.0,"rates":[2802.71,3435.73,4200.5,7359.4,7868.42,8562.82,9036.81,9717.88,11633.99]},{"kg":45.0,"rates":[2858.51,3497.42,4267.15,7495.49,8014.43,8728.05,9202.66,9902.33,11853.16]},{"kg":46.0,"rates":[2914.31,3559.11,4333.8,7631.58,8160.44,8893.28,9368.51,10086.78,12072.33]},{"kg":47.0,"rates":[2970.11,3620.8,4400.45,7767.67,8306.45,9058.51,9534.36,10271.23,12291.5]},{"kg":48.0,"rates":[3025.91,3682.49,4467.1,7903.76,8452.46,9223.74,9700.21,10455.68,12510.67]},{"kg":49.0,"rates":[3081.71,3744.18,4533.75,8039.85,8598.47,9388.97,9866.06,10640.13,12729.84]},{"kg":50.0,"rates":[3137.51,3805.87,4600.4,8175.94,8744.48,9554.2,10031.91,10824.58,12949.01]},{"kg":51.0,"rates":[3193.31,3867.56,4667.05,8312.03,8890.49,9719.43,10197.76,11009.03,13168.18]},{"kg":52.0,"rates":[3249.11,3929.25,4733.7,8448.12,9036.5,9884.66,10363.61,11193.48,13387.35]},{"kg":53.0,"rates":[3304.91,3990.94,4800.35,8584.21,9182.51,10049.89,10529.46,11377.93,13606.52]},{"kg":54.0,"rates":[3360.71,4052.63,4867.0,8720.3,9328.52,10215.12,10695.31,11562.38,13825.69]},{"kg":55.0,"rates":[3416.51,4114.32,4933.65,8856.39,9474.53,10380.35,10861.16,11746.83,14044.86]},{"kg":56.0,"rates":[3472.31,4176.01,5000.3,8992.48,9620.54,10545.58,11027.01,11931.28,14264.03]},{"kg":57.0,"rates":[3528.11,4237.7,5066.95,9128.57,9766.55,10710.81,11192.86,12115.73,14483.2]},{"kg":58.0,"rates":[3583.91,4299.39,5133.6,9264.66,9912.56,10876.04,11358.71,12300.18,14702.37]},{"kg":59.0,"rates":[3639.71,4361.08,5200.25,9400.75,10058.57,11041.27,11524.56,12484.63,14921.54]},{"kg":60.0,"rates":[3695.51,4422.77,5266.9,9536.84,10204.58,11206.5,11690.41,12669.08,15140.71]},{"kg":61.0,"rates":[3751.31,4484.46,5333.55,9672.93,10350.59,11371.73,11856.26,12853.53,15359.88]},{"kg":62.0,"rates":[3807.11,4546.15,5400.2,9809.02,10496.6,11536.96,12022.11,13037.98,15579.05]},{"kg":63.0,"rates":[3862.91,4607.84,5466.85,9945.11,10642.61,11702.19,12187.96,13222.43,15798.22]},{"kg":64.0,"rates":[3918.71,4669.53,5533.5,10081.2,10788.62,11867.42,12353.81,13406.88,16017.39]},{"kg":65.0,"rates":[3974.51,4731.22,5600.15,10217.29,10934.63,12032.65,12519.66,13591.33,16236.56]},{"kg":66.0,"rates":[4030.31,4792.91,5666.8,10353.38,11080.64,12197.88,12685.51,13775.78,16455.73]},{"kg":67.0,"rates":[4086.11,4854.6,5733.45,10489.47,11226.65,12363.11,12851.36,13960.23,16674.9]},{"kg":68.0,"rates":[4141.91,4916.29,5800.1,10625.56,11372.66,12528.34,13017.21,14144.68,16894.07]},{"kg":69.0,"rates":[4197.71,4977.98,5866.75,10761.65,11518.67,12693.57,13183.06,14329.13,17113.24]},{"kg":70.0,"rates":[4253.51,5039.67,5933.4,10897.74,11664.68,12858.8,13348.91,14513.58,17332.41]}]};
 
     const MARKUP = 1.45;
     const CURRENCY = "R";
+    const VOL_DIVISOR = 5000;
 
     let selectedZoneEntry = null;
     let currentType = "documents";
+    let currentDirection = "export";
 
-    // ---- Country search ----
+    // ---- Direction toggle ----
+    function setDirection(dir) {
+      currentDirection = dir;
+      document.getElementById("dirExportBtn").classList.toggle("active", dir === "export");
+      document.getElementById("dirImportBtn").classList.toggle("active", dir === "import");
+
+      const originLabel = document.getElementById("originLabel");
+      const destLabel = document.getElementById("destLabel");
+      const originInput = document.getElementById("originInput");
+      const countryInput = document.getElementById("countryInput");
+
+      if (dir === "export") {
+        originLabel.textContent = "Origin Country";
+        destLabel.textContent = "Destination Country";
+        originInput.value = "South Africa";
+      } else {
+        originLabel.textContent = "Origin Country";
+        destLabel.textContent = "Destination Country (fixed)";
+        originInput.value = "South Africa";
+      }
+      // Reset selection when direction changes since zone role flips
+      selectedZoneEntry = null;
+      countryInput.value = "";
+      document.getElementById("zonePreview").innerHTML = "&nbsp;";
+      document.getElementById("resultArea").innerHTML = document.getElementById("resultArea").innerHTML;
+    }
+
+    // ---- Country search (searches the "other" country - the one that isn't South Africa) ----
     const countryInput = document.getElementById("countryInput");
     const countryList = document.getElementById("countryList");
     const zonePreview = document.getElementById("zonePreview");
@@ -440,7 +512,7 @@
       countryInput.value = name;
       countryList.classList.remove("open");
       zonePreview.textContent = selectedZoneEntry
-        ? `DHL Air Zone ${selectedZoneEntry.air_zone} — rated on Zone ${selectedZoneEntry.zone}`
+        ? `Rated on Zone ${selectedZoneEntry.zone}`
         : "";
     });
 
@@ -451,9 +523,33 @@
       document.getElementById("typeParcelBtn").classList.toggle("active", type === "nondocuments");
     }
 
+    // ---- Volumetric weight ----
+    function computeVolumetric() {
+      const l = parseFloat(document.getElementById("lengthInput").value);
+      const w = parseFloat(document.getElementById("widthInput").value);
+      const h = parseFloat(document.getElementById("heightInput").value);
+      if (!l || !w || !h) return null;
+      return (l * w * h) / VOL_DIVISOR;
+    }
+
+    function updateVolPreview() {
+      const vol = computeVolumetric();
+      const box = document.getElementById("volPreview");
+      const val = document.getElementById("volValue");
+      if (vol === null) {
+        box.style.display = "none";
+        return;
+      }
+      const actual = parseFloat(document.getElementById("weightInput").value) || 0;
+      const chargeable = Math.max(vol, actual);
+      const usingVol = vol > actual;
+      box.style.display = "flex";
+      val.textContent = `${vol.toFixed(2)} kg${usingVol ? " — will be charged (higher than actual)" : " — actual weight will be charged"}`;
+    }
+
     // ---- Rate lookup ----
-    function findRateRow(type, weight) {
-      const table = RATES[type];
+    function findRateRow(type, weight, direction) {
+      const table = (direction === "import" ? RATES_IMPORT : RATES_EXPORT)[type];
       for (const row of table) {
         if (weight <= row.kg + 1e-9) return row;
       }
@@ -464,29 +560,32 @@
       const resultArea = document.getElementById("resultArea");
 
       if (!selectedZoneEntry) {
-        resultArea.innerHTML = `<div class="result-body"><div class="out-of-range">Please select a destination country from the list first.</div></div>`;
+        resultArea.innerHTML = `<div class="result-body"><div class="out-of-range">Please select a ${currentDirection === "export" ? "destination" : "origin"} country from the list first.</div></div>`;
         return;
       }
 
       const weightRaw = parseFloat(document.getElementById("weightInput").value);
       if (!weightRaw || weightRaw <= 0) {
-        resultArea.innerHTML = `<div class="result-body"><div class="out-of-range">Please enter a valid weight in kg.</div></div>`;
+        resultArea.innerHTML = `<div class="result-body"><div class="out-of-range">Please enter a valid actual weight in kg.</div></div>`;
         return;
       }
 
+      const vol = computeVolumetric();
+      const chargeableRaw = vol !== null ? Math.max(vol, weightRaw) : weightRaw;
+      const usingVol = vol !== null && vol > weightRaw;
+
       let type = currentType;
-      let weight = weightRaw;
 
       // Documents over 2.0kg are rated on the non-documents table (per rate card labelling)
-      if (type === "documents" && weight > 2.0) {
+      if (type === "documents" && chargeableRaw > 2.0) {
         type = "nondocuments";
       }
 
-      const row = findRateRow(type, weight);
+      const row = findRateRow(type, chargeableRaw, currentDirection);
 
       if (!row) {
         resultArea.innerHTML = `<div class="result-body"><div class="out-of-range">
-          This weight is above the 70kg range covered by the current rate card. Please request a manual quote from DHL for shipments over 70kg.
+          This chargeable weight is above the 70kg range covered by the current rate card. Please request a manual quote from DHL for shipments over 70kg.
         </div></div>`;
         return;
       }
@@ -497,14 +596,18 @@
       const margin = finalPrice - baseCost;
       const typeLabel = type === "documents" ? "Documents" : "Parcel (Non-Documents)";
 
+      const originName = currentDirection === "export" ? "South Africa" : selectedZoneEntry.country;
+      const destName = currentDirection === "export" ? selectedZoneEntry.country : "South Africa";
+      const directionLabel = currentDirection === "export" ? "Export" : "Import";
+
       resultArea.innerHTML = `
         <div class="result-body">
-          <div class="result-top">
-            <div>
-              <div class="result-dest">${selectedZoneEntry.country}</div>
-              <div class="result-meta">${typeLabel} &middot; entered weight ${weightRaw} kg</div>
-            </div>
-            <div class="zone-badge">Zone ${selectedZoneEntry.zone}</div>
+          <div class="route-line">
+            <span class="route-country">${originName}</span>
+            <span class="route-arrow">&#8594;</span>
+            <span class="route-country">${destName}</span>
+            <span class="zone-badge">Zone ${selectedZoneEntry.zone}</span>
+            <div class="route-meta">${directionLabel} &middot; ${typeLabel} &middot; entered weight ${weightRaw} kg${vol !== null ? ` &middot; volumetric ${vol.toFixed(2)} kg` : ""}</div>
           </div>
 
           <div class="price-block">
@@ -523,6 +626,10 @@
               <div class="detail-label">Chargeable Weight</div>
               <div class="detail-value">${row.kg} kg</div>
             </div>
+            <div class="detail-item ${usingVol ? "highlight" : ""}">
+              <div class="detail-label">Weight Basis</div>
+              <div class="detail-value">${usingVol ? "Volumetric" : "Actual"}</div>
+            </div>
             <div class="detail-item">
               <div class="detail-label">Rate Zone</div>
               <div class="detail-value">Zone ${selectedZoneEntry.zone}</div>
@@ -538,7 +645,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="staff-panel" id="staffPanel">
-            <div class="staff-row"><span>DHL cost rate</span><span>${CURRENCY}${baseCost.toFixed(2)}</span></div>
+            <div class="staff-row"><span>DHL ${directionLabel.toLowerCase()} cost rate</span><span>${CURRENCY}${baseCost.toFixed(2)}</span></div>
             <div class="staff-row"><span>Margin (45%)</span><span>${CURRENCY}${margin.toFixed(2)}</span></div>
             <div class="staff-row total"><span>Customer price</span><span>${CURRENCY}${finalPrice.toFixed(2)}</span></div>
             <div class="staff-note">This section is for internal reference only &mdash; do not share the DHL cost rate with customers. Not shown when this page is printed.</div>
@@ -553,22 +660,24 @@
     }
 
     function copyQuote(btn) {
-      const country = selectedZoneEntry.country;
-      const weightRaw = document.getElementById("weightInput").value;
-      const type = currentType === "documents" && parseFloat(weightRaw) <= 2.0 ? "Documents" : "Parcel (Non-Documents)";
-      const row = findRateRow(
-        (currentType === "documents" && parseFloat(weightRaw) > 2.0) ? "nondocuments" : currentType,
-        parseFloat(weightRaw)
-      );
+      const weightRaw = parseFloat(document.getElementById("weightInput").value);
+      const vol = computeVolumetric();
+      const chargeableRaw = vol !== null ? Math.max(vol, weightRaw) : weightRaw;
+      let type = currentType;
+      if (type === "documents" && chargeableRaw > 2.0) type = "nondocuments";
+      const row = findRateRow(type, chargeableRaw, currentDirection);
       const price = (row.rates[selectedZoneEntry.zone - 1] * MARKUP).toFixed(2);
+      const typeLabel = type === "documents" ? "Documents" : "Parcel (Non-Documents)";
+      const originName = currentDirection === "export" ? "South Africa" : selectedZoneEntry.country;
+      const destName = currentDirection === "export" ? selectedZoneEntry.country : "South Africa";
 
-      const text = `Mok Transports Services (Pty) Ltd — International Courier Quote
-Destination: ${country}
-Shipment type: ${type}
-Weight: up to ${row.kg} kg
+      const text = `Mok Transports Services (Pty) Ltd \u2014 DHL Courier Quote
+Route: ${originName} to ${destName}
+Shipment type: ${typeLabel}
+Chargeable weight: up to ${row.kg} kg
 Quoted price: ${CURRENCY}${price}
 
-This quote excludes customs duties, taxes and any applicable fuel surcharge. Valid for 7 days from date of issue.`;
+This quote excludes customs duties, taxes and any applicable fuel/demand surcharge. Valid for 7 days from date of issue.`;
 
       navigator.clipboard.writeText(text).then(() => {
         const original = btn.textContent;
