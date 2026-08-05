@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mok Transports | DHL Export Quote</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --navy: #041b33;
+      --blue: #0049ad;
+      --sky: #2f6fc9;
+      --blue-tint: #e8f0fb;
+      --orange: #55636f;
+      --orange-tint: #eef1f4;
+      --green: #16191d;
+      --green-tint: #e9eaec;
+      --purple: #8a95a1;
+      --purple-tint: #eef0f3;
+      --teal: #2f6fc9;
+      --teal-tint: #e8f0fb;
+      --red: #b3261e;
+      --red-tint: #fbeceb;
+      --silver: #a9a9a9;
+      --bg: #f2f4f6;
+      --card: #ffffff;
+      --border: #dde2e7;
+      --text: #16191d;
+      --muted: #5c6773;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); }
+
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; width: 248px; background: var(--navy);
+      display: flex; flex-direction: column; z-index: 100; box-shadow: 8px 0 24px rgba(13, 33, 55, .16);
+    }
+    .sidebar-logo { display: flex; align-items: center; gap: 12px; padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, .08); }
+    .sidebar-logo img { height: 42px; background: #fff; padding: 4px; border-radius: 6px; }
+    .sidebar-logo-text { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 800; color: #fff; line-height: 1.15; letter-spacing: .3px; }
+    .sidebar-logo-text span { display: block; font-size: 10px; font-weight: 400; color: #90a4ae; letter-spacing: 1.4px; text-transform: uppercase; margin-top: 2px; }
+    .sidebar-user { padding: 17px 20px; border-bottom: 1px solid rgba(255, 255, 255, .06); }
+    .sidebar-user-name { font-size: 13px; font-weight: 700; color: #e8eef4; }
+    .sidebar-user-role { font-size: 11px; color: #90a4ae; margin-top: 3px; text-transform: uppercase; letter-spacing: 1px; }
+    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+    .nav-section { padding: 14px 20px 6px; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: #5d7482; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 20px; color: #9fb3bf; font-size: 13px; font-weight: 600; text-decoration: none; border-left: 3px solid transparent; transition: .15s; }
+    .nav-item:hover { color: #fff; background: rgba(255, 255, 255, .05); border-left-color: rgba(21, 101, 192, .6); }
+    .nav-item.active { color: #fff; background: rgba(21, 101, 192, .18); border-left-color: var(--blue); }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255, 255, 255, .08); }
+    .logout-btn { width: 100%; height: 38px; border: 1px solid rgba(255, 255, 255, .14); background: transparent; color: #90a4ae; border-radius: 6px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .logout-btn:hover { color: #fff; background: rgba(198, 40, 40, .18); border-color: rgba(198, 40, 40, .45); }
+
+    .main { margin-left: 248px; min-height: 100vh; }
+    .topbar { height: 68px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: sticky; top: 0; z-index: 50; }
+    .topbar-title { font-family: 'Barlow Condensed', sans-serif; font-size: 23px; font-weight: 800; color: var(--navy); letter-spacing: .5px; }
+    .topbar-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+    .btn-primary { height: 38px; padding: 0 18px; border: none; border-radius: 6px; cursor: pointer; color: #fff; background: var(--blue); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary.dark { background: var(--navy); }
+    .btn-primary.ghost { background: transparent; color: var(--blue); border: 1px solid var(--blue); }
+    .btn-primary:disabled { background: #b0bec5; cursor: not-allowed; }
+
+    .page-body { padding: 28px 30px 50px; max-width: 1500px; }
+
+    .quote-grid { display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 1fr); gap: 24px; align-items: start; }
+    @media (max-width: 980px) { .quote-grid { grid-template-columns: 1fr; } }
+
+    .panel-card { background: var(--card); border: 1px solid var(--border); border-radius: 13px; overflow: hidden; box-shadow: 0 5px 18px rgba(13, 33, 55, .045); min-width: 0; }
+    .panel-header { padding: 16px 18px; border-bottom: 1px solid var(--border); background: #fafbfc; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .panel-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; color: var(--navy); letter-spacing: .5px; text-transform: uppercase; }
+    .panel-body { padding: 20px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 7px; }
+    .form-input, .form-select { width: 100%; height: 44px; border: 1px solid var(--border); border-radius: 6px; padding: 0 14px; font-family: 'Barlow', sans-serif; font-size: 14px; outline: none; background: #fff; color: var(--text); }
+    .form-input:focus, .form-select:focus { border-color: var(--blue); }
+    .form-hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+    .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .type-btn { height: 62px; border: 1px solid var(--border); border-radius: 9px; background: #fff; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; transition: .15s; }
+    .type-btn .sub { font-family: 'Barlow', sans-serif; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; color: #90a4ae; }
+    .type-btn.active { border-color: var(--blue); background: var(--blue-tint); color: var(--blue); }
+    .type-btn.active .sub { color: var(--sky); }
+
+    .calc-btn { width: 100%; height: 48px; margin-top: 4px; }
+
+    .result-empty { padding: 60px 30px; text-align: center; color: var(--muted); }
+    .result-empty svg { color: #c6ced5; margin-bottom: 14px; }
+    .result-empty-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; color: var(--navy); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .result-empty-sub { font-size: 13px; max-width: 320px; margin: 0 auto; line-height: 1.5; }
+
+    .result-body { padding: 24px; }
+    .result-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+    .result-dest { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--navy); }
+    .result-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .zone-badge { display: inline-flex; align-items: center; background: var(--navy); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: .8px; padding: 6px 12px; border-radius: 20px; text-transform: uppercase; }
+
+    .price-block { background: linear-gradient(135deg, var(--navy), #0a2f57); border-radius: 13px; padding: 26px 26px; color: #fff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; margin-bottom: 20px; }
+    .price-label { font-size: 11px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #9fb3bf; margin-bottom: 6px; }
+    .price-value { font-family: 'Barlow Condensed', sans-serif; font-size: 44px; font-weight: 800; letter-spacing: .5px; }
+    .price-value span { font-size: 20px; font-weight: 700; color: #9fb3bf; margin-right: 4px; }
+    .price-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 640px) { .detail-grid { grid-template-columns: 1fr; } }
+    .detail-item { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .detail-label { font-size: 10px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+    .detail-value { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--navy); }
+
+    .staff-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fafbfc; border: 1px solid var(--border); border-radius: 9px; cursor: pointer; user-select: none; font-size: 12px; font-weight: 700; color: var(--navy); }
+    .staff-toggle svg { transition: transform .15s; }
+    .staff-toggle.open svg { transform: rotate(180deg); }
+    .staff-panel { display: none; margin-top: 10px; border: 1px dashed var(--border); border-radius: 9px; padding: 14px 16px; background: #fffdf5; }
+    .staff-panel.open { display: block; }
+    .staff-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
+    .staff-row.total { border-top: 1px solid var(--border); margin-top: 5px; padding-top: 9px; font-weight: 800; color: var(--navy); }
+    .staff-note { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
+    .disclaimer-card { margin-top: 24px; }
+    .disclaimer-list { padding: 18px 22px; font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+    .disclaimer-list li { margin-bottom: 4px; }
+
+    .out-of-range { background: var(--red-tint); border: 1px solid #f0c4c1; color: #8a221c; padding: 14px 16px; border-radius: 9px; font-size: 13px; }
+
+    #countrySearch { position: relative; }
+    .country-list { max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; background: #fff; position: absolute; width: 100%; z-index: 40; display: none; box-shadow: 0 10px 24px rgba(13,33,55,.12); }
+    .country-list.open { display: block; }
+    .country-opt { padding: 10px 14px; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; }
+    .country-opt:hover { background: var(--blue-tint); }
+    .country-opt .z { color: var(--muted); font-size: 11px; }
+
+    @media print {
+      .sidebar, .topbar, .panel-card:first-of-type, .staff-toggle, .staff-panel, .price-actions, .disclaimer-card { display: none !important; }
+      .main { margin-left: 0; }
+      body { background: #fff; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="assets/images/mok-logo.png" alt="Mok Transports">
+      <div class="sidebar-logo-text">
+        Mok Transports
+        <span>Office Portal</span>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-user-name" id="sidebarName">—</div>
+      <div class="sidebar-user-role" id="sidebarRole">Office Staff</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Operations</div>
+
+      <a class="nav-item" href="dashboard.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+        </svg>
+        Dashboard
+      </a>
+
+      <a class="nav-item active" href="dhl-quote.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 14l2 2 4-4" />
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+        Get a Quote
+      </a>
+
+      <a class="nav-item" href="waybills.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        Waybills
+      </a>
+
+      <a class="nav-item" href="dhlShipments.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73L13 2.27a2 2 0 0 0-2 0L4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+          <path d="M3.3 7L12 12l8.7-5" />
+          <path d="M12 22V12" />
+        </svg>
+        DHL Shipments
+      </a>
+
+      <a class="nav-item" href="track.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        Track Shipments
+      </a>
+
+      <div class="nav-section">Fleet</div>
+
+      <a class="nav-item" href="trucking.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="3" width="15" height="13" rx="1" />
+          <path d="M16 8h4l3 5v3h-7V8z" />
+          <circle cx="5.5" cy="18.5" r="2.5" />
+          <circle cx="18.5" cy="18.5" r="2.5" />
+        </svg>
+        New Truck Booking
+      </a>
+
+      <a class="nav-item" href="truck-bookings.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="3" width="15" height="13" rx="1" />
+          <path d="M16 8h4l3 5v3h-7V8z" />
+          <circle cx="5.5" cy="18.5" r="2.5" />
+          <circle cx="18.5" cy="18.5" r="2.5" />
+          <path d="M6 9l2 2 4-4" />
+        </svg>
+        Manage Bookings
+      </a>
+
+      <div class="nav-section">Finance</div>
+
+      <a class="nav-item" href="invoices.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="5" width="20" height="14" rx="2" />
+          <line x1="2" y1="10" x2="22" y2="10" />
+        </svg>
+        Invoice Management
+      </a>
+
+      <a class="nav-item" href="truck-invoices.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="3" width="15" height="13" rx="1" />
+          <path d="M16 8h4l3 5v3h-7V8z" />
+          <circle cx="5.5" cy="18.5" r="2.5" />
+          <circle cx="18.5" cy="18.5" r="2.5" />
+          <line x1="4" y1="8" x2="10" y2="8" />
+        </svg>
+        Truck Invoices
+      </a>
+
+      <a class="nav-item" href="statements.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="9" y1="13" x2="15" y2="13" />
+          <line x1="9" y1="17" x2="15" y2="17" />
+        </svg>
+        Statements
+      </a>
+
+      <a class="nav-item" href="invoice.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <path d="M9 13h6M9 17h6M9 9h2" />
+        </svg>
+        Create Invoice
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="logout()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">DHL Export Quote Calculator</div>
+        <div class="topbar-subtitle">Instant customer quotes — DHL cost rates + 45% margin, by destination and weight.</div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn-primary dark" href="dashboard.html">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <div class="quote-grid">
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title">Shipment Details</div>
+          </div>
+          <div class="panel-body">
+
+            <div class="form-group" id="countrySearch">
+              <label class="form-label">Destination Country</label>
+              <input class="form-input" type="text" id="countryInput" placeholder="Start typing a country..." autocomplete="off">
+              <div class="country-list" id="countryList"></div>
+              <div class="form-hint" id="zonePreview">&nbsp;</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Shipment Type</label>
+              <div class="type-toggle">
+                <button type="button" class="type-btn active" id="typeDocBtn" onclick="setType('documents')">
+                  Documents
+                  <span class="sub">Letters, papers, certificates</span>
+                </button>
+                <button type="button" class="type-btn" id="typeParcelBtn" onclick="setType('nondocuments')">
+                  Parcel
+                  <span class="sub">Non-document / general cargo</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Weight (kg)</label>
+              <input class="form-input" type="number" id="weightInput" min="0.1" step="0.1" placeholder="e.g. 2.5">
+              <div class="form-hint">DHL charges by chargeable weight bands — this quote rounds up to the next official rate band automatically.</div>
+            </div>
+
+            <button class="btn-primary calc-btn" onclick="calculateQuote()">Calculate Quote</button>
+          </div>
+        </div>
+
+        <div class="panel-card" id="resultCard">
+          <div class="panel-header">
+            <div class="panel-title">Quote Result</div>
+          </div>
+          <div id="resultArea">
+            <div class="result-empty">
+              <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73L13 2.27a2 2 0 0 0-2 0L4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <path d="M3.3 7L12 12l8.7-5" />
+                <path d="M12 22V12" />
+              </svg>
+              <div class="result-empty-title">No Quote Yet</div>
+              <div class="result-empty-sub">Choose a destination country, shipment type and weight, then click Calculate Quote to generate a customer-ready price.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="panel-card disclaimer-card">
+        <div class="panel-header">
+          <div class="panel-title">How This Quote Is Built</div>
+        </div>
+        <ul class="disclaimer-list">
+          <li>Prices are calculated from Mok Transports&rsquo; current DHL Express export cost rate card, with a flat <strong>45% margin</strong> applied on top.</li>
+          <li>Zones follow the DHL Express Zone Guide 2026. Air Zones <strong>0, 1 and 1A</strong> (Ireland, UK) are quoted on rate-card <strong>Zone 1</strong>, and Air Zone <strong>10</strong> is quoted on rate-card <strong>Zone 9</strong>, since the current rate card only defines 9 pricing zones &mdash; confirm this mapping against your DHL account if it&rsquo;s ever customised.</li>
+          <li>Chargeable weight is rounded up to DHL&rsquo;s next official weight band, not the exact entered weight &mdash; this matches how DHL invoices Mok Transports.</li>
+          <li>Quotes exclude customs duties, taxes, and any DHL fuel/emergency surcharge, which are not part of the uploaded rate sheet &mdash; add these separately if applicable.</li>
+          <li>Prices shown are in South African Rand (R) &mdash; update the currency label in the page if your DHL account is billed in a different currency.</li>
+          <li>Covers parcels up to 70kg (the range in the current rate card). Heavier shipments need a manual DHL quote.</li>
+        </ul>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = 'https://bookings.moktransports.com/api';
+
+    const session = JSON.parse(localStorage.getItem("mokSession") || "null");
+    if (!session || !["office", "admin", "staff"].includes(session.role)) {
+      window.location.href = "login.html";
+    }
+    const staffName = session?.name || session?.user?.name || "Office User";
+    const staffRole = session?.staffRole || session?.role || "office";
+    document.getElementById("sidebarName").textContent = staffName;
+    document.getElementById("sidebarRole").textContent = staffRole === "admin" ? "Administrator" : "Office Staff";
+
+    function logout() {
+      localStorage.removeItem("mokSession");
+      localStorage.removeItem("mokLoginRole");
+      window.location.href = "login.html";
+    }
+
+    // ---- Data: DHL Zone Guide 2026 (country -> air zone -> rate-card zone) ----
+    const ZONES = [{"country":"Afghanistan","air_zone":"10","zone":9},{"country":"Albania","air_zone":"8","zone":8},{"country":"Algeria","air_zone":"10","zone":9},{"country":"American Samoa","air_zone":"10","zone":9},{"country":"Andorra","air_zone":"5","zone":5},{"country":"Angola","air_zone":"10","zone":9},{"country":"Anguilla","air_zone":"9","zone":9},{"country":"Antigua","air_zone":"9","zone":9},{"country":"Argentina","air_zone":"9","zone":9},{"country":"Armenia","air_zone":"10","zone":9},{"country":"Aruba","air_zone":"9","zone":9},{"country":"Australia","air_zone":"7","zone":7},{"country":"Austria","air_zone":"3","zone":3},{"country":"Azerbaijan","air_zone":"10","zone":9},{"country":"Bahamas","air_zone":"9","zone":9},{"country":"Bahrain","air_zone":"8","zone":8},{"country":"Bangladesh","air_zone":"9","zone":9},{"country":"Barbados","air_zone":"9","zone":9},{"country":"Belarus","air_zone":"10","zone":9},{"country":"Belgium","air_zone":"2","zone":2},{"country":"Belize","air_zone":"9","zone":9},{"country":"Benin","air_zone":"10","zone":9},{"country":"Bermuda","air_zone":"9","zone":9},{"country":"Bhutan","air_zone":"9","zone":9},{"country":"Bolivia","air_zone":"9","zone":9},{"country":"Bonaire","air_zone":"9","zone":9},{"country":"Bosnia and Herzegovina","air_zone":"8","zone":8},{"country":"Botswana","air_zone":"10","zone":9},{"country":"Brazil","air_zone":"9","zone":9},{"country":"Brunei","air_zone":"9","zone":9},{"country":"Bulgaria","air_zone":"4","zone":4},{"country":"Burkina Faso","air_zone":"10","zone":9},{"country":"Burundi","air_zone":"10","zone":9},{"country":"Cambodia","air_zone":"9","zone":9},{"country":"Cameroon","air_zone":"10","zone":9},{"country":"Canada","air_zone":"6","zone":6},{"country":"Canary Islands","air_zone":"5","zone":5},{"country":"Cape Verde","air_zone":"10","zone":9},{"country":"Cayman Islands","air_zone":"9","zone":9},{"country":"Central African Republic","air_zone":"10","zone":9},{"country":"Chad","air_zone":"10","zone":9},{"country":"Chile","air_zone":"9","zone":9},{"country":"China, People's Republic of","air_zone":"7","zone":7},{"country":"Colombia","air_zone":"9","zone":9},{"country":"Comoros","air_zone":"10","zone":9},{"country":"Congo","air_zone":"10","zone":9},{"country":"Congo, The Democratic Republic of","air_zone":"10","zone":9},{"country":"Cook Islands","air_zone":"9","zone":9},{"country":"Costa Rica","air_zone":"9","zone":9},{"country":"Cote d'Ivoire","air_zone":"10","zone":9},{"country":"Croatia","air_zone":"4","zone":4},{"country":"Cuba","air_zone":"9","zone":9},{"country":"Curacao","air_zone":"9","zone":9},{"country":"Cyprus","air_zone":"4","zone":4},{"country":"Czech Republic","air_zone":"4","zone":4},{"country":"Denmark","air_zone":"3","zone":3},{"country":"Djibouti","air_zone":"10","zone":9},{"country":"Dominica","air_zone":"9","zone":9},{"country":"Dominican Republic","air_zone":"9","zone":9},{"country":"Ecuador","air_zone":"9","zone":9},{"country":"Egypt","air_zone":"8","zone":8},{"country":"El Salvador","air_zone":"9","zone":9},{"country":"Eritrea","air_zone":"10","zone":9},{"country":"Estonia","air_zone":"4","zone":4},{"country":"Eswatini","air_zone":"10","zone":9},{"country":"Ethiopia","air_zone":"10","zone":9},{"country":"Falkland Islands","air_zone":"10","zone":9},{"country":"Faroe Islands","air_zone":"8","zone":8},{"country":"Fiji","air_zone":"9","zone":9},{"country":"Finland","air_zone":"3","zone":3},{"country":"France","air_zone":"2","zone":2},{"country":"French Guiana","air_zone":"9","zone":9},{"country":"Gabon","air_zone":"10","zone":9},{"country":"Gambia","air_zone":"10","zone":9},{"country":"Georgia","air_zone":"10","zone":9},{"country":"Germany","air_zone":"2","zone":2},{"country":"Ghana","air_zone":"10","zone":9},{"country":"Gibraltar","air_zone":"5","zone":5},{"country":"Greece","air_zone":"3","zone":3},{"country":"Greenland","air_zone":"10","zone":9},{"country":"Grenada","air_zone":"9","zone":9},{"country":"Guadeloupe","air_zone":"9","zone":9},{"country":"Guam","air_zone":"10","zone":9},{"country":"Guatemala","air_zone":"9","zone":9},{"country":"Guernsey","air_zone":"5","zone":5},{"country":"Guinea Republic","air_zone":"10","zone":9},{"country":"Guinea-Bissau","air_zone":"10","zone":9},{"country":"Guinea-Equatorial","air_zone":"10","zone":9},{"country":"Guyana","air_zone":"9","zone":9},{"country":"Haiti","air_zone":"9","zone":9},{"country":"Honduras","air_zone":"9","zone":9},{"country":"Hong Kong SAR China","air_zone":"7","zone":7},{"country":"Hungary","air_zone":"4","zone":4},{"country":"Iceland","air_zone":"5","zone":5},{"country":"India","air_zone":"7","zone":7},{"country":"Indonesia","air_zone":"7","zone":7},{"country":"Iran (Islamic Republic of)","air_zone":"10","zone":9},{"country":"Iraq","air_zone":"10","zone":9},{"country":"Ireland","air_zone":"0","zone":1},{"country":"Israel","air_zone":"8","zone":8},{"country":"Italy","air_zone":"3","zone":3},{"country":"Jamaica","air_zone":"9","zone":9},{"country":"Japan","air_zone":"7","zone":7},{"country":"Jersey","air_zone":"5","zone":5},{"country":"Jordan","air_zone":"8","zone":8},{"country":"Kazakhstan","air_zone":"9","zone":9},{"country":"Kenya","air_zone":"10","zone":9},{"country":"Kiribati","air_zone":"9","zone":9},{"country":"Korea, Republic Of","air_zone":"7","zone":7},{"country":"Korea, The D.P.R. of","air_zone":"9","zone":9},{"country":"Kosovo","air_zone":"8","zone":8},{"country":"Kuwait","air_zone":"8","zone":8},{"country":"Kyrgyzstan","air_zone":"10","zone":9},{"country":"Lao People's Democratic Republic","air_zone":"9","zone":9},{"country":"Latvia","air_zone":"4","zone":4},{"country":"Lebanon","air_zone":"8","zone":8},{"country":"Lesotho","air_zone":"10","zone":9},{"country":"Liberia","air_zone":"10","zone":9},{"country":"Libya","air_zone":"10","zone":9},{"country":"Liechtenstein","air_zone":"5","zone":5},{"country":"Lithuania","air_zone":"4","zone":4},{"country":"Luxembourg","air_zone":"2","zone":2},{"country":"Macau SAR China","air_zone":"7","zone":7},{"country":"Madagascar","air_zone":"10","zone":9},{"country":"Malawi","air_zone":"10","zone":9},{"country":"Malaysia","air_zone":"7","zone":7},{"country":"Maldives","air_zone":"9","zone":9},{"country":"Mali","air_zone":"10","zone":9},{"country":"Malta","air_zone":"4","zone":4},{"country":"Mariana Islands, Commonwealth","air_zone":"10","zone":9},{"country":"Marshall Islands","air_zone":"10","zone":9},{"country":"Martinique","air_zone":"9","zone":9},{"country":"Mauritania","air_zone":"10","zone":9},{"country":"Mauritius","air_zone":"10","zone":9},{"country":"Mayotte","air_zone":"10","zone":9},{"country":"Mexico","air_zone":"9","zone":9},{"country":"Micronesia","air_zone":"10","zone":9},{"country":"Moldova, Republic Of","air_zone":"10","zone":9},{"country":"Monaco","air_zone":"2","zone":2},{"country":"Mongolia","air_zone":"9","zone":9},{"country":"Montenegro","air_zone":"8","zone":8},{"country":"Montserrat","air_zone":"9","zone":9},{"country":"Morocco","air_zone":"10","zone":9},{"country":"Mozambique","air_zone":"10","zone":9},{"country":"Myanmar","air_zone":"9","zone":9},{"country":"Namibia","air_zone":"10","zone":9},{"country":"Nauru, Republic Of","air_zone":"9","zone":9},{"country":"Nepal","air_zone":"9","zone":9},{"country":"Netherlands","air_zone":"2","zone":2},{"country":"Nevis","air_zone":"9","zone":9},{"country":"New Caledonia","air_zone":"9","zone":9},{"country":"New Zealand","air_zone":"7","zone":7},{"country":"Nicaragua","air_zone":"9","zone":9},{"country":"Niger","air_zone":"10","zone":9},{"country":"Nigeria","air_zone":"10","zone":9},{"country":"Niue","air_zone":"9","zone":9},{"country":"North Macedonia","air_zone":"8","zone":8},{"country":"Norway","air_zone":"5","zone":5},{"country":"Oman","air_zone":"8","zone":8},{"country":"Pakistan","air_zone":"9","zone":9},{"country":"Palau","air_zone":"10","zone":9},{"country":"Panama","air_zone":"9","zone":9},{"country":"Papua New Guinea","air_zone":"9","zone":9},{"country":"Paraguay","air_zone":"9","zone":9},{"country":"Peru","air_zone":"9","zone":9},{"country":"Philippines","air_zone":"7","zone":7},{"country":"Poland","air_zone":"4","zone":4},{"country":"Portugal","air_zone":"3","zone":3},{"country":"Puerto Rico","air_zone":"9","zone":9},{"country":"Qatar","air_zone":"8","zone":8},{"country":"Reunion, Island Of","air_zone":"10","zone":9},{"country":"Romania","air_zone":"4","zone":4},{"country":"Russian Federation","air_zone":"10","zone":9},{"country":"Rwanda","air_zone":"10","zone":9},{"country":"Saint Helena","air_zone":"10","zone":9},{"country":"Samoa","air_zone":"9","zone":9},{"country":"San Marino","air_zone":"5","zone":5},{"country":"Sao Tome and Principe","air_zone":"10","zone":9},{"country":"Saudi Arabia","air_zone":"8","zone":8},{"country":"Senegal","air_zone":"10","zone":9},{"country":"Serbia, Republic of","air_zone":"8","zone":8},{"country":"Seychelles","air_zone":"10","zone":9},{"country":"Sierra Leone","air_zone":"10","zone":9},{"country":"Singapore","air_zone":"7","zone":7},{"country":"Slovakia","air_zone":"4","zone":4},{"country":"Slovenia","air_zone":"4","zone":4},{"country":"Solomon Islands","air_zone":"9","zone":9},{"country":"Somalia, Federal Republic of","air_zone":"10","zone":9},{"country":"Somaliland, Republic of","air_zone":"10","zone":9},{"country":"South Africa","air_zone":"8","zone":8},{"country":"South Sudan","air_zone":"10","zone":9},{"country":"Spain","air_zone":"3","zone":3},{"country":"Sri Lanka","air_zone":"9","zone":9},{"country":"St. Barthelemy","air_zone":"9","zone":9},{"country":"St. Eustatius","air_zone":"9","zone":9},{"country":"St. Helena","air_zone":"10","zone":9},{"country":"St. Kitts","air_zone":"9","zone":9},{"country":"St. Lucia","air_zone":"9","zone":9},{"country":"St. Maarten","air_zone":"9","zone":9},{"country":"St. Vincent","air_zone":"9","zone":9},{"country":"Sudan","air_zone":"10","zone":9},{"country":"Suriname","air_zone":"9","zone":9},{"country":"Sweden","air_zone":"3","zone":3},{"country":"Switzerland","air_zone":"5","zone":5},{"country":"Syria","air_zone":"8","zone":8},{"country":"Tahiti","air_zone":"9","zone":9},{"country":"Taiwan","air_zone":"7","zone":7},{"country":"Tajikistan","air_zone":"10","zone":9},{"country":"Tanzania","air_zone":"10","zone":9},{"country":"Thailand","air_zone":"7","zone":7},{"country":"Timor-Leste","air_zone":"9","zone":9},{"country":"Togo","air_zone":"10","zone":9},{"country":"Tonga","air_zone":"9","zone":9},{"country":"Trinidad and Tobago","air_zone":"9","zone":9},{"country":"Tunisia","air_zone":"10","zone":9},{"country":"Turkey","air_zone":"8","zone":8},{"country":"Turkmenistan","air_zone":"10","zone":9},{"country":"Turks and Caicos Islands","air_zone":"9","zone":9},{"country":"Tuvalu","air_zone":"9","zone":9},{"country":"Uganda","air_zone":"10","zone":9},{"country":"Ukraine","air_zone":"8","zone":8},{"country":"United Arab Emirates","air_zone":"8","zone":8},{"country":"United Kingdom - Northern Ireland","air_zone":"1A","zone":1},{"country":"United Kingdom - Great Britain","air_zone":"1","zone":1},{"country":"United States Of America","air_zone":"6","zone":6},{"country":"Uruguay","air_zone":"9","zone":9},{"country":"Uzbekistan","air_zone":"10","zone":9},{"country":"Vanuatu","air_zone":"9","zone":9},{"country":"Vatican City State","air_zone":"3","zone":3},{"country":"Venezuela","air_zone":"9","zone":9},{"country":"Vietnam","air_zone":"7","zone":7},{"country":"Virgin Islands (British)","air_zone":"9","zone":9},{"country":"Virgin Islands (US)","air_zone":"9","zone":9},{"country":"Yemen","air_zone":"10","zone":9},{"country":"Zambia","air_zone":"10","zone":9},{"country":"Zimbabwe","air_zone":"10","zone":9}];
+
+    // ---- Data: Mok Transports DHL export cost rates (from uploaded rate card) ----
+    const RATES = {"documents":[{"kg":0.5,"rates":[217.62,238.08,245.52,285.2,293.88,305.35,341.62,390.6,475.54]},{"kg":1.0,"rates":[305.97,356.19,452.6,560.17,588.07,603.57,651.62,752.37,919.46]},{"kg":1.5,"rates":[383.16,461.59,628.99,869.24,918.84,951.08,1021.45,1122.2,1341.68]},{"kg":2.0,"rates":[460.35,566.99,805.38,1178.31,1249.61,1298.59,1391.28,1492.03,1763.9]}],"nondocuments":[{"kg":0.5,"rates":[250.17,274.66,282.72,328.6,338.21,350.61,393.7,450.12,546.53]},{"kg":1.0,"rates":[351.54,406.72,520.49,642.94,674.56,692.23,750.2,865.83,1055.24]},{"kg":1.5,"rates":[413.54,506.54,690.68,975.88,1030.75,1061.75,1142.04,1246.2,1487.38]},{"kg":2.0,"rates":[475.54,606.36,860.87,1308.82,1386.94,1431.27,1533.88,1626.57,1919.52]},{"kg":2.5,"rates":[527.93,678.28,985.18,1497.3,1588.75,1640.52,1759.25,1851.32,2184.88]},{"kg":3.0,"rates":[556.14,723.85,1057.41,1609.52,1708.72,1766.69,1892.24,1992.06,2357.24]},{"kg":3.5,"rates":[584.35,769.42,1129.64,1721.74,1828.69,1892.86,2025.23,2132.8,2529.6]},{"kg":4.0,"rates":[612.56,814.99,1201.87,1833.96,1948.66,2019.03,2158.22,2273.54,2701.96]},{"kg":4.5,"rates":[640.77,860.56,1274.1,1946.18,2068.63,2145.2,2291.21,2414.28,2874.32]},{"kg":5.0,"rates":[668.98,906.13,1346.33,2058.4,2188.6,2271.37,2424.2,2555.02,3046.68]},{"kg":5.5,"rates":[696.57,939.61,1387.56,2123.5,2253.7,2343.91,2506.66,2637.48,3147.74]},{"kg":6.0,"rates":[724.16,973.09,1428.79,2188.6,2318.8,2416.45,2589.12,2719.94,3248.8]},{"kg":6.5,"rates":[751.75,1006.57,1470.02,2253.7,2383.9,2488.99,2671.58,2802.4,3349.86]},{"kg":7.0,"rates":[779.34,1040.05,1511.25,2318.8,2449.0,2561.53,2754.04,2884.86,3450.92]},{"kg":7.5,"rates":[806.93,1073.53,1552.48,2383.9,2514.1,2634.07,2836.5,2967.32,3551.98]},{"kg":8.0,"rates":[834.52,1107.01,1593.71,2449.0,2579.2,2706.61,2918.96,3049.78,3653.04]},{"kg":8.5,"rates":[862.11,1140.49,1634.94,2514.1,2644.3,2779.15,3001.42,3132.24,3754.1]},{"kg":9.0,"rates":[889.7,1173.97,1676.17,2579.2,2709.4,2851.69,3083.88,3214.7,3855.16]},{"kg":9.5,"rates":[917.29,1207.45,1717.4,2644.3,2774.5,2924.23,3166.34,3297.16,3956.22]},{"kg":10.0,"rates":[944.88,1240.93,1758.63,2709.4,2839.6,2996.77,3248.8,3379.62,4057.28]},{"kg":10.5,"rates":[967.2,1269.76,1792.11,2771.09,2901.6,3065.28,3321.34,3458.05,4150.9]},{"kg":11.0,"rates":[989.52,1298.59,1825.59,2832.78,2963.6,3133.79,3393.88,3536.48,4244.52]},{"kg":11.5,"rates":[1011.84,1327.42,1859.07,2894.47,3025.6,3202.3,3466.42,3614.91,4338.14]},{"kg":12.0,"rates":[1034.16,1356.25,1892.55,2956.16,3087.6,3270.81,3538.96,3693.34,4431.76]},{"kg":12.5,"rates":[1056.48,1385.08,1926.03,3017.85,3149.6,3339.32,3611.5,3771.77,4525.38]},{"kg":13.0,"rates":[1078.8,1413.91,1959.51,3079.54,3211.6,3407.83,3684.04,3850.2,4619.0]},{"kg":13.5,"rates":[1101.12,1442.74,1992.99,3141.23,3273.6,3476.34,3756.58,3928.63,4712.62]},{"kg":14.0,"rates":[1123.44,1471.57,2026.47,3202.92,3335.6,3544.85,3829.12,4007.06,4806.24]},{"kg":14.5,"rates":[1145.76,1500.4,2059.95,3264.61,3397.6,3613.36,3901.66,4085.49,4899.86]},{"kg":15.0,"rates":[1168.08,1529.23,2093.43,3326.3,3459.6,3681.87,3974.2,4163.92,4993.48]},{"kg":15.5,"rates":[1190.4,1558.06,2126.91,3387.99,3521.6,3750.38,4046.74,4242.35,5087.1]},{"kg":16.0,"rates":[1212.72,1586.89,2160.39,3449.68,3583.6,3818.89,4119.28,4320.78,5180.72]},{"kg":16.5,"rates":[1235.04,1615.72,2193.87,3511.37,3645.6,3887.4,4191.82,4399.21,5274.34]},{"kg":17.0,"rates":[1257.36,1644.55,2227.35,3573.06,3707.6,3955.91,4264.36,4477.64,5367.96]},{"kg":17.5,"rates":[1279.68,1673.38,2260.83,3634.75,3769.6,4024.42,4336.9,4556.07,5461.58]},{"kg":18.0,"rates":[1302.0,1702.21,2294.31,3696.44,3831.6,4092.93,4409.44,4634.5,5555.2]},{"kg":18.5,"rates":[1324.32,1731.04,2327.79,3758.13,3893.6,4161.44,4481.98,4712.93,5648.82]},{"kg":19.0,"rates":[1346.64,1759.87,2361.27,3819.82,3955.6,4229.95,4554.52,4791.36,5742.44]},{"kg":19.5,"rates":[1368.96,1788.7,2394.75,3881.51,4017.6,4298.46,4627.06,4869.79,5836.06]},{"kg":20.0,"rates":[1391.28,1817.53,2428.23,3943.2,4079.6,4366.97,4699.6,4948.22,5929.68]},{"kg":20.5,"rates":[1412.36,1843.26,2456.44,4004.27,4140.67,4433.31,4769.66,5025.41,6021.13]},{"kg":21.0,"rates":[1433.44,1868.99,2484.65,4065.34,4201.74,4499.65,4839.72,5102.6,6112.58]},{"kg":21.5,"rates":[1454.52,1894.72,2512.86,4126.41,4262.81,4565.99,4909.78,5179.79,6204.03]},{"kg":22.0,"rates":[1475.6,1920.45,2541.07,4187.48,4323.88,4632.33,4979.84,5256.98,6295.48]},{"kg":22.5,"rates":[1496.68,1946.18,2569.28,4248.55,4384.95,4698.67,5049.9,5334.17,6386.93]},{"kg":23.0,"rates":[1517.76,1971.91,2597.49,4309.62,4446.02,4765.01,5119.96,5411.36,6478.38]},{"kg":23.5,"rates":[1538.84,1997.64,2625.7,4370.69,4507.09,4831.35,5190.02,5488.55,6569.83]},{"kg":24.0,"rates":[1559.92,2023.37,2653.91,4431.76,4568.16,4897.69,5260.08,5565.74,6661.28]},{"kg":24.5,"rates":[1581.0,2049.1,2682.12,4492.83,4629.23,4964.03,5330.14,5642.93,6752.73]},{"kg":25.0,"rates":[1602.08,2074.83,2710.33,4553.9,4690.3,5030.37,5400.2,5720.12,6844.18]},{"kg":25.5,"rates":[1623.16,2100.56,2738.54,4614.97,4751.37,5096.71,5470.26,5797.31,6935.63]},{"kg":26.0,"rates":[1644.24,2126.29,2766.75,4676.04,4812.44,5163.05,5540.32,5874.5,7027.08]},{"kg":26.5,"rates":[1665.32,2152.02,2794.96,4737.11,4873.51,5229.39,5610.38,5951.69,7118.53]},{"kg":27.0,"rates":[1686.4,2177.75,2823.17,4798.18,4934.58,5295.73,5680.44,6028.88,7209.98]},{"kg":27.5,"rates":[1707.48,2203.48,2851.38,4859.25,4995.65,5362.07,5750.5,6106.07,7301.43]},{"kg":28.0,"rates":[1728.56,2229.21,2879.59,4920.32,5056.72,5428.41,5820.56,6183.26,7392.88]},{"kg":28.5,"rates":[1749.64,2254.94,2907.8,4981.39,5117.79,5494.75,5890.62,6260.45,7484.33]},{"kg":29.0,"rates":[1770.72,2280.67,2936.01,5042.46,5178.86,5561.09,5960.68,6337.64,7575.78]},{"kg":29.5,"rates":[1791.8,2306.4,2964.22,5103.53,5239.93,5627.43,6030.74,6414.83,7667.23]},{"kg":30.0,"rates":[1812.88,2332.13,2992.43,5164.6,5301.0,5693.77,6100.8,6492.02,7758.68]},{"kg":31.0,"rates":[1864.96,2390.1,3059.08,5305.03,5441.43,5850.32,6262.93,6667.79,7970.72]},{"kg":32.0,"rates":[1917.04,2448.07,3125.73,5445.46,5581.86,6006.87,6425.06,6843.56,8182.76]},{"kg":33.0,"rates":[1969.12,2506.04,3192.38,5585.89,5722.29,6163.42,6587.19,7019.33,8394.8]},{"kg":34.0,"rates":[2021.2,2564.01,3259.03,5726.32,5862.72,6319.97,6749.32,7195.1,8606.84]},{"kg":35.0,"rates":[2073.28,2621.98,3325.68,5866.75,6003.15,6476.52,6911.45,7370.87,8818.88]},{"kg":36.0,"rates":[2125.36,2679.95,3392.33,6007.18,6143.58,6633.07,7073.58,7546.64,9030.92]},{"kg":37.0,"rates":[2177.44,2737.92,3458.98,6147.61,6284.01,6789.62,7235.71,7722.41,9242.96]},{"kg":38.0,"rates":[2229.52,2795.89,3525.63,6288.04,6424.44,6946.17,7397.84,7898.18,9455.0]},{"kg":39.0,"rates":[2281.6,2853.86,3592.28,6428.47,6564.87,7102.72,7559.97,8073.95,9667.04]},{"kg":40.0,"rates":[2333.68,2911.83,3658.93,6568.9,6705.3,7259.27,7722.1,8249.72,9879.08]},{"kg":41.0,"rates":[2385.76,2969.8,3725.58,6709.33,6845.73,7415.82,7884.23,8425.49,10091.12]},{"kg":42.0,"rates":[2437.84,3027.77,3792.23,6849.76,6986.16,7572.37,8046.36,8601.26,10303.16]},{"kg":43.0,"rates":[2489.92,3085.74,3858.88,6990.19,7126.59,7728.92,8208.49,8777.03,10515.2]},{"kg":44.0,"rates":[2542.0,3143.71,3925.53,7130.62,7267.02,7885.47,8370.62,8952.8,10727.24]},{"kg":45.0,"rates":[2594.08,3201.68,3992.18,7271.05,7407.45,8042.02,8532.75,9128.57,10939.28]},{"kg":46.0,"rates":[2646.16,3259.65,4058.83,7411.48,7547.88,8198.57,8694.88,9304.34,11151.32]},{"kg":47.0,"rates":[2698.24,3317.62,4125.48,7551.91,7688.31,8355.12,8857.01,9480.11,11363.36]},{"kg":48.0,"rates":[2750.32,3375.59,4192.13,7692.34,7828.74,8511.67,9019.14,9655.88,11575.4]},{"kg":49.0,"rates":[2802.4,3433.56,4258.78,7832.77,7969.17,8668.22,9181.27,9831.65,11787.44]},{"kg":50.0,"rates":[2854.48,3491.53,4325.43,7973.2,8109.6,8824.77,9343.4,10007.42,11999.48]},{"kg":51.0,"rates":[2906.56,3549.5,4392.08,8113.63,8250.03,8981.32,9505.53,10183.19,12211.52]},{"kg":52.0,"rates":[2958.64,3607.47,4458.73,8254.06,8390.46,9137.87,9667.66,10358.96,12423.56]},{"kg":53.0,"rates":[3010.72,3665.44,4525.38,8394.49,8530.89,9294.42,9829.79,10534.73,12635.6]},{"kg":54.0,"rates":[3062.8,3723.41,4592.03,8534.92,8671.32,9450.97,9991.92,10710.5,12847.64]},{"kg":55.0,"rates":[3114.88,3781.38,4658.68,8675.35,8811.75,9607.52,10154.05,10886.27,13059.68]},{"kg":56.0,"rates":[3166.96,3839.35,4725.33,8815.78,8952.18,9764.07,10316.18,11062.04,13271.72]},{"kg":57.0,"rates":[3219.04,3897.32,4791.98,8956.21,9092.61,9920.62,10478.31,11237.81,13483.76]},{"kg":58.0,"rates":[3271.12,3955.29,4858.63,9096.64,9233.04,10077.17,10640.44,11413.58,13695.8]},{"kg":59.0,"rates":[3323.2,4013.26,4925.28,9237.07,9373.47,10233.72,10802.57,11589.35,13907.84]},{"kg":60.0,"rates":[3375.28,4071.23,4991.93,9377.5,9513.9,10390.27,10964.7,11765.12,14119.88]},{"kg":61.0,"rates":[3427.36,4129.2,5058.58,9517.93,9654.33,10546.82,11126.83,11940.89,14331.92]},{"kg":62.0,"rates":[3479.44,4187.17,5125.23,9658.36,9794.76,10703.37,11288.96,12116.66,14543.96]},{"kg":63.0,"rates":[3531.52,4245.14,5191.88,9798.79,9935.19,10859.92,11451.09,12292.43,14756.0]},{"kg":64.0,"rates":[3583.6,4303.11,5258.53,9939.22,10075.62,11016.47,11613.22,12468.2,14968.04]},{"kg":65.0,"rates":[3635.68,4361.08,5325.18,10079.65,10216.05,11173.02,11775.35,12643.97,15180.08]},{"kg":66.0,"rates":[3687.76,4419.05,5391.83,10220.08,10356.48,11329.57,11937.48,12819.74,15392.12]},{"kg":67.0,"rates":[3739.84,4477.02,5458.48,10360.51,10496.91,11486.12,12099.61,12995.51,15604.16]},{"kg":68.0,"rates":[3791.92,4534.99,5525.13,10500.94,10637.34,11642.67,12261.74,13171.28,15816.2]},{"kg":69.0,"rates":[3844.0,4592.96,5591.78,10641.37,10777.77,11799.22,12423.87,13347.05,16028.24]},{"kg":70.0,"rates":[3896.08,4650.93,5658.43,10781.8,10918.2,11955.77,12586.0,13522.82,16240.28]}]};
+
+    const MARKUP = 1.45;
+    const CURRENCY = "R";
+
+    let selectedZoneEntry = null;
+    let currentType = "documents";
+
+    // ---- Country search ----
+    const countryInput = document.getElementById("countryInput");
+    const countryList = document.getElementById("countryList");
+    const zonePreview = document.getElementById("zonePreview");
+
+    function renderCountryOptions(filter) {
+      const f = filter.trim().toLowerCase();
+      const matches = f
+        ? ZONES.filter(z => z.country.toLowerCase().includes(f)).slice(0, 30)
+        : [];
+      countryList.innerHTML = matches.map(z =>
+        `<div class="country-opt" data-country="${z.country}">${z.country}<span class="z">Zone ${z.zone}</span></div>`
+      ).join("");
+      countryList.classList.toggle("open", matches.length > 0);
+    }
+
+    countryInput.addEventListener("input", () => {
+      selectedZoneEntry = null;
+      zonePreview.innerHTML = "&nbsp;";
+      renderCountryOptions(countryInput.value);
+    });
+
+    countryInput.addEventListener("focus", () => renderCountryOptions(countryInput.value));
+
+    document.addEventListener("click", (e) => {
+      if (!document.getElementById("countrySearch").contains(e.target)) {
+        countryList.classList.remove("open");
+      }
+    });
+
+    countryList.addEventListener("click", (e) => {
+      const opt = e.target.closest(".country-opt");
+      if (!opt) return;
+      const name = opt.getAttribute("data-country");
+      selectedZoneEntry = ZONES.find(z => z.country === name);
+      countryInput.value = name;
+      countryList.classList.remove("open");
+      zonePreview.textContent = selectedZoneEntry
+        ? `DHL Air Zone ${selectedZoneEntry.air_zone} — rated on Zone ${selectedZoneEntry.zone}`
+        : "";
+    });
+
+    // ---- Shipment type toggle ----
+    function setType(type) {
+      currentType = type;
+      document.getElementById("typeDocBtn").classList.toggle("active", type === "documents");
+      document.getElementById("typeParcelBtn").classList.toggle("active", type === "nondocuments");
+    }
+
+    // ---- Rate lookup ----
+    function findRateRow(type, weight) {
+      const table = RATES[type];
+      for (const row of table) {
+        if (weight <= row.kg + 1e-9) return row;
+      }
+      return null; // out of range
+    }
+
+    function calculateQuote() {
+      const resultArea = document.getElementById("resultArea");
+
+      if (!selectedZoneEntry) {
+        resultArea.innerHTML = `<div class="result-body"><div class="out-of-range">Please select a destination country from the list first.</div></div>`;
+        return;
+      }
+
+      const weightRaw = parseFloat(document.getElementById("weightInput").value);
+      if (!weightRaw || weightRaw <= 0) {
+        resultArea.innerHTML = `<div class="result-body"><div class="out-of-range">Please enter a valid weight in kg.</div></div>`;
+        return;
+      }
+
+      let type = currentType;
+      let weight = weightRaw;
+
+      // Documents over 2.0kg are rated on the non-documents table (per rate card labelling)
+      if (type === "documents" && weight > 2.0) {
+        type = "nondocuments";
+      }
+
+      const row = findRateRow(type, weight);
+
+      if (!row) {
+        resultArea.innerHTML = `<div class="result-body"><div class="out-of-range">
+          This weight is above the 70kg range covered by the current rate card. Please request a manual quote from DHL for shipments over 70kg.
+        </div></div>`;
+        return;
+      }
+
+      const zoneIdx = selectedZoneEntry.zone - 1; // rates array is Zone1..Zone9 -> index 0..8
+      const baseCost = row.rates[zoneIdx];
+      const finalPrice = baseCost * MARKUP;
+      const margin = finalPrice - baseCost;
+      const typeLabel = type === "documents" ? "Documents" : "Parcel (Non-Documents)";
+
+      resultArea.innerHTML = `
+        <div class="result-body">
+          <div class="result-top">
+            <div>
+              <div class="result-dest">${selectedZoneEntry.country}</div>
+              <div class="result-meta">${typeLabel} &middot; entered weight ${weightRaw} kg</div>
+            </div>
+            <div class="zone-badge">Zone ${selectedZoneEntry.zone}</div>
+          </div>
+
+          <div class="price-block">
+            <div>
+              <div class="price-label">Customer Quote</div>
+              <div class="price-value"><span>${CURRENCY}</span>${finalPrice.toFixed(2)}</div>
+            </div>
+            <div class="price-actions">
+              <button class="btn-primary ghost" style="background:#fff" onclick="window.print()">Print Quote</button>
+              <button class="btn-primary dark" onclick="copyQuote(this)">Copy for Customer</button>
+            </div>
+          </div>
+
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-label">Chargeable Weight</div>
+              <div class="detail-value">${row.kg} kg</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Rate Zone</div>
+              <div class="detail-value">Zone ${selectedZoneEntry.zone}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Shipment Type</div>
+              <div class="detail-value">${type === "documents" ? "Documents" : "Parcel"}</div>
+            </div>
+          </div>
+
+          <div class="staff-toggle" id="staffToggle" onclick="toggleStaffPanel()">
+            <span>Staff only &mdash; cost &amp; margin breakdown</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="staff-panel" id="staffPanel">
+            <div class="staff-row"><span>DHL cost rate</span><span>${CURRENCY}${baseCost.toFixed(2)}</span></div>
+            <div class="staff-row"><span>Margin (45%)</span><span>${CURRENCY}${margin.toFixed(2)}</span></div>
+            <div class="staff-row total"><span>Customer price</span><span>${CURRENCY}${finalPrice.toFixed(2)}</span></div>
+            <div class="staff-note">This section is for internal reference only &mdash; do not share the DHL cost rate with customers. Not shown when this page is printed.</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleStaffPanel() {
+      document.getElementById("staffToggle").classList.toggle("open");
+      document.getElementById("staffPanel").classList.toggle("open");
+    }
+
+    function copyQuote(btn) {
+      const country = selectedZoneEntry.country;
+      const weightRaw = document.getElementById("weightInput").value;
+      const type = currentType === "documents" && parseFloat(weightRaw) <= 2.0 ? "Documents" : "Parcel (Non-Documents)";
+      const row = findRateRow(
+        (currentType === "documents" && parseFloat(weightRaw) > 2.0) ? "nondocuments" : currentType,
+        parseFloat(weightRaw)
+      );
+      const price = (row.rates[selectedZoneEntry.zone - 1] * MARKUP).toFixed(2);
+
+      const text = `Mok Transports Services (Pty) Ltd — International Courier Quote
+Destination: ${country}
+Shipment type: ${type}
+Weight: up to ${row.kg} kg
+Quoted price: ${CURRENCY}${price}
+
+This quote excludes customs duties, taxes and any applicable fuel surcharge. Valid for 7 days from date of issue.`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      });
+    }
+  </script>
+</body>
+
+</html>
+
+
+
