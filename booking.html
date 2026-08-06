@@ -1151,7 +1151,7 @@
     const o = document.createElement('option');
     o.value = i;
     const company = qfField(a, ['company_name', 'companyName', 'name']);
-    const street = qfField(a, ['street_address', 'streetAddress', 'address', 'address_line_1', 'addressLine1', 'line1', 'street']);
+    const street = qfField(a, ['address_1', 'street_address', 'streetAddress', 'address', 'address_line_1', 'addressLine1', 'line1', 'street']);
     const town = qfField(a, ['town', 'city']);
     o.textContent = `${company}${street ? ' — ' + street : ''}${town ? ', ' + town : ''}`;
     sel.appendChild(o);
@@ -1165,7 +1165,7 @@
     if (!a) return;
 
     otisSet(`${prefix}Company`, qfField(a, ['company_name', 'companyName', 'name']));
-    otisSet(`${prefix}Address`, qfField(a, ['street_address', 'streetAddress', 'address', 'address_line_1', 'addressLine1', 'line1', 'street']));
+    otisSet(`${prefix}Address`, qfField(a, ['address_1', 'street_address', 'streetAddress', 'address', 'address_line_1', 'addressLine1', 'line1', 'street']));
     otisSet(`${prefix}Address2`, qfField(a, ['address_line_2', 'addressLine2', 'line2', 'address2']));
     otisSet(`${prefix}Suburb`, qfField(a, ['suburb']));
     otisSet(`${prefix}Town`, qfField(a, ['town', 'city']));
@@ -1193,6 +1193,5 @@
 </body>
 
 </html>
-
 
 
