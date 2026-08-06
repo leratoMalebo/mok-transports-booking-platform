@@ -385,6 +385,202 @@
       margin-bottom: 10px;
     }
 
+    /* ===== QUICK FILL PANEL (redesigned) ===== */
+    .qf-panel {
+      background: linear-gradient(135deg, #f4f8ff 0%, #eef3fc 100%);
+      border: 1px solid #d3e0f7;
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(13, 33, 55, .06);
+    }
+
+    .qf-panel-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .qf-panel-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--mok-blue);
+      color: #fff;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .qf-panel-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      color: var(--mok-navy);
+    }
+
+    .qf-panel-sub {
+      font-size: 11px;
+      color: var(--mok-muted);
+      margin: -8px 0 14px 30px;
+    }
+
+    .qf-field {
+      margin-bottom: 12px;
+    }
+
+    .qf-field:last-child {
+      margin-bottom: 0;
+    }
+
+    .qf-label {
+      font-size: 11px;
+      color: var(--mok-muted);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 5px;
+      letter-spacing: .3px;
+    }
+
+    .qf-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .qf-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .qf-select {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--mok-border);
+      border-radius: 6px;
+      padding: 0 12px;
+      font-size: 13px;
+      font-family: 'Barlow', sans-serif;
+      outline: none;
+      background: #fff;
+      color: var(--mok-text);
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .qf-select:focus {
+      border-color: var(--mok-blue);
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, .1);
+    }
+
+    /* Company search / autocomplete */
+    .qf-autocomplete {
+      position: relative;
+    }
+
+    .qf-search-input {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--mok-border);
+      border-radius: 6px;
+      padding: 0 36px 0 12px;
+      font-size: 13px;
+      font-family: 'Barlow', sans-serif;
+      outline: none;
+      background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23607d8b" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg>') no-repeat right 12px center;
+      background-size: 15px;
+      color: var(--mok-text);
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .qf-search-input:focus {
+      border-color: var(--mok-blue);
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, .1);
+    }
+
+    .qf-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      max-height: 240px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid var(--mok-border);
+      border-radius: 6px;
+      box-shadow: 0 6px 18px rgba(13, 33, 55, .14);
+      z-index: 50;
+    }
+
+    .qf-dropdown-item {
+      padding: 9px 14px;
+      font-size: 13px;
+      color: var(--mok-text);
+      cursor: pointer;
+      border-bottom: 1px solid #f0f4f8;
+    }
+
+    .qf-dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .qf-dropdown-item:hover,
+    .qf-dropdown-item.active {
+      background: #eaf2fd;
+      color: var(--mok-blue);
+    }
+
+    .qf-dropdown-empty {
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--mok-muted);
+      font-style: italic;
+    }
+
+    .qf-selected-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e3edfb;
+      color: var(--mok-blue);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+
+    /* Otis hub buttons */
+    .otis-quick-fill {
+      margin-bottom: 16px;
+      padding: 16px 18px;
+      background: linear-gradient(135deg, #f4f8ff 0%, #eef3fc 100%);
+      border: 1px solid #d3e0f7;
+      border-radius: 8px;
+    }
+
+    .otis-quick-fill-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--mok-navy);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .otis-quick-fill .btn-mok {
+      margin: 0 6px 6px 0;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 600px) {
       .header-inner {
@@ -448,36 +644,33 @@
       <div class="section-title">From (Consignor)</div>
 
       <!-- QUICK FILL PANEL -->
-      <div id="qfPanel" style="display:none;margin-bottom:16px;padding:14px 16px;
-        background:#f0f4ff;border-radius:8px;border:1.5px solid #c5d5f5">
-        <div style="font-size:11px;font-weight:700;color:#1565c0;text-transform:uppercase;
-          letter-spacing:.8px;margin-bottom:10px">⚡ Quick Fill — Address Book</div>
+      <div id="qfPanel" class="qf-panel" style="display:none">
+        <div class="qf-panel-head">
+          <span class="qf-panel-icon">⚡</span>
+          <span class="qf-panel-title">Quick Fill — Address Book</span>
+        </div>
+        <div class="qf-panel-sub">Search a company below to pull its saved addresses in automatically.</div>
 
-        <!-- Staff: Company selector -->
-        <!-- Staff: Company selector -->
-        <div id="qfCompanyRow" style="display:none;margin-bottom:8px">
-          <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Client
-            Company</label>
-          <select id="qfCompany" class="browser-default" onchange="qfLoadAddresses()" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
-    padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
-            <option value="">— Select company —</option>
-          </select>
+        <!-- Company search (staff + clients, excl. Otis) -->
+        <div id="qfCompanyRow" class="qf-field" style="display:none">
+          <label class="qf-label">Client Company</label>
+          <div class="qf-autocomplete">
+            <input type="text" id="qfCompanySearch" class="qf-search-input" placeholder="Search company name…"
+              autocomplete="off" oninput="qfFilterCompanies(this.value)" onfocus="qfFilterCompanies(this.value)">
+            <div id="qfCompanyDropdown" class="qf-dropdown"></div>
+          </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div>
-            <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">From
-              Address</label>
-            <select id="qfFromAddr" class="browser-default" onchange="qfApply('from',this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
-      padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
+        <div class="qf-row">
+          <div class="qf-field">
+            <label class="qf-label">From Address</label>
+            <select id="qfFromAddr" class="browser-default qf-select" onchange="qfApply('from',this.value)">
               <option value="">— Select from address —</option>
             </select>
           </div>
-          <div>
-            <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">To
-              Address</label>
-            <select id="qfToAddr" class="browser-default" onchange="qfApply('to',this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:6px;
-      padding:0 10px;font-size:13px;outline:none;background:#fff;color:#1a2535">
+          <div class="qf-field">
+            <label class="qf-label">To Address</label>
+            <select id="qfToAddr" class="browser-default qf-select" onchange="qfApply('to',this.value)">
               <option value="">— Select to address —</option>
             </select>
           </div>
@@ -815,21 +1008,32 @@
 
     // ── DB-DRIVEN ADDRESS BOOK ────────────────────────────────────
     const QF_API = 'https://bookings.moktransports.com/api';
-    let _qfCache = [];
+    let _qfCache = [];       // addresses for the currently selected company
+    let _qfCompanies = [];   // full company list (staff + regular clients)
     let _qfSess = JSON.parse(localStorage.getItem('mokSession') || 'null');
     let _qfStaff = _qfSess && ['staff', 'admin'].includes(_qfSess.role);
     let _qfCo = ((_qfSess && (_qfSess.company || _qfSess.name)) || '').toLowerCase();
+    let _qfIsOtis = !!(_qfCo && _qfCo.indexOf('otis') !== -1);
+
+    // Pull a value out of an address record regardless of which key name
+    // the backend used for it (keeps quick fill working even if the API
+    // response shape changes / differs from what's documented).
+    function qfField(a, keys) {
+    for (const k of keys) {
+    if (a[k] !== undefined && a[k] !== null && a[k] !== '') return a[k];
+    }
+    return '';
+    }
 
     async function qfInit() {
-    // 1. SAFE CHECK FIRST: If Otis client, inject real operational buttons inside wrappers
-    if (_qfCo && _qfCo.indexOf('otis') !== -1) {
+    // 1. Otis clients keep their dedicated hub quick-fill buttons —
+    //    they don't use the searchable company address book below.
+    if (_qfIsOtis) {
 
     // Build & populate From Buttons
     document.getElementById('otisFromWrap').innerHTML = `
-    <div style="margin-bottom:16px; padding:12px; background:#f0f4ff; border-radius:6px; border:1px dashed #1565c0;">
-      <span
-        style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; display:block; margin-bottom:6px">📍
-        Otis Quick Fill Pickup</span>
+    <div class="otis-quick-fill">
+      <span class="otis-quick-fill-label">📍 Otis Quick Fill Pickup</span>
       <button type="button" class="btn-mok primary small" onclick="fillOtisFrom('jhb')">Johannesburg HQ</button>
       <button type="button" class="btn-mok primary small" onclick="fillOtisTo('jhb1')">Johannesburg Hub</button>
       <button type="button" class="btn-mok primary small" onclick="fillOtisFrom('dbn')">Durban Hub</button>
@@ -842,10 +1046,8 @@
 
     // Build & populate To Buttons
     document.getElementById('otisToWrap').innerHTML = `
-    <div style="margin-bottom:16px; padding:12px; background:#f0f4ff; border-radius:6px; border:1px dashed #1565c0;">
-      <span
-        style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; display:block; margin-bottom:6px">🏁
-        Otis Quick Fill Delivery</span>
+    <div class="otis-quick-fill">
+      <span class="otis-quick-fill-label">🏁 Otis Quick Fill Delivery</span>
       <button type="button" class="btn-mok primary small" onclick="fillOtisTo('jhb')">Johannesburg HQ</button>
       <button type="button" class="btn-mok primary small" onclick="fillOtisTo('jhb1')">Johannesburg Kotu</button>
       <button type="button" class="btn-mok primary small" onclick="fillOtisTo('dbn')">Durban Hub</button>
@@ -854,7 +1056,6 @@
       <button type="button" class="btn-mok primary small" onclick="fillOtisTo('bfn')">Bloemfontein Hub</button>
       <button type="button" class="btn-mok primary small" onclick="fillOtisTo('EL')">East London Hub</button>
       <button type="button" class="btn-mok primary small" onclick="fillOtisTo('PE')">Port Elizabeth Hub</button>
-
     </div>`;
 
     document.getElementById('otisFromWrap').style.display = 'block';
@@ -866,47 +1067,69 @@
     return;
     }
 
-    // 2. Staff workflow
-    if (_qfStaff) {
+    // 2. Everyone else — staff AND regular clients — gets the searchable
+    //    company quick fill.
     try {
     const res = await fetch(`${QF_API}/addresses/companies`);
-    const cos = await res.json();
-    const sel = document.getElementById('qfCompany');
+    _qfCompanies = await res.json();
+    } catch (e) {
+    console.error('QF companies error:', e);
+    _qfCompanies = [];
+    }
 
-    sel.innerHTML = '<option value="">— Select company —</option>';
-    cos.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c; o.textContent = c;
-    sel.appendChild(o);
-    });
+    if (!_qfCompanies.length) return; // nothing to offer — leave panel hidden
 
     document.getElementById('qfCompanyRow').style.display = 'block';
     document.getElementById('qfPanel').style.display = 'block';
-    } catch (e) { console.error('QF companies error:', e); }
-    }
-    // 3. Regular client workflow
-    else if (_qfCo) {
-    try {
-    const res = await fetch(`${QF_API}/addresses?type=local`);
-    const all = await res.json();
 
-    const mine = all.filter(a => {
-    const an = a.company_name.toLowerCase();
-    return an.includes(_qfCo.split(' ')[0]) || _qfCo.includes(an.split(' ')[0]);
+    // Convenience: clients get their own company preselected & pre-loaded,
+    // but can still search and switch to any other company.
+    if (!_qfStaff && _qfCo) {
+    const mine = _qfCompanies.find(c => {
+    const cn = c.toLowerCase();
+    return cn.includes(_qfCo.split(' ')[0]) || _qfCo.includes(cn.split(' ')[0]);
     });
-    if (mine.length) {
-    _qfCache = mine;
-    qfPopulate(mine);
-    document.getElementById('qfPanel').style.display = 'block';
-    }
-    } catch (e) {
-    console.error('QF addresses error:', e);
+    if (mine) {
+    document.getElementById('qfCompanySearch').value = mine;
+    qfLoadAddresses(mine);
     }
     }
     }
 
-    async function qfLoadAddresses() {
-    const company = document.getElementById('qfCompany').value;
+    function qfFilterCompanies(term) {
+    const dd = document.getElementById('qfCompanyDropdown');
+    if (!dd) return;
+    const t = (term || '').toLowerCase().trim();
+    const matches = (t ? _qfCompanies.filter(c => c.toLowerCase().includes(t)) : _qfCompanies).slice(0, 50);
+
+    if (!matches.length) {
+    dd.innerHTML = '<div class="qf-dropdown-empty">No matching companies</div>';
+    } else {
+    dd.innerHTML = matches.map(c =>
+    `<div class="qf-dropdown-item" onmousedown="qfSelectCompany('${c.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${c}</div>`
+    ).join('');
+    }
+    dd.style.display = 'block';
+    }
+
+    function qfSelectCompany(company) {
+    const input = document.getElementById('qfCompanySearch');
+    if (input) input.value = company;
+    const dd = document.getElementById('qfCompanyDropdown');
+    if (dd) dd.style.display = 'none';
+    qfLoadAddresses(company);
+    }
+
+    // Close the dropdown when clicking elsewhere on the page
+    document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('qfCompanyRow');
+    const dd = document.getElementById('qfCompanyDropdown');
+    if (wrap && dd && !wrap.contains(e.target)) {
+    dd.style.display = 'none';
+    }
+    });
+
+    async function qfLoadAddresses(company) {
     if (!company) {
     _qfCache = [];
     qfPopulate([]);
@@ -927,7 +1150,10 @@
     addresses.forEach((a, i) => {
     const o = document.createElement('option');
     o.value = i;
-    o.textContent = `${a.company_name} - ${a.street_address}, ${a.town || a.city || ''}`;
+    const company = qfField(a, ['company_name', 'companyName', 'name']);
+    const street = qfField(a, ['street_address', 'streetAddress', 'address', 'address_line_1', 'addressLine1', 'line1', 'street']);
+    const town = qfField(a, ['town', 'city']);
+    o.textContent = `${company}${street ? ' — ' + street : ''}${town ? ', ' + town : ''}`;
     sel.appendChild(o);
     });
     });
@@ -938,16 +1164,16 @@
     const a = _qfCache[parseInt(index)];
     if (!a) return;
 
-    otisSet(`${prefix}Company`, a.company_name);
-    otisSet(`${prefix}Address`, a.street_address);
-    otisSet(`${prefix}Address2`, a.address_line_2 || '');
-    otisSet(`${prefix}Suburb`, a.suburb);
-    otisSet(`${prefix}Town`, a.town || a.city || '');
-    otisSet(`${prefix}Province`, a.province);
-    otisSet(`${prefix}Postal`, a.postal_code || a.postcode || '');
-    otisSet(`${prefix}Contact`, a.phone || a.contact_number || '');
-    otisSet(`${prefix}Email`, a.email || '');
-    otisSet(prefix === 'from' ? 'consignorContactName' : 'consigneeContactName', a.contact_name || '');
+    otisSet(`${prefix}Company`, qfField(a, ['company_name', 'companyName', 'name']));
+    otisSet(`${prefix}Address`, qfField(a, ['street_address', 'streetAddress', 'address', 'address_line_1', 'addressLine1', 'line1', 'street']));
+    otisSet(`${prefix}Address2`, qfField(a, ['address_line_2', 'addressLine2', 'line2', 'address2']));
+    otisSet(`${prefix}Suburb`, qfField(a, ['suburb']));
+    otisSet(`${prefix}Town`, qfField(a, ['town', 'city']));
+    otisSet(`${prefix}Province`, qfField(a, ['province', 'state']));
+    otisSet(`${prefix}Postal`, qfField(a, ['postal_code', 'postcode', 'postalCode', 'postal']));
+    otisSet(`${prefix}Contact`, qfField(a, ['phone', 'contact_number', 'contactNumber']));
+    otisSet(`${prefix}Email`, qfField(a, ['email']));
+    otisSet(prefix === 'from' ? 'consignorContactName' : 'consigneeContactName', qfField(a, ['contact_name', 'contactName']));
 
     if (typeof calculateDistance === 'function') {
     calculateDistance();
@@ -967,7 +1193,6 @@
 </body>
 
 </html>
-
 
 
 
