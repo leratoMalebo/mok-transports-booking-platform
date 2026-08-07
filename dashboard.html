@@ -1210,8 +1210,69 @@
       background: #fafbfc;
       cursor: pointer
     }
+
+    /* ===== STAFF PERFORMANCE ===== */
+    .perf-week-select {
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 12px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      min-width: 160px;
+    }
+
+    .perf-week-select:focus {
+      border-color: var(--blue);
+    }
+
+    .staff-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .staff-name-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .staff-total-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--navy);
+    }
+
+    .status-ok {
+      background: #e6f4ea;
+      color: #1e7e34;
+    }
+
+    .status-warn {
+      background: var(--orange-tint);
+      color: var(--orange);
+    }
+
+    .status-critical {
+      background: #fdecea;
+      color: #c62828;
+    }
   </style>
 </head>
+
 
 <body>
 
@@ -1304,6 +1365,15 @@
           <path d="M6 9l2 2 4-4" />
         </svg>
         Manage Bookings
+      </a>
+
+      <div class="nav-section">Team</div>
+
+      <a class="nav-item" href="#staff-performance">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 20V10M12 20V4M6 20v-6" />
+        </svg>
+        Staff Reports
       </a>
 
       <div class="nav-section">Finance</div>
@@ -1559,6 +1629,43 @@
           </div>
         </div>
 
+      </section>
+
+      <section class="panel-card" id="staff-performance" style="margin-bottom:22px;">
+        <div class="panel-header">
+          <div class="panel-title">Staff Performance — Weekly</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <select id="perfWeekSelect" class="perf-week-select" onchange="renderStaffPerformance()"></select>
+            <button class="btn-primary dark" type="button" onclick="downloadStaffPerformanceCSV()">⬇ Download
+              CSV</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:18px;">
+          <div class="small-muted" style="margin-bottom:14px;">
+            Counts shipments booked by office staff only (Local courier, DHL and Trucking). Shipments a client created
+            themselves after logging in are excluded from these totals.
+          </div>
+          <table class="data-table" style="min-width:760px;">
+            <thead>
+              <tr>
+                <th>Staff Member</th>
+                <th>Local (JKJ)</th>
+                <th>DHL</th>
+                <th>Trucking</th>
+                <th>Total Shipments</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="staffPerfBody">
+              <tr>
+                <td colspan="6">
+                  <div class="empty-state">Loading…</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="small-muted" id="clientSelfServiceNote" style="margin-top:12px;"></div>
+        </div>
       </section>
 
       <section class="content-grid">
@@ -1851,6 +1958,7 @@
       updateStats();
       renderRecentShipments();
       renderServiceHubs();
+      renderStaffPerformance();
 
       const activeStaff = recentActiveStaff(
         [...waybills, ...dhlShipments, ...truckBookings],
@@ -2014,6 +2122,180 @@
       const truckCounts = bucketLastDays(truckBookings, "created_at", 7);
       renderMiniChart("truckChart", truckCounts, "--green");
       document.getElementById("truckTrend").textContent = trendLabel(truckCounts);
+    }
+
+    // ── STAFF PERFORMANCE (WEEKLY) ─────────────────────────────────
+    // Reports how many shipments each office staff member personally
+    // booked, per week, excluding anything a client created themselves
+    // by logging in. Add/remove names here as the ops team changes.
+    const STAFF_ROSTER = ["Mavis Seloma", "Neo Lumkwana"];
+
+    // Same fallback field order used for the "on duty" strip above —
+    // whichever of these a record has populated is treated as its creator.
+    const CREATOR_FIELDS = ["staff_name", "created_by", "agent_name", "user_name", "processed_by"];
+
+    function getCreatorName(record) {
+      for (const f of CREATOR_FIELDS) {
+        if (record[f]) return String(record[f]).trim();
+      }
+      return "";
+    }
+
+    // A record counts for a roster member only if its creator name matches
+    // them — this is what excludes client self-service bookings, since a
+    // client-created record's creator field holds the client's own
+    // name/company rather than a staff member's name.
+    function matchesStaff(creatorName, staffName) {
+      if (!creatorName) return false;
+      const a = creatorName.toLowerCase();
+      const b = staffName.toLowerCase();
+      return a === b || a.includes(b) || b.includes(a);
+    }
+
+    // Monday-start week bounds. offset 0 = current week, 1 = last week, etc.
+    function getWeekBounds(offset) {
+      const now = new Date();
+      const day = (now.getDay() + 6) % 7; // Mon = 0
+      const monday = new Date(now);
+      monday.setHours(0, 0, 0, 0);
+      monday.setDate(now.getDate() - day - (offset * 7));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 7);
+      return { start: monday, end: sunday };
+    }
+
+    function weekLabel(offset, bounds) {
+      const fmt = (d) => d.toLocaleDateString("en-ZA", { day: "2-digit", month: "short" });
+      const base = offset === 0 ? "This week" : offset === 1 ? "Last week" : `${offset} weeks ago`;
+      return `${base} (${fmt(bounds.start)} – ${fmt(new Date(bounds.end - 86400000))})`;
+    }
+
+    function populateWeekSelect() {
+      const sel = document.getElementById("perfWeekSelect");
+      if (!sel || sel.options.length) return; // build once
+      for (let i = 0; i < 8; i++) {
+        const bounds = getWeekBounds(i);
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = weekLabel(i, bounds);
+        sel.appendChild(opt);
+      }
+    }
+
+    function inWeek(dateStr, bounds) {
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return d >= bounds.start && d < bounds.end;
+    }
+
+    function computeStaffPerformance(offset) {
+      const bounds = getWeekBounds(offset);
+      const sources = [
+        { key: "local", records: waybills },
+        { key: "dhl", records: dhlShipments },
+        { key: "trucking", records: truckBookings }
+      ];
+
+      const rows = STAFF_ROSTER.map(name => ({ name, local: 0, dhl: 0, trucking: 0 }));
+      let excludedCount = 0;
+      let totalInWeek = 0;
+
+      sources.forEach(({ key, records }) => {
+        (records || []).forEach(r => {
+          if (!inWeek(r.created_at, bounds)) return;
+          totalInWeek++;
+          const creator = getCreatorName(r);
+          const row = rows.find(row => matchesStaff(creator, row.name));
+          if (row) {
+            row[key]++;
+          } else {
+            excludedCount++;
+          }
+        });
+      });
+
+      return { bounds, rows, excludedCount, totalInWeek };
+    }
+
+    function statusFor(total) {
+      if (total === 0) return { cls: "status-critical", label: "Needs review" };
+      if (total < 5) return { cls: "status-warn", label: "Below target" };
+      return { cls: "status-ok", label: "On track" };
+    }
+
+    let _lastPerf = null;
+
+    function renderStaffPerformance() {
+      populateWeekSelect();
+      const sel = document.getElementById("perfWeekSelect");
+      const offset = parseInt(sel?.value || "0", 10);
+      const perf = computeStaffPerformance(offset);
+      _lastPerf = perf;
+
+      const body = document.getElementById("staffPerfBody");
+      if (!body) return;
+
+      if (!perf.rows.length) {
+        body.innerHTML = `<tr><td colspan="6"><div class="empty-state">No staff configured in STAFF_ROSTER.</div></td></tr>`;
+      } else {
+        body.innerHTML = perf.rows.map(r => {
+          const total = r.local + r.dhl + r.trucking;
+          const status = statusFor(total);
+          return `<tr>
+            <td>
+              <div class="staff-name-cell">
+                <div class="staff-name-avatar">${initials(r.name)}</div>
+                <span>${r.name}</span>
+              </div>
+            </td>
+            <td>${r.local}</td>
+            <td>${r.dhl}</td>
+            <td>${r.trucking}</td>
+            <td><span class="staff-total-val">${total}</span></td>
+            <td><span class="status-badge ${status.cls}">${status.label}</span></td>
+          </tr>`;
+        }).join("");
+      }
+
+      const note = document.getElementById("clientSelfServiceNote");
+      if (note) {
+        note.textContent = perf.totalInWeek
+          ? `${perf.excludedCount} of ${perf.totalInWeek} shipments this week were excluded from these totals because they were booked directly by clients (not office staff).`
+          : "No shipments recorded for this week yet.";
+      }
+    }
+
+    function downloadStaffPerformanceCSV() {
+      if (!_lastPerf) renderStaffPerformance();
+      const perf = _lastPerf;
+      const sel = document.getElementById("perfWeekSelect");
+      const label = sel?.options[sel.selectedIndex]?.textContent || "This week";
+
+      const lines = [
+        `Mok Transports — Staff Performance Report`,
+        `Week,${label}`,
+        `Generated,${new Date().toLocaleString("en-ZA")}`,
+        ``,
+        `Staff Member,Local (JKJ),DHL,Trucking,Total Shipments,Status`
+      ];
+      perf.rows.forEach(r => {
+        const total = r.local + r.dhl + r.trucking;
+        const status = statusFor(total).label;
+        lines.push(`"${r.name}",${r.local},${r.dhl},${r.trucking},${total},${status}`);
+      });
+      lines.push(``);
+      lines.push(`Note,"${perf.excludedCount} of ${perf.totalInWeek} shipments this week were booked directly by clients and excluded from staff totals."`);
+
+      const csv = lines.join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `staff-performance-${label.split(" (")[0].replace(/\s+/g, "-").toLowerCase()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     // Real-time refresh: re-pull data every 60s so counts/charts stay current
@@ -2380,8 +2662,5 @@
 </body>
 
 </html>
-
-
-
 
 
