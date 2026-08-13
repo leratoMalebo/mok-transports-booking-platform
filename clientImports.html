@@ -631,6 +631,18 @@
       </div>
       <div id="dhlQfPanelShipper" style="display:none;padding:14px 16px;background:#f0f4ff;border-bottom:1px solid #c5d5f5">
         <div style="font-size:11px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">⚡ Quick Fill — Address Book</div>
+        <div id="dhlQfCompanyRowShipper" style="display:none;margin-bottom:10px">
+          <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Client Company</label>
+          <div class="dhl-searchable">
+            <input type="text" id="dhlQfCompanyShipper_search" autocomplete="off" placeholder="Search company…"
+              oninput="dhlSearchFilter('dhlQfCompanyShipper')" onfocus="dhlSearchFilter('dhlQfCompanyShipper')"
+              style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
+            <div id="dhlQfCompanyShipper_dropdown" class="dhl-search-dropdown"></div>
+            <select id="dhlQfCompanyShipper" onchange="dhlLoadAddressesShipper()" style="display:none">
+              <option value="">— Select company —</option>
+            </select>
+          </div>
+        </div>
         <div>
           <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Shipper Address</label>
           <div class="dhl-searchable">
@@ -1724,7 +1736,7 @@
 
     // ── DHL ADDRESS BOOK ─────────────────────────────────────────
     const DHL_API = 'https://bookings.moktransports.com/api';
-    let _dhlCache=[], _dhlSess=JSON.parse(localStorage.getItem('mokSession')||'null');
+    let _dhlCache=[], _dhlCacheShipper=[], _dhlSess=JSON.parse(localStorage.getItem('mokSession')||'null');
     let _dhlIsClient=(_dhlSess&&_dhlSess.role)==='client';
     let _dhlCo=((_dhlSess&&(_dhlSess.company||_dhlSess.name))||'').toLowerCase();
     let _dhlIsOtis=_dhlIsClient&&_dhlCo.indexOf('otis')!==-1;
@@ -1739,33 +1751,46 @@
 
     function dhlSet(id,val){const el=document.getElementById(id);if(!el)return;el.value=val||'';el.dispatchEvent(new Event('change'));if(window.M&&el.tagName==='SELECT')M.FormSelect.init(el);}
 
-    // Both cards show the FULL address list (every Otis branch, SA and
-    // overseas) — nothing is auto-applied or guessed. The client picks
-    // the correct branch for shipper and receiver explicitly, on both
-    // export and import, which avoids stale/mismatched data lingering
-    // when switching modes.
+    // Both cards get Quick Fill, for both export and import — Otis
+    // clients see the full branch list directly (no company step
+    // needed, since there's only one company); every other client
+    // picks a company first, then one of that company's saved
+    // addresses, independently on the Shipper card and the Receiver
+    // card (they can be different companies).
     async function dhlQfInit(){
       if(_dhlIsOtis){
         try{
           const r=await fetch(DHL_API+'/dhl-addresses?company=Otis');const d=await r.json();
           _dhlCache = (d&&d.length) ? d : OTIS_FALLBACK_ADDRESSES;
         }catch(e){_dhlCache=OTIS_FALLBACK_ADDRESSES;}
+        _dhlCacheShipper = _dhlCache;
         document.getElementById('dhlQfPanel').style.display='block';
         document.getElementById('dhlQfPanelShipper').style.display='block';
         dhlPopulateSelect('dhlQfAddr', _dhlCache, 'Select receiver address');
-        dhlPopulateSelect('dhlQfAddrShipper', _dhlCache, 'Select shipper address');
+        dhlPopulateSelect('dhlQfAddrShipper', _dhlCacheShipper, 'Select shipper address');
         return;
       }
       try{
         const r=await fetch(DHL_API+'/dhl-addresses/companies');const cos=await r.json();
         if(!cos||!cos.length)return;
-        const sel=document.getElementById('dhlQfCompany');
-        sel.innerHTML='<option value="">— Select company —</option>';
-        cos.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+        const optionsHtml = cos.map(c=>`<option value="${c}">${c}</option>`).join('');
+
+        const selReceiver=document.getElementById('dhlQfCompany');
+        selReceiver.innerHTML='<option value="">— Select company —</option>'+optionsHtml;
         dhlClearSearch('dhlQfCompany');
         document.getElementById('dhlQfCompanyRow').style.display='block';
         document.getElementById('dhlQfPanel').style.display='block';
-        if(_dhlIsClient&&_dhlCo){const m=cos.find(c=>c.toLowerCase().includes(_dhlCo.split(' ')[0])||_dhlCo.includes(c.toLowerCase().split(' ')[0]));if(m){sel.value=m;const si=document.getElementById('dhlQfCompany_search');if(si)si.value=m;await dhlLoadAddresses();}}
+
+        const selShipper=document.getElementById('dhlQfCompanyShipper');
+        selShipper.innerHTML='<option value="">— Select company —</option>'+optionsHtml;
+        dhlClearSearch('dhlQfCompanyShipper');
+        document.getElementById('dhlQfCompanyRowShipper').style.display='block';
+        document.getElementById('dhlQfPanelShipper').style.display='block';
+
+        if(_dhlIsClient&&_dhlCo){
+          const m=cos.find(c=>c.toLowerCase().includes(_dhlCo.split(' ')[0])||_dhlCo.includes(c.toLowerCase().split(' ')[0]));
+          if(m){selReceiver.value=m;const si=document.getElementById('dhlQfCompany_search');if(si)si.value=m;await dhlLoadAddresses();}
+        }
       }catch(e){console.error('DHL QF:',e);}
     }
 
@@ -1775,11 +1800,20 @@
       try{const r=await fetch(DHL_API+'/dhl-addresses?company='+encodeURIComponent(co));_dhlCache=await r.json();dhlPopulateSelect('dhlQfAddr',_dhlCache,'Select receiver address');}catch(e){}
     }
 
+    async function dhlLoadAddressesShipper(){
+      const co=document.getElementById('dhlQfCompanyShipper').value;
+      if(!co){_dhlCacheShipper=[];dhlPopulateSelect('dhlQfAddrShipper',[],'Select shipper address');return;}
+      try{const r=await fetch(DHL_API+'/dhl-addresses?company='+encodeURIComponent(co));_dhlCacheShipper=await r.json();dhlPopulateSelect('dhlQfAddrShipper',_dhlCacheShipper,'Select shipper address');}catch(e){}
+    }
+
+    // Address option label now shows Company + Contact Person only —
+    // no city/country clutter — so search matches on company or the
+    // person's name, not address details.
     function dhlPopulateSelect(selectId, arr, placeholder){
       const sel=document.getElementById(selectId);
       if(!sel)return;
       sel.innerHTML=`<option value="">— ${placeholder} —</option>`;
-      arr.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(a.company_name||a.contact_name||'—')+(a.city?' — '+a.city:'')+(a.country?', '+a.country:'');sel.appendChild(o);});
+      arr.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(a.company_name||'—')+(a.contact_name?' — '+a.contact_name:'');sel.appendChild(o);});
       dhlClearSearch(selectId);
     }
 
@@ -1793,7 +1827,7 @@
     }
 
     function dhlApplyAddressShipper(idx){
-      if(idx==='')return;const a=_dhlCache[parseInt(idx)];if(!a)return;
+      if(idx==='')return;const a=_dhlCacheShipper[parseInt(idx)];if(!a)return;
       dhlSet('shipperCompany',a.company_name||'');dhlSet('shipperFullName',a.contact_name||'');
       dhlSet('shipperEmail',a.email||'');dhlSet('shipperPhone',a.phone||'');dhlSet('shipperMobile',a.phone||'');
       dhlSet('shipperCountry',a.country_code||'');dhlSet('shipperCity',a.city||'');
@@ -1805,5 +1839,6 @@
 </body>
 
 </html>
+
 
 
