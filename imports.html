@@ -1621,8 +1621,7 @@
       arr.forEach((a, i) => {
         const o = document.createElement('option');
         o.value = i;
-        const country = a.country || a.country_code || '';
-        o.textContent = `${a.company_name} - ${a.city || ''} ${country ? '(' + country + ')' : ''}`;
+        o.textContent = `${a.company_name || '—'}${a.contact_name ? ' — ' + a.contact_name : ''}`;
         sel.appendChild(o);
       });
       dhlClearSearch(selId);
