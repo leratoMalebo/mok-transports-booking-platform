@@ -1053,7 +1053,7 @@
         </svg>
         Save &amp; Submit to DHL
       </button>
-      <button class="btn-top btn-grey" style="height:44px;font-size:14px" onclick="previewPayload()">
+      <button class="btn-top btn-grey" style="height:44px;font-size:14px" onclick="previewShipment()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
           <circle cx="12" cy="12" r="3" />
@@ -1065,21 +1065,48 @@
 
   </div>
 
-  <!-- SHIPMENT PREVIEW MODAL -->
+  <!-- SHIPMENT PREVIEW MODAL — human readable, no JSON -->
   <div id="payloadModal"
     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
-    <div
-      style="background:#fff;border-radius:10px;width:90vw;max-width:620px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4)">
-      <div
-        style="padding:16px 20px;border-bottom:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between;background:var(--navy)">
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#fff">Shipment
-          Preview</span>
+    <div style="background:#fff;border-radius:10px;width:92vw;max-width:680px;max-height:88vh;
+      display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.3)">
+
+      <!-- Modal header -->
+      <div style="background:var(--navy);padding:16px 22px;display:flex;align-items:center;
+        justify-content:space-between;border-bottom:3px solid var(--accent);flex-shrink:0">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff">
+            Shipment Preview
+          </div>
+          <div style="font-size:11px;color:#90a4ae;margin-top:2px">Review details before submitting to DHL</div>
+        </div>
         <button onclick="closeModal()"
-          style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;padding:6px 14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600">✕
-          Close</button>
+          style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;
+          color:#fff;padding:6px 14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600">
+          ✕ Close
+        </button>
       </div>
-      <div id="payloadPre"
-        style="flex:1;overflow:auto;padding:22px 24px;font-size:13.5px;color:#1a2535;font-family:'Barlow',sans-serif;line-height:1.6;background:#fff">
+
+      <!-- Modal body -->
+      <div id="payloadPre" style="flex:1;overflow-y:auto;padding:24px;background:#fff"></div>
+
+      <!-- Modal footer -->
+      <div style="padding:14px 22px;border-top:1px solid var(--border);background:#fafbfc;
+        display:flex;justify-content:flex-end;gap:10px;flex-shrink:0">
+        <button onclick="closeModal()" style="padding:0 18px;height:38px;border:1px solid var(--border);border-radius:5px;
+          background:#fff;color:var(--muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+          font-size:13px;font-weight:700;letter-spacing:1px">
+          EDIT DETAILS
+        </button>
+        <button onclick="closeModal();saveShipment();" style="padding:0 22px;height:38px;border:none;border-radius:5px;background:var(--accent);
+          color:#fff;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;
+          font-weight:700;letter-spacing:1px;display:inline-flex;align-items:center;gap:7px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13" />
+            <path d="M22 2L15 22 11 13 2 9l20-7z" />
+          </svg>
+          CONFIRM &amp; SUBMIT TO DHL
+        </button>
       </div>
     </div>
   </div>
@@ -1394,64 +1421,105 @@
     const process_env_DHL_ACCOUNT = 'SEE_BACKEND';
 
     // ── PREVIEW ───────────────────────────────────────────────────
-    function buildShipmentPreview(payload) {
-      const totalCost = document.getElementById('sumTotal')?.textContent || '0.00';
-      const pkg = payload.content?.packages?.[0] || {};
-      const declaredVal = payload.content?.declaredValue || 'N/A';
-      const currency = payload.content?.declaredValueCurrency || '';
+    function previewShipment() {
+      const charge = parseFloat(document.getElementById('chargeWeight').value) || 0;
+      const actual = parseFloat(document.getElementById('actualWeight').value) || 0;
+      const product = document.getElementById('productCode').value;
+      const shipDate = document.getElementById('shipDate').value;
+      const pickup = document.querySelector('input[name="pickupReq"]:checked').value === 'true';
+      const contentType = document.querySelector('input[name="contentType"]:checked')?.value || 'packages';
+      const isDec = document.querySelector('input[name="customsDec"]:checked')?.value === 'true';
 
-      const section = (title, rows) => `
-        <div style="margin-bottom:18px">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:12.5px;font-weight:800;
-            letter-spacing:1px;text-transform:uppercase;color:var(--blue);border-bottom:1px solid var(--border);
-            padding-bottom:6px;margin-bottom:10px">${title}</div>
-          ${rows.map(([label, value]) => `
-            <div style="display:flex;justify-content:space-between;gap:16px;padding:3px 0">
-              <span style="color:#607d8b">${label}</span>
-              <span style="font-weight:600;color:var(--navy);text-align:right">${value}</span>
-            </div>`).join('')}
+      const rate = parseFloat(document.getElementById('ratePerKg').value) || 0;
+      const fuel = parseFloat(document.getElementById('fuelSurcharge').value) || 0;
+      const other = parseFloat(document.getElementById('otherCharges').value) || 0;
+      const total = document.getElementById('sumTotal')?.textContent || '0.00';
+
+      const row = (label, value, highlight) => `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;
+          border-bottom:1px solid var(--border);font-size:13px">
+          <span style="color:var(--muted);font-weight:500">${label}</span>
+          <span style="font-weight:700;color:${highlight || 'var(--navy)'};">${value}</span>
         </div>`;
 
-      return `
-        ${section('Shipment Details', [
-        ['Direction', payload.shipmentDirection || (typeof currentMode !== 'undefined' ? (currentMode === 'export' ? 'Export' : 'Import') : 'Export')],
-        ['Service', payload.productCode === 'P' ? 'DHL Express Worldwide' : (payload.productCode || 'N/A')],
-        ['Shipping Date', payload.plannedShippingDateAndTime ? new Date(payload.plannedShippingDateAndTime).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'],
-        ...(payload.pickup?.isRequested ? [
-          ['Pickup Ready Time', payload.plannedShippingDateAndTime ? new Date(payload.plannedShippingDateAndTime).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' }) : 'N/A'],
-          ['Pickup Close Time', payload.pickup?.closeTime || 'N/A'],
-          ['Pickup Location', payload.pickup?.location || 'N/A']
-        ] : [['Pickup', 'Drop Off (no pickup requested)']])
-      ])}
-        ${section('Shipper', [
-        ['Company', payload.customerDetails?.shipperDetails?.contactInformation?.companyName || 'N/A'],
-        ['Contact', payload.customerDetails?.shipperDetails?.contactInformation?.fullName || 'N/A'],
-        ['Country', payload.customerDetails?.shipperDetails?.postalAddress?.countryCode || 'ZA']
-      ])}
-        ${section('Receiver', [
-        ['Company', payload.customerDetails?.receiverDetails?.contactInformation?.companyName || 'N/A'],
-        ['Contact', payload.customerDetails?.receiverDetails?.contactInformation?.fullName || 'N/A'],
-        ['Country', payload.customerDetails?.receiverDetails?.postalAddress?.countryCode || 'N/A']
-      ])}
-        ${section('Package', [
-        ['Description', payload.content?.description || 'N/A'],
-        ['Weight', `${pkg.weight || 0} kg`],
-        ['Declared Value', `${declaredVal} ${currency}`]
-      ])}
-        ${section('Estimated Pricing', [
-        ['Estimated Cost', `R ${totalCost}`]
-      ])}
-        <div style="background:#fff8e1;border:1px solid #f0d97a;border-radius:8px;padding:12px 14px;
-          margin-top:4px;font-size:12.5px;color:#7a5c00;line-height:1.5">
-          <strong>Please note:</strong> the price shown above is an estimate only, not the final
-          billable amount. All shipments are re-weighed and re-measured by DHL before dispatch, and
-          the final price may change based on the verified weight and dimensions.
+      const section = (title, icon, content) => `
+        <div style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
+            padding-bottom:6px;border-bottom:2px solid var(--navy)">
+            <span style="font-size:16px">${icon}</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:14px;
+              font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px">${title}</span>
+          </div>
+          ${content}
         </div>`;
-    }
 
-    function previewPayload() {
-      const payload = buildPayload();
-      document.getElementById('payloadPre').innerHTML = buildShipmentPreview(payload);
+      const html = `
+        <div style="font-family:'Barlow',sans-serif">
+
+          ${section('Shipment Direction', '🚚', `
+            ${row('Mode', currentMode === 'export' ? '📤 Export — Shipping OUT of South Africa' : '📥 Import — Shipping INTO South Africa', currentMode === 'export' ? '#1565c0' : '#2e7d32')}
+            ${row('DHL Product Code', product)}
+            ${row('Planned Ship Date', shipDate)}
+            ${row('Pickup Requested', pickup ? '✅ Yes — DHL will collect' : '❌ No — Drop off at DHL')}
+            ${pickup ? row('Pickup Window', `${document.getElementById('pickupReadyTime')?.value || '—'} – ${document.getElementById('pickupCloseTime')?.value || '—'}`) : ''}
+            ${pickup ? row('Pickup Location', document.getElementById('pickupLocation')?.value || '—') : ''}
+            ${row('Content Type', contentType === 'documents' ? '📄 Documents' : '📦 Packages')}
+          `)}
+
+          ${section('Shipper / Sender', '🏢', `
+            ${row('Company', document.getElementById('shipperCompany').value)}
+            ${row('Contact', document.getElementById('shipperFullName').value)}
+            ${row('Email', document.getElementById('shipperEmail').value)}
+            ${row('Phone', document.getElementById('shipperPhone').value)}
+            ${row('City', document.getElementById('shipperCity').value + ', ' + document.getElementById('shipperCountry').value)}
+            ${row('Address', document.getElementById('shipperAddr1').value)}
+          `)}
+
+          ${section('Consignee / Receiver', '📍', `
+            ${row('Company', document.getElementById('receiverCompany').value)}
+            ${row('Contact', document.getElementById('receiverFullName').value)}
+            ${row('Email', document.getElementById('receiverEmail').value)}
+            ${row('Phone', document.getElementById('receiverPhone').value)}
+            ${row('City', document.getElementById('receiverCity').value + ', ' + document.getElementById('receiverCountry').value)}
+            ${row('Address', document.getElementById('receiverAddr1').value)}
+          `)}
+
+          ${section('Weight & Dimensions', '⚖️', `
+            ${row('Actual Weight', actual.toFixed(2) + ' kg')}
+            ${row('Chargeable Weight', charge.toFixed(2) + ' kg')}
+            ${row('Dimensions (L×W×H)', `${document.getElementById('dimL').value || 0}×${document.getElementById('dimW').value || 0}×${document.getElementById('dimH').value || 0} cm`)}
+            ${row('Description', document.getElementById('shipDescription').value)}
+            ${document.getElementById('customerRef').value ? row('Reference', document.getElementById('customerRef').value) : ''}
+          `)}
+
+          ${isDec ? section('Customs Declaration', '🛃', `
+            ${row('Declared Value', document.getElementById('declaredCurrency').value + ' ' + document.getElementById('declaredValue').value)}
+            ${row('Incoterm', document.getElementById('incoterm').value)}
+            ${row('Export Reason', document.getElementById('exportReason').value.replace(/_/g, ' '))}
+          `) : ''}
+
+          ${section('Pricing', '💰', `
+            ${row('Rate per kg', 'R ' + rate.toFixed(2))}
+            ${row('Chargeable Weight', charge.toFixed(2) + ' kg')}
+            ${fuel > 0 ? row('Fuel Surcharge', 'R ' + fuel.toFixed(2)) : ''}
+            ${other > 0 ? row('Other Charges', 'R ' + other.toFixed(2)) : ''}
+            ${row('Total Estimated Cost', 'R ' + total, '#2e7d32')}
+          `)}
+
+          <div style="background:#fff8e1;border:1px solid #f0d97a;border-radius:8px;padding:12px 16px;
+            margin-top:4px;font-size:12.5px;color:#7a5c00;line-height:1.5">
+            <strong>Please note:</strong> the price shown above is an estimate only, not the final
+            billable amount. All shipments are re-weighed and re-measured by DHL before dispatch, and
+            the final price may change based on the verified weight and dimensions.
+          </div>
+
+          <div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;padding:12px 16px;
+            font-size:12px;color:#e65100;margin-top:4px">
+            ⚠️ Please review all details carefully. Once submitted, this shipment will be sent to DHL for processing.
+          </div>
+        </div>`;
+
+      document.getElementById('payloadPre').innerHTML = html;
       document.getElementById('payloadModal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('payloadModal').style.display = 'none'; }
