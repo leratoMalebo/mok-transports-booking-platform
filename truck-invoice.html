@@ -88,10 +88,11 @@
     .idc-value{font-size:13px;font-weight:600;color:var(--navy)}
 
     .po-ref-band{padding:12px 18px;background:#fffdf5;border-bottom:1px solid var(--border);
-      display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+      display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+    .po-ref-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .po-ref-label{font-size:10px;font-weight:700;color:var(--muted);
       text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
-    .po-ref-input{flex:1;min-width:180px;max-width:340px;height:32px;
+    .po-ref-input{width:190px;height:32px;
       border:1px dashed #c9b458;border-radius:6px;background:#fffef9;
       padding:0 10px;font-family:'DM Sans',sans-serif;font-size:13px;
       font-weight:600;color:var(--navy);outline:none;transition:.15s}
@@ -104,7 +105,7 @@
     @media print{
       .po-ref-band{background:#fff}
       .po-ref-input{border:none;background:transparent;padding:0;height:auto;
-        font-size:13px}
+        font-size:13px;width:auto}
       .po-ref-status{display:none}
     }
 
@@ -455,17 +456,28 @@ function renderInvoice(inv) {
         </div>
       </div>
 
-      <!-- PO / CLIENT REFERENCE (editable) -->
-      <div class="po-ref-band">
-        <span class="po-ref-label">PO / Client Reference</span>
-        <input
-          type="text"
-          class="po-ref-input"
-          id="poRefInput"
-          value="${inv.client_reference || inv.booking_client_reference || ''}"
-          placeholder="Type PO number or client reference…"
-          onblur="savePORef('${inv.invoice_no}')"
-        >
+      <!-- PO / CLIENT REFERENCE (editable — two separate fields, saved together) -->
+      <div class="po-ref-band" id="poRefBand">
+        <div class="po-ref-group">
+          <span class="po-ref-label">PO Number</span>
+          <input
+            type="text"
+            class="po-ref-input"
+            id="poNumberInput"
+            placeholder="Type PO number…"
+            onblur="savePORef('${inv.invoice_no}')"
+          >
+        </div>
+        <div class="po-ref-group">
+          <span class="po-ref-label">Client Reference</span>
+          <input
+            type="text"
+            class="po-ref-input"
+            id="clientRefInput"
+            placeholder="Type client reference…"
+            onblur="savePORef('${inv.invoice_no}')"
+          >
+        </div>
         <span class="po-ref-status" id="poRefStatus">Saved ✓</span>
       </div>
       <!-- ROUTE BAND -->
@@ -589,6 +601,36 @@ function renderInvoice(inv) {
 
     </div><!-- /inv-card -->
   `;
+
+  // Split the single stored reference string back into the two visible
+  // fields. Legacy invoices just have a plain string in client_reference
+  // (from before this was split) — that falls into Client Reference.
+  const stored = inv.client_reference || inv.booking_client_reference || '';
+  const { po, ref } = parsePoRef(stored);
+  const poInput  = document.getElementById('poNumberInput');
+  const refInput = document.getElementById('clientRefInput');
+  if (poInput)  poInput.value  = po;
+  if (refInput) refInput.value = ref;
+}
+
+// Combine the PO Number + Client Reference fields into the single string
+// the backend stores (no schema change needed — both values travel inside
+// the existing client_reference column).
+function combinePoRef(po, ref) {
+  po = (po || '').trim();
+  ref = (ref || '').trim();
+  if (po && ref) return `PO: ${po} | Ref: ${ref}`;
+  if (po) return `PO: ${po}`;
+  if (ref) return ref; // keep plain — matches how legacy single-field data looks
+  return '';
+}
+
+// Reverse of combinePoRef. Also reads plain legacy strings (saved before
+// this was split into two fields) straight into Client Reference.
+function parsePoRef(stored) {
+  const m = /^PO:\s*(.*?)\s*(?:\|\s*Ref:\s*(.*))?$/s.exec((stored || '').trim());
+  if (m) return { po: m[1] || '', ref: m[2] || '' };
+  return { po: '', ref: stored || '' };
 }
 
 // ── MARK PAID ─────────────────────────────────
@@ -602,12 +644,13 @@ async function markPaid(invoiceNo) {
   } catch { alert('Failed to mark as paid.'); }
 }
 
-// ── SAVE PO / CLIENT REFERENCE ────────────────
+// ── SAVE PO NUMBER + CLIENT REFERENCE ─────────
 let poRefSaveTimer = null;
 async function savePORef(invoiceNo, silent) {
-  const input = document.getElementById('poRefInput');
-  if (!input) return;
-  const value = input.value.trim();
+  const poInput  = document.getElementById('poNumberInput');
+  const refInput = document.getElementById('clientRefInput');
+  if (!poInput || !refInput) return;
+  const value = combinePoRef(poInput.value, refInput.value);
 
   // Avoid a pointless write if nothing actually changed
   const current = invoiceData?.client_reference || invoiceData?.booking_client_reference || '';
@@ -632,7 +675,7 @@ async function savePORef(invoiceNo, silent) {
       }
     }
   } catch {
-    if (!silent) alert('Failed to save the PO / reference. Please try again.');
+    if (!silent) alert('Failed to save the PO number / reference. Please try again.');
   }
 }
 
@@ -641,12 +684,15 @@ function downloadPDF() {
   if (!invoiceData) { alert('Invoice not loaded yet.'); return; }
   const inv = invoiceData;
 
-  // Pick up whatever is currently typed in the PO/Reference field — even
-  // if the accountant hasn't clicked away from it yet — and persist it
-  // so the saved invoice matches what's on the downloaded PDF.
-  const poInput = document.getElementById('poRefInput');
-  const poValue = poInput ? poInput.value.trim() : (inv.client_reference || inv.booking_client_reference || '');
-  if (poInput) savePORef(inv.invoice_no, true);
+  // Pick up whatever is currently typed in the PO Number / Client Reference
+  // fields — even if the accountant hasn't clicked away from them yet —
+  // and persist it so the saved invoice matches what's on the PDF.
+  const poNumInput = document.getElementById('poNumberInput');
+  const refInput   = document.getElementById('clientRefInput');
+  const poValue = (poNumInput || refInput)
+    ? combinePoRef(poNumInput?.value, refInput?.value)
+    : (inv.client_reference || inv.booking_client_reference || '');
+  if (poNumInput || refInput) savePORef(inv.invoice_no, true);
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
@@ -684,7 +730,11 @@ function downloadPDF() {
 
     if (poValue) {
       doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
-      doc.text(`PO / Reference: ${poValue}`, M, y);
+      const { po, ref } = parsePoRef(poValue);
+      const label = po && ref ? `PO: ${po}   |   Client Ref: ${ref}`
+                  : po ? `PO: ${po}`
+                  : `Client Ref: ${ref}`;
+      doc.text(label, M, y);
       y+=8;
     }
 
