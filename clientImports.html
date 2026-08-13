@@ -568,6 +568,16 @@
         padding: 0 16px
       }
     }
+    /* ── SEARCHABLE ADDRESS BOOK DROPDOWNS ── */
+    .dhl-searchable { position: relative; }
+    .dhl-search-dropdown {
+      display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      max-height: 240px; overflow-y: auto; background: #fff; border: 1px solid #dce3ec;
+      border-radius: 7px; box-shadow: 0 10px 28px rgba(10,22,40,.15); z-index: 80;
+    }
+    .dhl-search-item { padding: 9px 12px; font-size: 13.5px; color: #1a2535; cursor: pointer; }
+    .dhl-search-item:hover, .dhl-search-item.active { background: #f0f4ff; }
+    .dhl-search-empty { padding: 10px 12px; font-size: 13px; color: #90a4ae; }
   </style>
 </head>
 
@@ -623,9 +633,15 @@
         <div style="font-size:11px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">⚡ Quick Fill — Address Book</div>
         <div>
           <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Shipper Address</label>
-          <select id="dhlQfAddrShipper" onchange="dhlApplyAddressShipper(this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
-            <option value="">— Select shipper address —</option>
-          </select>
+          <div class="dhl-searchable">
+            <input type="text" id="dhlQfAddrShipper_search" autocomplete="off" placeholder="Search shipper address…"
+              oninput="dhlSearchFilter('dhlQfAddrShipper')" onfocus="dhlSearchFilter('dhlQfAddrShipper')"
+              style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
+            <div id="dhlQfAddrShipper_dropdown" class="dhl-search-dropdown"></div>
+            <select id="dhlQfAddrShipper" onchange="dhlApplyAddressShipper(this.value)" style="display:none">
+              <option value="">— Select shipper address —</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="card-body">
@@ -679,15 +695,27 @@
         <div style="font-size:11px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">⚡ Quick Fill — Address Book</div>
         <div id="dhlQfCompanyRow" style="display:none;margin-bottom:10px">
           <label style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Client Company</label>
-          <select id="dhlQfCompany" onchange="dhlLoadAddresses()" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
-            <option value="">— Select company —</option>
-          </select>
+          <div class="dhl-searchable">
+            <input type="text" id="dhlQfCompany_search" autocomplete="off" placeholder="Search company…"
+              oninput="dhlSearchFilter('dhlQfCompany')" onfocus="dhlSearchFilter('dhlQfCompany')"
+              style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
+            <div id="dhlQfCompany_dropdown" class="dhl-search-dropdown"></div>
+            <select id="dhlQfCompany" onchange="dhlLoadAddresses()" style="display:none">
+              <option value="">— Select company —</option>
+            </select>
+          </div>
         </div>
         <div>
           <label id="dhlQfAddrLabel" style="font-size:11px;color:#607d8b;font-weight:600;display:block;margin-bottom:4px">Receiver Address</label>
-          <select id="dhlQfAddr" onchange="dhlApplyAddress(this.value)" style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
-            <option value="">— Select receiver address —</option>
-          </select>
+          <div class="dhl-searchable">
+            <input type="text" id="dhlQfAddr_search" autocomplete="off" placeholder="Search receiver address…"
+              oninput="dhlSearchFilter('dhlQfAddr')" onfocus="dhlSearchFilter('dhlQfAddr')"
+              style="width:100%;height:40px;border:1px solid #dce3ec;border-radius:7px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#1a2535">
+            <div id="dhlQfAddr_dropdown" class="dhl-search-dropdown"></div>
+            <select id="dhlQfAddr" onchange="dhlApplyAddress(this.value)" style="display:none">
+              <option value="">— Select receiver address —</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="card-body">
@@ -1655,6 +1683,45 @@
       }
     }
   
+    // ── SEARCHABLE ADDRESS BOOK DROPDOWNS ──────────────────────────
+    function dhlSearchFilter(baseId) {
+      const input = document.getElementById(baseId + '_search');
+      const dropdown = document.getElementById(baseId + '_dropdown');
+      const select = document.getElementById(baseId);
+      if (!input || !dropdown || !select) return;
+
+      const q = input.value.trim().toLowerCase();
+      const opts = Array.from(select.options).filter(o => o.value !== '');
+      const matches = q ? opts.filter(o => o.textContent.toLowerCase().includes(q)) : opts;
+
+      dropdown.innerHTML = matches.length
+        ? matches.slice(0, 60).map(o =>
+          `<div class="dhl-search-item" data-value="${o.value.replace(/"/g, '&quot;')}">${o.textContent}</div>`
+        ).join('')
+        : `<div class="dhl-search-empty">No matches found</div>`;
+      dropdown.style.display = 'block';
+
+      dropdown.querySelectorAll('.dhl-search-item').forEach(item => {
+        item.onclick = () => {
+          select.value = item.getAttribute('data-value');
+          input.value = item.textContent;
+          dropdown.style.display = 'none';
+          select.dispatchEvent(new Event('change'));
+        };
+      });
+    }
+
+    function dhlClearSearch(baseId) {
+      const input = document.getElementById(baseId + '_search');
+      if (input) input.value = '';
+    }
+
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('.dhl-search-dropdown').forEach(d => {
+        if (!d.closest('.dhl-searchable')?.contains(e.target)) d.style.display = 'none';
+      });
+    });
+
     // ── DHL ADDRESS BOOK ─────────────────────────────────────────
     const DHL_API = 'https://bookings.moktransports.com/api';
     let _dhlCache=[], _dhlSess=JSON.parse(localStorage.getItem('mokSession')||'null');
@@ -1695,9 +1762,10 @@
         const sel=document.getElementById('dhlQfCompany');
         sel.innerHTML='<option value="">— Select company —</option>';
         cos.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+        dhlClearSearch('dhlQfCompany');
         document.getElementById('dhlQfCompanyRow').style.display='block';
         document.getElementById('dhlQfPanel').style.display='block';
-        if(_dhlIsClient&&_dhlCo){const m=cos.find(c=>c.toLowerCase().includes(_dhlCo.split(' ')[0])||_dhlCo.includes(c.toLowerCase().split(' ')[0]));if(m){sel.value=m;await dhlLoadAddresses();}}
+        if(_dhlIsClient&&_dhlCo){const m=cos.find(c=>c.toLowerCase().includes(_dhlCo.split(' ')[0])||_dhlCo.includes(c.toLowerCase().split(' ')[0]));if(m){sel.value=m;const si=document.getElementById('dhlQfCompany_search');if(si)si.value=m;await dhlLoadAddresses();}}
       }catch(e){console.error('DHL QF:',e);}
     }
 
@@ -1712,6 +1780,7 @@
       if(!sel)return;
       sel.innerHTML=`<option value="">— ${placeholder} —</option>`;
       arr.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(a.company_name||a.contact_name||'—')+(a.city?' — '+a.city:'')+(a.country?', '+a.country:'');sel.appendChild(o);});
+      dhlClearSearch(selectId);
     }
 
     function dhlApplyAddress(idx){
