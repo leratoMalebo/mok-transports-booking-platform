@@ -129,6 +129,11 @@ b.consignee_town,
     }
 
     const jkjResult = await jkjService.submitWaybillToJKJ(waybill);
+    console.log("================================");
+    console.log("RAW JKJ RESULT");
+    console.log(JSON.stringify(jkjResult, null, 2));
+
+
 
     const jkjReference =
       jkjResult?.results?.[0]?.waybillno ||
