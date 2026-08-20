@@ -66,7 +66,7 @@ async function trackShipment(trackingNo) {
                 'Waybill',
                 'getEvents',
                 {
-                    waybillno: 'MTSMOK000009'
+                    waybillno: shipment.jkj_reference || shipment.waybill_no
                 }
             );
 

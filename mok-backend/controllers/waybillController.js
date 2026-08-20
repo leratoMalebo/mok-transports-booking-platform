@@ -135,10 +135,13 @@ b.consignee_town,
 
 
 
-    const jkjReference =
-      jkjResult?.results?.[0]?.waybillno ||
-      jkjResult?.results?.[0]?.histid ||
-      null;
+    // JKJ uses the same waybill number we submit.
+    // Keep our canonical waybill number as the JKJ reference.
+    // This prevents duplicate prefixes such as MOKMOK000107.
+    const jkjReference = waybillNo;
+
+    console.log('[JKJ] Canonical JKJ reference:', jkjReference);
+    console.log('[JKJ] JKJ returned waybill:', jkjResult?.results?.[0]?.waybillno);
 
     const updated = await db.query(
       `UPDATE waybills
