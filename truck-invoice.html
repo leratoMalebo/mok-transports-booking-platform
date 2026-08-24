@@ -1009,7 +1009,7 @@ function downloadPDF() {
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(70,70,70);
     doc.text('Subtotal (Excl. VAT):',totX,y);
     doc.text(`R ${Number(inv.subtotal||0).toFixed(2)}`,W-M-pad,y,{align:'right'}); y+=7;
-    doc.text(inv.is_cross_border ? 'VAT (Cross Border - Zero-rated):' : 'VAT (15%):',totX,y);
+    doc.text(inv.is_cross_border ? 'VAT (0):' : 'VAT (15%):',totX,y);
     doc.text(`R ${Number(inv.vat_amount||0).toFixed(2)}`,W-M-pad,y,{align:'right'}); y+=7;
     doc.setDrawColor(10,42,67); doc.setLineWidth(0.6); doc.line(totX,y,W-M,y); y+=6;
     doc.setFillColor(13,33,55); doc.roundedRect(totX,y,W-M-totX,12,2,2,'F');
@@ -1049,5 +1049,9 @@ function downloadPDF() {
 </script>
 </body>
 </html>
+
+
+
+
 
 
