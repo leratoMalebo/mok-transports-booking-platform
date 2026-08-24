@@ -45,10 +45,14 @@ async function makeTrackingCall(className, method, params) {
 async function trackShipment(trackingNo) {
     try {
 
-        // 1. Look up waybill in our DB first
+        // 1. Look up waybill in our DB first — joined to bookings so we
+        // can surface the service type, which tracking.js expects but
+        // isn't a column on waybills itself.
         const shipmentResult = await pool.query(`
-      SELECT * FROM waybills
-      WHERE waybill_no = $1 OR jkj_reference = $1
+      SELECT w.*, b.service
+      FROM waybills w
+      LEFT JOIN bookings b ON b.id = w.booking_id
+      WHERE w.waybill_no = $1 OR w.jkj_reference = $1
       LIMIT 1
     `, [trackingNo]);
 
@@ -58,13 +62,17 @@ async function trackShipment(trackingNo) {
 
         const shipment = shipmentResult.rows[0];
 
-        const actualTrackNo =
-            `${shipment.waybill_no}0001`;
+        // Per Parcel Perfect docs: submitting the plain waybill number to
+        // getEvents returns waybill-level events directly — no suffix or
+        // synthesized tracking number is needed. Use jkj_reference (the
+        // number JKJ actually knows this shipment by) when we have it,
+        // falling back to our own waybill_no otherwise.
+        const trackingRef = shipment.jkj_reference || shipment.waybill_no;
 
         console.log("====================================");
         console.log("[TRACKING] Mok Waybill:", shipment.waybill_no);
         console.log("[TRACKING] JKJ Reference:", shipment.jkj_reference);
-        console.log("[TRACKING] Actual Track Number:", actualTrackNo);
+        console.log("[TRACKING] Using for getEvents:", trackingRef);
         console.log("====================================");
 
         const trackingData =
@@ -72,7 +80,7 @@ async function trackShipment(trackingNo) {
                 'Waybill',
                 'getEvents',
                 {
-                    waybillno: actualTrackNo
+                    waybillno: trackingRef
                 }
             );
 
@@ -92,6 +100,8 @@ async function trackShipment(trackingNo) {
         }));
 
         const latestStatus = events.length > 0 ? events[0].status : 'Booked';
+        const latestLocation = events.length > 0 ? events[0].location : null;
+        const latestEventDate = events.length > 0 ? events[0].date : null;
 
         // 4. Update status in our DB
         await pool.query(`
@@ -107,6 +117,11 @@ async function trackShipment(trackingNo) {
                 waybill_no: shipment.waybill_no,
                 jkj_reference: shipment.jkj_reference,
                 current_status: latestStatus,
+                service: shipment.service,
+                tracking_location: latestLocation,
+                tracking_updated_at: latestEventDate,
+                created_at: shipment.created_at,
+                updated_at: shipment.updated_at,
                 events
             }
         };
@@ -118,13 +133,6 @@ async function trackShipment(trackingNo) {
 }
 
 module.exports = { trackShipment };
-
-
-
-
-
-
-
 
 
 
