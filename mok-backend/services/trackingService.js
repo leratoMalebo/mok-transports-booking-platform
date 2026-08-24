@@ -61,12 +61,18 @@ async function trackShipment(trackingNo) {
         const actualTrackNo =
             `${shipment.waybill_no}0001`;
 
+        console.log("====================================");
+        console.log("[TRACKING] Mok Waybill:", shipment.waybill_no);
+        console.log("[TRACKING] JKJ Reference:", shipment.jkj_reference);
+        console.log("[TRACKING] Actual Track Number:", actualTrackNo);
+        console.log("====================================");
+
         const trackingData =
             await makeTrackingCall(
                 'Waybill',
                 'getEvents',
                 {
-                    waybillno: shipment.jkj_reference || shipment.waybill_no
+                    waybillno: actualTrackNo
                 }
             );
 
