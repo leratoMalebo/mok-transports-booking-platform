@@ -62,7 +62,7 @@
       font-weight:800;color:#90a4ae;margin-top:6px;letter-spacing:1px}
 
     /* META ROW */
-    .inv-meta{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+    .inv-meta{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid var(--border)}
     .inv-meta-cell{padding:14px 20px;border-right:1px solid var(--border)}
     .inv-meta-cell:last-child{border-right:none}
     .imc-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
@@ -140,6 +140,37 @@
       color:#90a4ae;letter-spacing:1px;text-transform:uppercase}
     .gtv{font-family:'Barlow Condensed',sans-serif;font-size:24px;
       font-weight:800;color:#fff;letter-spacing:1px}
+
+    /* CHARGES EDITOR (accounts can add/adjust charges post-shipment) */
+    .charges-editor{margin:0 20px 20px;padding:16px 18px;background:#fffdf5;
+      border:1px dashed #c9b458;border-radius:10px}
+    .charges-editor-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;
+      font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--navy);
+      margin-bottom:4px}
+    .charges-editor-sub{font-size:12px;color:var(--muted);margin-bottom:12px;
+      max-width:640px;line-height:1.5}
+    .charge-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+    .charge-row input[type=text]{flex:2;min-width:200px;height:34px;
+      border:1px solid var(--border);border-radius:6px;padding:0 10px;
+      font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+    .charge-row input[type=number]{flex:0 0 130px;height:34px;
+      border:1px solid var(--border);border-radius:6px;padding:0 10px;
+      font-family:'DM Sans',sans-serif;font-size:13px;outline:none;text-align:right}
+    .charge-row input:focus{border-color:var(--blue)}
+    .charge-remove-btn{flex:0 0 30px;height:30px;border:none;border-radius:6px;
+      background:#fdecea;color:#c62828;font-size:16px;line-height:1;cursor:pointer;
+      display:flex;align-items:center;justify-content:center}
+    .charge-row-empty{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:10px}
+    .charges-editor-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+    .charge-add-btn{height:34px;padding:0 14px;border:1px solid var(--border);
+      border-radius:6px;background:#fff;color:var(--navy);font-family:'Barlow Condensed',sans-serif;
+      font-weight:700;font-size:12px;letter-spacing:.4px;text-transform:uppercase;cursor:pointer}
+    .charge-save-btn{height:34px;padding:0 16px;border:none;border-radius:6px;
+      background:var(--blue);color:#fff;font-family:'Barlow Condensed',sans-serif;
+      font-weight:700;font-size:12px;letter-spacing:.4px;text-transform:uppercase;cursor:pointer}
+    .charges-save-status{font-size:12px;font-weight:600;color:var(--green);opacity:0;transition:opacity .3s}
+    .charges-save-status.show{opacity:1}
+    @media print{.charges-editor{display:none}}
 
     /* STATUS BADGE */
     .status-badge{display:inline-flex;align-items:center;gap:6px;
@@ -358,6 +389,77 @@ function fmt(d) {
 function money(n) {
   return 'R\u00a0' + Number(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
 }
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+// inv.subtotal is the running total (base freight + all saved extra
+// charges), so the freight line on its own is subtotal minus whatever
+// charges are already saved against it.
+function baseFreightAmount(inv) {
+  const chargesTotal = (inv.extra_charges||[]).reduce((s,c) => s + Number(c.amount||0), 0);
+  return Math.round((Number(inv.subtotal||0) - chargesTotal) * 100) / 100;
+}
+
+// ── CHARGES EDITOR (accounts: add/adjust post-shipment charges) ──
+let _chargeDraft = [];
+
+function renderChargeRows() {
+  const wrap = document.getElementById('chargeRows');
+  if (!wrap) return;
+  if (!_chargeDraft.length) {
+    wrap.innerHTML = `<div class="charge-row-empty">No additional charges yet.</div>`;
+    return;
+  }
+  wrap.innerHTML = _chargeDraft.map((c, i) => `
+    <div class="charge-row">
+      <input type="text" placeholder="Description (e.g. Detention — 2hrs)"
+        value="${escapeHtml(c.description)}" oninput="updateChargeDraft(${i},'description',this.value)">
+      <input type="number" step="0.01" placeholder="Amount (R)"
+        value="${c.amount || ''}" oninput="updateChargeDraft(${i},'amount',this.value)">
+      <button type="button" class="charge-remove-btn" onclick="removeChargeRow(${i})" title="Remove">×</button>
+    </div>
+  `).join('');
+}
+
+function updateChargeDraft(i, field, value) {
+  if (!_chargeDraft[i]) return;
+  _chargeDraft[i][field] = field === 'amount' ? Number(value || 0) : value;
+}
+
+function addChargeRow() {
+  _chargeDraft.push({ description: '', amount: 0 });
+  renderChargeRows();
+}
+
+function removeChargeRow(i) {
+  _chargeDraft.splice(i, 1);
+  renderChargeRows();
+}
+
+async function saveCharges(invoiceNo) {
+  const status = document.getElementById('chargesSaveStatus');
+  const cleaned = _chargeDraft
+    .map(c => ({ description: (c.description||'').trim(), amount: Number(c.amount||0) }))
+    .filter(c => c.description && c.amount !== 0);
+
+  try {
+    const res = await fetch(`${API}/truck-invoices/${invoiceNo}/charges`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ extra_charges: cleaned })
+    });
+    if (!res.ok) throw new Error();
+    invoiceData = await res.json();
+    renderInvoice(invoiceData);
+    const s = document.getElementById('chargesSaveStatus');
+    if (s) {
+      s.textContent = 'Saved ✓'; s.classList.add('show');
+      setTimeout(() => s.classList.remove('show'), 2500);
+    }
+  } catch {
+    if (status) status.textContent = 'Failed to save — please try again.';
+  }
+}
 
 function renderInvoice(inv) {
   const isPaid   = inv.status === 'paid';
@@ -411,6 +513,12 @@ function renderInvoice(inv) {
             <span class="status-badge ${isPaid?'sb-paid':'sb-unpaid'}">
               ${isPaid?'✓ Paid':'Unpaid'}
             </span>
+          </div>
+        </div>
+        <div class="inv-meta-cell">
+          <div class="imc-label">VAT Treatment</div>
+          <div class="imc-value" style="font-size:13px">
+            ${inv.is_cross_border ? 'Cross Border (Zero-rated)' : 'National (15%)'}
           </div>
         </div>
       </div>
@@ -536,7 +644,7 @@ function renderInvoice(inv) {
               <th class="text-right">Amount (Excl. VAT)</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="lineItemsBody">
             <tr>
               <td>
                 <div class="desc-main">${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent / Dedicated':'Standard Delivery'}</div>
@@ -545,11 +653,32 @@ function renderInvoice(inv) {
                 </div>
               </td>
               <td class="text-right">
-                <div class="amount-cell">${money(inv.subtotal)}</div>
+                <div class="amount-cell">${money(baseFreightAmount(inv))}</div>
               </td>
             </tr>
+            ${(inv.extra_charges||[]).map(c => `
+            <tr>
+              <td><div class="desc-main">${escapeHtml(c.description)}</div></td>
+              <td class="text-right"><div class="amount-cell">${money(c.amount)}</div></td>
+            </tr>`).join('')}
           </tbody>
         </table>
+      </div>
+
+      <!-- ADD / ADJUST CHARGES (accounts editing) -->
+      <div class="charges-editor" id="chargesEditor">
+        <div class="charges-editor-title">Add or Adjust Charges</div>
+        <div class="charges-editor-sub">
+          Add anything that came up during the shipment — detention, extra stops, storage, toll
+          adjustments — and the totals below will recalculate automatically.
+        </div>
+        <div id="chargeRows"></div>
+        <div class="charges-editor-actions">
+          <button type="button" class="charge-add-btn" onclick="addChargeRow()">+ Add a charge</button>
+          <button type="button" class="charge-save-btn" onclick="saveCharges('${inv.invoice_no}')">Save &amp;
+            Recalculate</button>
+          <span class="charges-save-status" id="chargesSaveStatus"></span>
+        </div>
       </div>
 
       <!-- TOTALS -->
@@ -560,7 +689,7 @@ function renderInvoice(inv) {
             <span class="tv">${money(inv.subtotal)}</span>
           </div>
           <div class="total-row">
-            <span class="tl">VAT (15%)</span>
+            <span class="tl">${inv.is_cross_border ? 'VAT (Cross Border — Zero-rated)' : 'VAT (15%)'}</span>
             <span class="tv">${money(inv.vat_amount)}</span>
           </div>
           <hr class="total-divider">
@@ -611,6 +740,10 @@ function renderInvoice(inv) {
   const refInput = document.getElementById('clientRefInput');
   if (poInput)  poInput.value  = po;
   if (refInput) refInput.value = ref;
+
+  // Populate the charges editor from whatever's currently saved
+  _chargeDraft = JSON.parse(JSON.stringify(inv.extra_charges || []));
+  renderChargeRows();
 }
 
 // Combine the PO Number + Client Reference fields into the single string
@@ -853,8 +986,22 @@ function downloadPDF() {
     doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(96,125,139);
     doc.text(s1Lines,M+pad,y+4+d1Lines.length*5);
     doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(13,33,55);
-    doc.text(`R ${Number(inv.subtotal||0).toFixed(2)}`,W-M-pad,y+4,{align:'right'});
+    doc.text(`R ${baseFreightAmount(inv).toFixed(2)}`,W-M-pad,y+4,{align:'right'});
     y+=rh1+2;
+
+    // Extra charges (accounts-added, post-shipment)
+    (inv.extra_charges||[]).forEach(c => {
+      const cLines = doc.splitTextToSize(pdfSafe(c.description)||'—', W-2*M-40);
+      const rh = cLines.length*5+6;
+      doc.setFillColor(252,253,255); doc.rect(M,y-1,W-2*M,rh,'F');
+      doc.setDrawColor(220,226,234); doc.setLineWidth(0.25);
+      doc.line(W-M-35,y-1,W-M-35,y-1+rh);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(13,33,55);
+      doc.text(cLines,M+pad,y+4);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(13,33,55);
+      doc.text(`R ${Number(c.amount||0).toFixed(2)}`,W-M-pad,y+4,{align:'right'});
+      y+=rh+2;
+    });
 
     // Totals
     doc.setDrawColor(210,218,228); doc.setLineWidth(0.4); doc.line(M,y,W-M,y); y+=6;
@@ -862,7 +1009,7 @@ function downloadPDF() {
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(70,70,70);
     doc.text('Subtotal (Excl. VAT):',totX,y);
     doc.text(`R ${Number(inv.subtotal||0).toFixed(2)}`,W-M-pad,y,{align:'right'}); y+=7;
-    doc.text('VAT (15%):',totX,y);
+    doc.text(inv.is_cross_border ? 'VAT (Cross Border - Zero-rated):' : 'VAT (15%):',totX,y);
     doc.text(`R ${Number(inv.vat_amount||0).toFixed(2)}`,W-M-pad,y,{align:'right'}); y+=7;
     doc.setDrawColor(10,42,67); doc.setLineWidth(0.6); doc.line(totX,y,W-M,y); y+=6;
     doc.setFillColor(13,33,55); doc.roundedRect(totX,y,W-M-totX,12,2,2,'F');
@@ -902,6 +1049,5 @@ function downloadPDF() {
 </script>
 </body>
 </html>
-
 
 

@@ -27,30 +27,35 @@ exports.createInvoice = async (req, res) => {
     const n = seqResult.rows[0].n;
     const invoice_no = `TINV${String(n).padStart(6, '0')}`;
 
-    const sub     = Number(subtotal);
-    const vat     = Math.round(sub * 0.15 * 100) / 100;
-    const total   = Math.round((sub + vat) * 100) / 100;
-
     // Default the invoice's PO/Client Reference to whatever was captured
     // on the booking (if anything) — accountants can still edit it later.
-    const bookingRefResult = await db.query(
-      'SELECT client_reference FROM truck_bookings WHERE booking_ref = $1', [booking_ref]
+    // Also pull the booking's type so we know whether this is a Cross
+    // Border delivery — those are invoiced VAT zero-rated, national
+    // deliveries carry the standard 15%.
+    const bookingResult = await db.query(
+      'SELECT client_reference, type FROM truck_bookings WHERE booking_ref = $1', [booking_ref]
     );
-    const defaultReference = bookingRefResult.rows[0]?.client_reference || null;
+    const defaultReference = bookingResult.rows[0]?.client_reference || null;
+    const isCrossBorder = /cross[\s-]?border/i.test(bookingResult.rows[0]?.type || '');
+
+    const sub     = Number(subtotal);
+    const vat     = isCrossBorder ? 0 : Math.round(sub * 0.15 * 100) / 100;
+    const total   = Math.round((sub + vat) * 100) / 100;
 
     const result = await db.query(`
       INSERT INTO truck_invoices
         (invoice_no, booking_ref, client_name, client_email, client_phone,
          route, vehicle, delivery_type, commodity, shipment_date,
-         subtotal, vat_amount, total, status, notes, invoice_date, client_reference)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'unpaid',$14,$15,$16)
+         subtotal, vat_amount, total, status, notes, invoice_date, client_reference,
+         is_cross_border, extra_charges)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'unpaid',$14,$15,$16,$17,'[]'::jsonb)
       RETURNING *
     `, [
       invoice_no, booking_ref, client_name, client_email, client_phone,
       route, vehicle, delivery_type, commodity, shipment_date || null,
       sub, vat, total, notes || null,
       invoice_date || new Date().toISOString().split('T')[0],
-      defaultReference
+      defaultReference, isCrossBorder
     ]);
 
     // Mark truck booking as invoiced
@@ -156,6 +161,59 @@ exports.updateReference = async (req, res) => {
   } catch (err) {
     console.error('UPDATE INVOICE REFERENCE ERROR:', err.message);
     res.status(500).json({ error: 'Failed to update reference' });
+  }
+};
+
+// ─────────────────────────────────────────────
+// UPDATE CHARGES
+// PATCH /api/truck-invoices/:invoiceNo/charges
+// Body: { extra_charges: [{ description: 'Detention - 2hrs', amount: 850 }, ...] }
+// Lets accounts add/adjust charges that came up after the shipment
+// (detention, extra stops, storage, toll adjustments, etc.). Recalculates
+// subtotal/VAT/total — VAT stays zero-rated for Cross Border invoices.
+// This is a full replace of the charges list (not an append), so the
+// frontend sends the complete current set each time.
+// ─────────────────────────────────────────────
+exports.updateCharges = async (req, res) => {
+  try {
+    const { extra_charges } = req.body;
+    if (!Array.isArray(extra_charges))
+      return res.status(400).json({ error: 'extra_charges must be an array' });
+
+    const cleanCharges = extra_charges
+      .map(c => ({
+        description: String(c.description || '').trim().slice(0, 200),
+        amount: Math.round(Number(c.amount || 0) * 100) / 100
+      }))
+      .filter(c => c.description && c.amount !== 0);
+
+    const current = await db.query('SELECT * FROM truck_invoices WHERE invoice_no = $1', [req.params.invoiceNo]);
+    if (!current.rows.length)
+      return res.status(404).json({ error: 'Invoice not found' });
+    const inv = current.rows[0];
+
+    // inv.subtotal already has any previously-saved charges baked into it,
+    // so back those out first, then add the new set — keeps this correct
+    // no matter how many times accounts comes back and edits it.
+    const oldCharges = Array.isArray(inv.extra_charges) ? inv.extra_charges : [];
+    const oldChargesTotal = oldCharges.reduce((s, c) => s + Number(c.amount || 0), 0);
+    const baseSubtotal = Math.round((Number(inv.subtotal) - oldChargesTotal) * 100) / 100;
+
+    const newChargesTotal = cleanCharges.reduce((s, c) => s + c.amount, 0);
+    const subtotal = Math.round((baseSubtotal + newChargesTotal) * 100) / 100;
+    const vat = inv.is_cross_border ? 0 : Math.round(subtotal * 0.15 * 100) / 100;
+    const total = Math.round((subtotal + vat) * 100) / 100;
+
+    const result = await db.query(`
+      UPDATE truck_invoices SET
+        subtotal = $1, extra_charges = $2, vat_amount = $3, total = $4
+      WHERE invoice_no = $5 RETURNING *`,
+      [subtotal, JSON.stringify(cleanCharges), vat, total, req.params.invoiceNo]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('UPDATE TRUCK INVOICE CHARGES ERROR:', err.message);
+    res.status(500).json({ error: 'Failed to update invoice charges' });
   }
 };
 
