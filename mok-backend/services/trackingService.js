@@ -103,17 +103,29 @@ async function trackShipment(trackingNo) {
         const primaryTrackNo = trackNumbers[0];
         console.log('[TRACKING] Resolved tracking number:', primaryTrackNo, '(of', trackNumbers.length, 'found)');
 
-        // Step 2: fetch events against the REAL tracking number
-        const trackingData =
-            await makeTrackingCall(
+        // Step 2: fetch events against the REAL tracking number.
+        // Both a waybillno-keyed lookup (waybill number) and a
+        // waybillno-keyed lookup (tracking number) returned "Invalid
+        // trackno" — so the parameter KEY itself is suspect, not just
+        // the value. getTracks returns the number under a field called
+        // "trackno", so try submitting it back under that same key first.
+        let trackingData = await makeTrackingCall(
+            'Waybill',
+            'getEvents',
+            { trackno: primaryTrackNo }
+        );
+
+        console.log('[TRACKING] getEvents (trackno param) response:', JSON.stringify(trackingData, null, 2));
+
+        if (Number(trackingData.errorcode) !== 0) {
+            console.log('[TRACKING] trackno param failed, retrying with waybillno param as fallback...');
+            trackingData = await makeTrackingCall(
                 'Waybill',
                 'getEvents',
-                {
-                    waybillno: primaryTrackNo
-                }
+                { waybillno: primaryTrackNo }
             );
-
-        console.log('[TRACKING] getEvents response:', JSON.stringify(trackingData, null, 2));
+            console.log('[TRACKING] getEvents (waybillno param) response:', JSON.stringify(trackingData, null, 2));
+        }
 
         if (Number(trackingData.errorcode) !== 0) {
             throw new Error(trackingData.errormessage || 'Tracking lookup failed');
