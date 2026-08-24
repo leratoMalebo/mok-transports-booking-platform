@@ -61,30 +61,59 @@ async function trackShipment(trackingNo) {
         }
 
         const shipment = shipmentResult.rows[0];
-
-        // Per Parcel Perfect docs: submitting the plain waybill number to
-        // getEvents returns waybill-level events directly — no suffix or
-        // synthesized tracking number is needed. Use jkj_reference (the
-        // number JKJ actually knows this shipment by) when we have it,
-        // falling back to our own waybill_no otherwise.
-        const trackingRef = shipment.jkj_reference || shipment.waybill_no;
+        const waybillRef = shipment.jkj_reference || shipment.waybill_no;
 
         console.log("====================================");
         console.log("[TRACKING] Mok Waybill:", shipment.waybill_no);
         console.log("[TRACKING] JKJ Reference:", shipment.jkj_reference);
-        console.log("[TRACKING] Using for getEvents:", trackingRef);
+        console.log("[TRACKING] Resolving tracking number(s) for waybill:", waybillRef);
         console.log("====================================");
 
+        // Step 1: a waybill number is NOT the same thing as a tracking
+        // number in Parcel Perfect's system — confirmed live ("Invalid
+        // trackno" when a plain waybill number was submitted directly to
+        // getEvents). getTracks resolves the real tracking number(s)
+        // associated with this waybill first.
+        const tracksData = await makeTrackingCall(
+            'Waybill',
+            'getTracks',
+            { waybillno: waybillRef }
+        );
+
+        console.log('[TRACKING] getTracks response:', JSON.stringify(tracksData, null, 2));
+
+        if (Number(tracksData.errorcode) !== 0) {
+            throw new Error(tracksData.errormessage || 'Could not resolve a tracking number for this waybill.');
+        }
+
+        // Field name for the tracking number isn't confirmed from the
+        // docs alone (no sample response provided) — check the plausible
+        // variants defensively rather than guess a single one.
+        const trackNumbers = (tracksData.results || [])
+            .map(r => r.trackno || r.trackingno || r.tracking_no || r.waybillno)
+            .filter(Boolean);
+
+        if (!trackNumbers.length) {
+            return {
+                success: false,
+                message: 'No tracking number has been generated for this waybill yet. Please check back shortly.'
+            };
+        }
+
+        const primaryTrackNo = trackNumbers[0];
+        console.log('[TRACKING] Resolved tracking number:', primaryTrackNo, '(of', trackNumbers.length, 'found)');
+
+        // Step 2: fetch events against the REAL tracking number
         const trackingData =
             await makeTrackingCall(
                 'Waybill',
                 'getEvents',
                 {
-                    waybillno: trackingRef
+                    waybillno: primaryTrackNo
                 }
             );
 
-        console.log('[TRACKING] Response:', JSON.stringify(trackingData, null, 2));
+        console.log('[TRACKING] getEvents response:', JSON.stringify(trackingData, null, 2));
 
         if (Number(trackingData.errorcode) !== 0) {
             throw new Error(trackingData.errormessage || 'Tracking lookup failed');
@@ -133,9 +162,6 @@ async function trackShipment(trackingNo) {
 }
 
 module.exports = { trackShipment };
-
-
-
 
 
 
