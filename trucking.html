@@ -910,7 +910,8 @@
           </div>
           <div class="field-group">
             <label class="field-label">Client Reference / PO Number</label>
-            <input class="field-input" type="text" id="clientReference" placeholder="e.g. Client PO number or internal reference">
+            <input class="field-input" type="text" id="clientReference"
+              placeholder="e.g. Client PO number or internal reference">
           </div>
           <div class="field-group">
             <label class="field-label">Requirements (no cost — for client's information)</label>
@@ -991,34 +992,32 @@
           </div>
         </div>
 
-      <!-- RECEIVER DETAILS -->
-      <div class="section">
-        <div class="section-label">Receiver Details</div>
-        <div class="grid-2">
-          <div class="field-group">
-            <label class="field-label">Receiver Full Name *</label>
-            <input class="field-input" type="text" id="receiverName"
-              placeholder="e.g. John Dlamini" autocomplete="off">
+        <!-- RECEIVER DETAILS -->
+        <div class="section">
+          <div class="section-label">Receiver Details</div>
+          <div class="grid-2">
+            <div class="field-group">
+              <label class="field-label">Receiver Full Name *</label>
+              <input class="field-input" type="text" id="receiverName" placeholder="e.g. John Dlamini"
+                autocomplete="off">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Receiver Company</label>
+              <input class="field-input" type="text" id="receiverCompany" placeholder="e.g. Acme (Pty) Ltd"
+                autocomplete="off">
+            </div>
           </div>
-          <div class="field-group">
-            <label class="field-label">Receiver Company</label>
-            <input class="field-input" type="text" id="receiverCompany"
-              placeholder="e.g. Acme (Pty) Ltd" autocomplete="off">
+          <div class="grid-2">
+            <div class="field-group">
+              <label class="field-label">Receiver Phone *</label>
+              <input class="field-input" type="tel" id="receiverPhone" placeholder="0XX XXX XXXX">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Receiver Email</label>
+              <input class="field-input" type="email" id="receiverEmail" placeholder="receiver@company.com">
+            </div>
           </div>
         </div>
-        <div class="grid-2">
-          <div class="field-group">
-            <label class="field-label">Receiver Phone *</label>
-            <input class="field-input" type="tel" id="receiverPhone"
-              placeholder="0XX XXX XXXX">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Receiver Email</label>
-            <input class="field-input" type="email" id="receiverEmail"
-              placeholder="receiver@company.com">
-          </div>
-        </div>
-      </div>
 
         <!-- NATIONAL SECTION -->
         <div id="section-national" class="section">
@@ -1069,6 +1068,7 @@
                 <option value="Botswana">🇧🇼 Botswana</option>
                 <option value="Namibia">🇳🇦 Namibia</option>
                 <option value="Zimbabwe">🇿🇼 Zimbabwe</option>
+                <option value="Zambia">🇿🇲 Zambia</option>
                 <option value="Kenya">🇰🇪 Kenya</option>
               </select>
             </div>
@@ -1118,7 +1118,8 @@
           border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#8a6d00;
           display:flex;align-items:center;gap:8px">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a6d00" stroke-width="2">
-            <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
           </svg>
           Editing saved quote <strong id="editingRefLabel"></strong> — changes will update this quote.
         </div>
@@ -1128,8 +1129,9 @@
           <button class="submit-btn" id="saveQuoteBtn" onclick="saveQuote()"
             style="background:#546e7a;flex:0 0 auto;padding:0 18px;width:auto">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-              <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
             </svg>
             Save Quote
           </button>
@@ -1223,16 +1225,13 @@
             <div style="position:relative">
               <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
                 color:#90a4ae;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700">R</span>
-              <input type="number" id="otherCosts" min="0" step="0.01" placeholder="0.00"
-                oninput="updateOtherCosts()"
+              <input type="number" id="otherCosts" min="0" step="0.01" placeholder="0.00" oninput="updateOtherCosts()"
                 style="width:100%;height:38px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
                 border-radius:6px;padding:0 12px 0 26px;font-family:'Barlow Condensed',sans-serif;
                 font-size:16px;font-weight:700;color:#fff;outline:none">
             </div>
-            <div style="font-size:10px;color:#90a4ae;margin-top:6px;line-height:1.5"
-              id="otherCostsDesc">
-              <input type="text" id="otherCostsLabel" placeholder="Description e.g. Bobcat / Labour"
-                style="width:100%;margin-top:6px;height:32px;background:rgba(255,255,255,.08);
+            <div style="font-size:10px;color:#90a4ae;margin-top:6px;line-height:1.5" id="otherCostsDesc">
+              <input type="text" id="otherCostsLabel" placeholder="Description e.g. Bobcat / Labour" style="width:100%;margin-top:6px;height:32px;background:rgba(255,255,255,.08);
                 border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:0 10px;
                 font-family:'Barlow',sans-serif;font-size:12px;color:#fff;outline:none">
             </div>
@@ -1299,6 +1298,16 @@
         cities: {
           Harare: { "1 Tonner": 14500, "4 Tonner": 18500, "8 Tonner": 24500, "Tri-Axle": 32000, "Super Link": 42000 },
           Bulawayo: { "1 Tonner": 12500, "4 Tonner": 16500, "8 Tonner": 21500, "Tri-Axle": 28000, "Super Link": 37000 }
+        }
+      },
+      Zambia: {
+        flag: "🇿🇲",
+        expectedKm: { Lusaka: 1600, Ndola: 1900, Kitwe: 1950, Solwezi: 2200 },
+        cities: {
+          Lusaka: { "1 Tonner": 18500, "4 Tonner": 24500, "8 Tonner": 32500, "Tri-Axle": 45000, "Super Link": 56000 },
+          Ndola: { "1 Tonner": 21000, "4 Tonner": 27500, "8 Tonner": 36500, "Tri-Axle": 51000, "Super Link": 63000 },
+          Kitwe: { "1 Tonner": 22000, "4 Tonner": 28500, "8 Tonner": 38000, "Tri-Axle": 53000, "Super Link": 65000 },
+          Solwezi: { "1 Tonner": 24500, "4 Tonner": 32000, "8 Tonner": 42500, "Tri-Axle": 59000, "Super Link": 72000 }
         }
       },
       Kenya: {
@@ -1719,12 +1728,12 @@
       }
 
       // Receiver details
-      const receiverName    = document.getElementById('receiverName')?.value?.trim()    || '';
+      const receiverName = document.getElementById('receiverName')?.value?.trim() || '';
       const receiverCompany = document.getElementById('receiverCompany')?.value?.trim() || '';
-      const receiverPhone   = document.getElementById('receiverPhone')?.value?.trim()   || '';
-      const receiverEmail   = document.getElementById('receiverEmail')?.value?.trim()   || '';
+      const receiverPhone = document.getElementById('receiverPhone')?.value?.trim() || '';
+      const receiverEmail = document.getElementById('receiverEmail')?.value?.trim() || '';
 
-      const otherCostsVal   = parseFloat(document.getElementById('otherCosts')?.value || 0) || 0;
+      const otherCostsVal = parseFloat(document.getElementById('otherCosts')?.value || 0) || 0;
       const otherCostsLabel = document.getElementById('otherCostsLabel')?.value?.trim() || '';
       const finalPrice = price + otherCostsVal;
 
@@ -1754,40 +1763,40 @@
     // ── Shared: build the API body from a payload ──
     function buildBookingBody(payload, status) {
       const contactNote = payload.contact ? `Contact Person: ${payload.contact}` : '';
-      const otherNote   = payload.otherCosts > 0
+      const otherNote = payload.otherCosts > 0
         ? `Other Costs: R ${payload.otherCosts.toLocaleString()}${payload.otherCostsLabel ? ' (' + payload.otherCostsLabel + ')' : ''}`
         : '';
-      const tollNote    = payload.tollCost > 0
+      const tollNote = payload.tollCost > 0
         ? `Tolls on Quote: ${includeTolls ? 'Included' : 'Excluded'}`
         : '';
       const notesText = [contactNote, otherNote, tollNote].filter(Boolean).join(' | ');
       return {
-        booking_ref:       payload.ref,
-        client_name:       payload.name,
-        client_phone:      payload.phone,
-        client_email:      payload.email,
-        commodity:         payload.commodity,
-        client_reference:  payload.clientReference || null,
-        requirements:      payload.requirements    || null,
-        shipment_date:     payload.shipDate,
-        processed_by:      payload.agent,
-        type:              payload.type,
-        vehicle:           payload.vehicle,
-        delivery_type:     payload.deliveryType,
-        price:             payload.price,
-        toll_cost:         payload.tollCost,
-        distance_km:       payload.distance,
-        pickup:            payload.pickup,
-        delivery:          payload.delivery,
-        country:           payload.cbCountry || null,
-        city:              payload.cbCity    || null,
-        route:             payload.route,
+        booking_ref: payload.ref,
+        client_name: payload.name,
+        client_phone: payload.phone,
+        client_email: payload.email,
+        commodity: payload.commodity,
+        client_reference: payload.clientReference || null,
+        requirements: payload.requirements || null,
+        shipment_date: payload.shipDate,
+        processed_by: payload.agent,
+        type: payload.type,
+        vehicle: payload.vehicle,
+        delivery_type: payload.deliveryType,
+        price: payload.price,
+        toll_cost: payload.tollCost,
+        distance_km: payload.distance,
+        pickup: payload.pickup,
+        delivery: payload.delivery,
+        country: payload.cbCountry || null,
+        city: payload.cbCity || null,
+        route: payload.route,
         status,
-        notes:             notesText || null,
-        receiver_name:     payload.receiverName    || null,
-        receiver_company:  payload.receiverCompany || null,
-        receiver_phone:    payload.receiverPhone   || null,
-        receiver_email:    payload.receiverEmail   || null
+        notes: notesText || null,
+        receiver_name: payload.receiverName || null,
+        receiver_company: payload.receiverCompany || null,
+        receiver_phone: payload.receiverPhone || null,
+        receiver_email: payload.receiverEmail || null
       };
     }
 
@@ -2199,7 +2208,7 @@
 
         const recName = payload.receiverName || payload.name || '—';
         const recComp = payload.receiverCompany || '';
-        const recPh   = payload.receiverPhone   || payload.phone || '';
+        const recPh = payload.receiverPhone || payload.phone || '';
         const recAddr = payload.delivery || payload.cbCity || '—';
         const receiverLines = doc.splitTextToSize(recName, (W - 2 * M) / 2 - 10);
         doc.text(receiverLines, M + (W - 2 * M) / 2 + 5, y + 13);
@@ -2449,7 +2458,6 @@
 </body>
 
 </html>
-
 
 
 
