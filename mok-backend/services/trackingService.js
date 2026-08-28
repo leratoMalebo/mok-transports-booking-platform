@@ -103,42 +103,40 @@ async function trackShipment(trackingNo) {
         const primaryTrackNo = trackNumbers[0];
         console.log('[TRACKING] Resolved tracking number:', primaryTrackNo, '(of', trackNumbers.length, 'found)');
 
-        // Step 2: fetch events against the REAL tracking number.
-        // Both a waybillno-keyed lookup (waybill number) and a
-        // waybillno-keyed lookup (tracking number) returned "Invalid
-        // trackno" — so the parameter KEY itself is suspect, not just
-        // the value. getTracks returns the number under a field called
-        // "trackno", so try submitting it back under that same key first.
-        let trackingData = await makeTrackingCall(
+        // Step 2: fetch events against the tracking number. Confirmed
+        // with Parcel Perfect support (Warwick Parris) — the parameter
+        // MUST be named "trackno" (not "waybillno"). Either a waybill
+        // number or a tracking number can be submitted under this same
+        // key; a waybill number returns header-level events, a tracking
+        // number returns events for that specific piece.
+        const trackingData = await makeTrackingCall(
             'Waybill',
             'getEvents',
             { trackno: primaryTrackNo }
         );
 
-        console.log('[TRACKING] getEvents (trackno param) response:', JSON.stringify(trackingData, null, 2));
-
-        if (Number(trackingData.errorcode) !== 0) {
-            console.log('[TRACKING] trackno param failed, retrying with waybillno param as fallback...');
-            trackingData = await makeTrackingCall(
-                'Waybill',
-                'getEvents',
-                { waybillno: primaryTrackNo }
-            );
-            console.log('[TRACKING] getEvents (waybillno param) response:', JSON.stringify(trackingData, null, 2));
-        }
+        console.log('[TRACKING] getEvents response:', JSON.stringify(trackingData, null, 2));
 
         if (Number(trackingData.errorcode) !== 0) {
             throw new Error(trackingData.errormessage || 'Tracking lookup failed');
         }
 
-        // 3. Map events to clean format
-        const events = (trackingData.results || []).map(item => ({
-            status: item.status || item.description || 'Updated',
-            location: item.location || item.depot || 'Unknown',
-            description: item.description || item.status || '',
-            date: item.scan_date || item.date || new Date().toISOString(),
-            time: item.scan_time || ''
-        }));
+        // 3. Map events to clean format. Real field names confirmed by
+        // Parcel Perfect support: eventdate, eventtime, eventtype,
+        // scanrule (human-readable description), hub (location code).
+        const events = (trackingData.results || []).map(item => {
+            const date = item.eventdate && item.eventtime
+                ? `${item.eventdate}T${item.eventtime}`
+                : (item.eventdate || new Date().toISOString());
+            return {
+                status: (item.scanrule || 'Updated').trim(),
+                location: (item.hub || 'Unknown').trim(),
+                description: (item.scanrule || '').trim(),
+                eventType: (item.eventtype || '').trim(),
+                date,
+                time: item.eventtime || ''
+            };
+        });
 
         const latestStatus = events.length > 0 ? events[0].status : 'Booked';
         const latestLocation = events.length > 0 ? events[0].location : null;
