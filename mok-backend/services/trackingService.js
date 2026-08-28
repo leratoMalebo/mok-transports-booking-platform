@@ -142,13 +142,22 @@ async function trackShipment(trackingNo) {
         const latestLocation = events.length > 0 ? events[0].location : null;
         const latestEventDate = events.length > 0 ? events[0].date : null;
 
-        // 4. Update status in our DB
-        await pool.query(`
-      UPDATE waybills
-      SET status     = $1,
-          updated_at = NOW()
-      WHERE id = $2
-    `, [latestStatus, shipment.id]);
+        // 4. Best-effort: sync the status back onto our own waybills row
+        // for other views (e.g. the Waybills list) to reflect. This is
+        // a nice-to-have side effect, not part of what the customer
+        // actually needs — so a failure here (e.g. a column that
+        // doesn't exist, a permissions issue, anything) must never be
+        // allowed to wipe out the tracking data we already successfully
+        // fetched from Parcel Perfect.
+        try {
+            await pool.query(`
+        UPDATE waybills
+        SET status = $1
+        WHERE id = $2
+      `, [latestStatus, shipment.id]);
+        } catch (updateErr) {
+            console.error('[TRACKING] Non-fatal: failed to sync status to DB:', updateErr.message);
+        }
 
         return {
             success: true,
@@ -172,6 +181,7 @@ async function trackShipment(trackingNo) {
 }
 
 module.exports = { trackShipment };
+
 
 
 
