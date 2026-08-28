@@ -310,6 +310,50 @@
       #trackingResult { padding: 0 16px 60px }
       .nav-link span { display: none }
     }
+
+    /* ── PROOF OF DELIVERY ──────────────────────────── */
+    .pod-wrap {
+      display: none;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px 28px; margin-top: 24px;
+    }
+    .pod-wrap.show { display: block; animation: fadeUp .4s ease }
+    .pod-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .pod-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px; letter-spacing: 2px; color: var(--muted);
+      text-transform: uppercase;
+    }
+    .pod-toggle-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--blue); color: #fff; border: none;
+      padding: 10px 20px; border-radius: 8px; cursor: pointer;
+      font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1.5px;
+      margin-top: 20px; transition: background .2s;
+    }
+    .pod-toggle-btn:hover { background: #1a6de8 }
+    .pod-body { margin-top: 18px }
+    .pod-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      margin-bottom: 18px;
+    }
+    .pod-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+    }
+    .pod-value {
+      font-family: 'DM Mono', monospace; font-size: 14px; color: #fff;
+    }
+    .pod-signature {
+      display: block; max-width: 320px; width: 100%;
+      background: #fff; border-radius: 8px; padding: 12px;
+    }
+    .pod-loading, .pod-empty {
+      font-size: 13px; color: var(--muted); padding: 12px 0;
+    }
   </style>
 </head>
 <body>
@@ -376,6 +420,16 @@
     <div class="loader-text">LOCATING SHIPMENT…</div>
   </div>
 
+  <!-- ERROR (kept separate from #trackingResult so a failed search never
+       destroys the result markup — a later successful search still works) -->
+  <div id="trackingErrorBox" style="display:none;position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 32px 80px">
+    <div class="result-empty">
+      <div class="result-empty-icon">🔍</div>
+      <div class="result-empty-title">Shipment Not Found</div>
+      <div class="result-empty-sub" id="trackingErrorMsg">No shipment found for that reference number. Please check and try again.</div>
+    </div>
+  </div>
+
   <!-- RESULT -->
   <div id="trackingResult">
 
@@ -416,6 +470,18 @@
       <div id="timeline"></div>
     </div>
 
+    <!-- PROOF OF DELIVERY -->
+    <div class="pod-wrap" id="podWrap">
+      <div class="pod-header">
+        <div class="pod-title">Proof of Delivery</div>
+      </div>
+      <button class="pod-toggle-btn" id="podToggleBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        View Proof of Delivery
+      </button>
+      <div class="pod-body" id="podBody" style="display:none"></div>
+    </div>
+
   </div>
 
   <script src="./assets/js/tracking.js"></script>
@@ -445,23 +511,51 @@
       document.getElementById('currentLocation').textContent = location || 'Johannesburg Hub';
       document.getElementById('lastUpdated').textContent = updated  || new Date().toLocaleDateString('en-ZA');
       document.getElementById('loader').classList.remove('active');
+      document.getElementById('trackingErrorBox').style.display = 'none';
       document.getElementById('trackingResult').style.display = 'block';
     };
 
     window.showLoader = function() {
       document.getElementById('loader').classList.add('active');
+      document.getElementById('trackingErrorBox').style.display = 'none';
       document.getElementById('trackingResult').style.display = 'none';
     };
 
     window.showTrackingError = function(msg) {
       document.getElementById('loader').classList.remove('active');
-      document.getElementById('trackingResult').style.display = 'block';
-      document.getElementById('trackingResult').innerHTML = `
-        <div class="result-empty">
-          <div class="result-empty-icon">🔍</div>
-          <div class="result-empty-title">Shipment Not Found</div>
-          <div class="result-empty-sub">${msg || 'No shipment found for that reference number. Please check and try again.'}</div>
-        </div>`;
+      document.getElementById('trackingResult').style.display = 'none';
+      document.getElementById('trackingErrorMsg').textContent =
+        msg || 'No shipment found for that reference number. Please check and try again.';
+      document.getElementById('trackingErrorBox').style.display = 'block';
+    };
+
+    // Shows/hides the Proof of Delivery card, and wires the button to
+    // lazily fetch the POD only when clicked (not on every track lookup)
+    window.togglePODButton = function(show, trackingNo) {
+      const podWrap = document.getElementById('podWrap');
+      const podBody = document.getElementById('podBody');
+      const podBtn = document.getElementById('podToggleBtn');
+      if (!podWrap) return;
+
+      podWrap.classList.toggle('show', !!show);
+      if (!show) return;
+
+      // Reset for a fresh lookup
+      podBody.style.display = 'none';
+      podBody.innerHTML = '';
+      podBtn.style.display = 'inline-flex';
+
+      podBtn.onclick = function () {
+        const isOpen = podBody.style.display !== 'none';
+        if (isOpen) {
+          podBody.style.display = 'none';
+          return;
+        }
+        podBody.style.display = 'block';
+        if (typeof window.loadPOD === 'function') {
+          window.loadPOD(trackingNo);
+        }
+      };
     };
   </script>
 

@@ -180,7 +180,95 @@ async function trackShipment(trackingNo) {
     }
 }
 
-module.exports = { trackShipment };
+// ── GET PROOF OF DELIVERY ──────────────────────────────────────
+// Fetches the POD signature (base64 image) and delivery details for a
+// shipment. Only meaningful once a shipment has actually been
+// delivered — Parcel Perfect will return an error/empty result
+// otherwise, which we surface as a clean "not available yet" message
+// rather than a hard failure.
+async function getProofOfDelivery(trackingNo) {
+    try {
+        const shipmentResult = await pool.query(`
+      SELECT * FROM waybills
+      WHERE waybill_no = $1 OR jkj_reference = $1
+      LIMIT 1
+    `, [trackingNo]);
+
+        if (!shipmentResult.rows.length) {
+            return { success: false, message: 'Shipment not found in our system.' };
+        }
+
+        const shipment = shipmentResult.rows[0];
+        const waybillRef = shipment.jkj_reference || shipment.waybill_no;
+
+        // Resolve the real tracking number first, same as trackShipment —
+        // getPOD/getPODSignature take the same trackno parameter.
+        const tracksData = await makeTrackingCall('Waybill', 'getTracks', { waybillno: waybillRef });
+
+        if (Number(tracksData.errorcode) !== 0) {
+            throw new Error(tracksData.errormessage || 'Could not resolve a tracking number for this waybill.');
+        }
+
+        const trackNumbers = (tracksData.results || [])
+            .map(r => r.trackno || r.trackingno || r.tracking_no || r.waybillno)
+            .filter(Boolean);
+
+        if (!trackNumbers.length) {
+            return { success: false, message: 'No tracking number found for this waybill yet.' };
+        }
+
+        const primaryTrackNo = trackNumbers[0];
+
+        // POD details (recipient name, date/time delivered, etc.)
+        const podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: primaryTrackNo });
+        console.log('[TRACKING] getPOD response:', JSON.stringify(podData, null, 2));
+
+        // POD signature image (base64)
+        const sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: primaryTrackNo });
+        console.log('[TRACKING] getPODSignature response:', JSON.stringify(sigData, null, 2));
+
+        if (Number(podData.errorcode) !== 0) {
+            return {
+                success: false,
+                message: podData.errormessage || 'Proof of delivery is not available for this shipment yet.'
+            };
+        }
+
+        const podResult = (podData.results || [])[0] || {};
+        // Field names not confirmed from docs alone (no sample response
+        // provided for getPOD) — check plausible variants defensively,
+        // same approach that worked for getTracks.
+        const recipientName = podResult.recipient || podResult.podname || podResult.signedby || podResult.receivedby || null;
+        const podDate = podResult.poddate || podResult.eventdate || null;
+        const podTime = podResult.podtime || podResult.eventtime || null;
+
+        let signatureBase64 = null;
+        if (Number(sigData.errorcode) === 0) {
+            const sigResult = (sigData.results || [])[0] || sigData;
+            signatureBase64 = sigResult.signature || sigResult.image || sigResult.base64 || null;
+        }
+
+        return {
+            success: true,
+            pod: {
+                waybill_no: shipment.waybill_no,
+                tracking_no: primaryTrackNo,
+                recipient_name: recipientName,
+                delivered_date: podDate,
+                delivered_time: podTime,
+                signature_base64: signatureBase64
+            }
+        };
+
+    } catch (error) {
+        console.error('[TRACKING] POD Error:', error.message);
+        return { success: false, message: error.message };
+    }
+}
+
+module.exports = { trackShipment, getProofOfDelivery };
+
+
 
 
 

@@ -79,13 +79,26 @@ async function trackShipment() {
       : buildFallbackEvents(shipment);
 
     if (timelineDiv) {
-      timelineDiv.innerHTML = events.map(event => `
+      timelineDiv.innerHTML = events.map((event, i) => {
+        const isLast = i === events.length - 1;
+        return `
         <div class="timeline-item">
-          <h6>${event.status || "Shipment Updated"}</h6>
-          <p>${event.location || "Mok Transports Hub"}</p>
-          <small>${formatDate(event.date || event.created_at || event.updated_at)}</small>
-        </div>
-      `).join("");
+          <div class="tl-dot ${isLast ? "active" : "done"}">${eventIcon(event.eventType, event.status)}</div>
+          <div class="tl-body">
+            <div class="tl-step">${event.status || "Shipment Updated"}</div>
+            <div class="tl-desc">${event.location || "Mok Transports Hub"}</div>
+            <div class="tl-time">${formatDate(event.date || event.created_at || event.updated_at)}</div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    // Show the Proof of Delivery button once the shipment has actually
+    // been delivered — hidden otherwise, since there's nothing to fetch.
+    const statusLower = (shipment.current_status || "").toLowerCase();
+    const hasDeliveryEvent = events.some(e => /proof of delivery|delivered/i.test(e.status || ""));
+    if (typeof window.togglePODButton === "function") {
+      window.togglePODButton(statusLower.includes("delivered") || hasDeliveryEvent, trackingNo);
     }
 
   } catch (error) {
@@ -95,6 +108,71 @@ async function trackShipment() {
     } else {
       alert("Tracking failed. Please try again.");
     }
+  }
+}
+
+// Maps a Parcel Perfect event type / scan description to a small
+// timeline icon. Falls back to a generic dot if nothing matches.
+function eventIcon(eventType, statusText) {
+  const t = (eventType || "").trim().toUpperCase();
+  const s = (statusText || "").toLowerCase();
+  if (t === "R" || s.includes("ready for collection")) return "🕐";
+  if (t === "O" || s.includes("collected")) return "📤";
+  if (t === "D" || s.includes("checked in")) return "🏢";
+  if (["1", "2", "3"].includes(t) || s.includes("manifest") || s.includes("loaded")) return "🚚";
+  if (t === "C" || s.includes("dispatch")) return "🚛";
+  if (t === "V" || s.includes("arrived")) return "📍";
+  if (t === "P" || s.includes("proof of delivery details")) return "✍️";
+  if (t === "I" || s.includes("proof of delivery image") || s.includes("image scanned")) return "📷";
+  if (s.includes("delivered")) return "✅";
+  if (t === "M" || s.includes("mis-routed")) return "⚠️";
+  if (["A", "B", "E"].includes(t) || s.includes("held") || s.includes("failed") || s.includes("damaged")) return "⚠️";
+  return "📦";
+}
+
+// ── PROOF OF DELIVERY ───────────────────────────────────────
+async function loadPOD(trackingNo) {
+  const podBody = document.getElementById("podBody");
+  if (!podBody) return;
+
+  podBody.innerHTML = `<div class="pod-loading">Loading proof of delivery…</div>`;
+
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/tracking/${encodeURIComponent(trackingNo)}/pod`
+    );
+    const data = await response.json();
+
+    if (!data.success || !data.pod) {
+      podBody.innerHTML = `<div class="pod-empty">${data.message || "Proof of delivery is not available for this shipment yet."}</div>`;
+      return;
+    }
+
+    const pod = data.pod;
+    const sigHtml = pod.signature_base64
+      ? `<img class="pod-signature" src="data:image/png;base64,${pod.signature_base64}" alt="Delivery signature">`
+      : `<div class="pod-empty">No signature image available.</div>`;
+
+    podBody.innerHTML = `
+      <div class="pod-grid">
+        <div>
+          <div class="pod-label">Recipient</div>
+          <div class="pod-value">${pod.recipient_name || "—"}</div>
+        </div>
+        <div>
+          <div class="pod-label">Delivered</div>
+          <div class="pod-value">${formatDate(
+            pod.delivered_date && pod.delivered_time
+              ? `${pod.delivered_date}T${pod.delivered_time}`
+              : pod.delivered_date
+          )}</div>
+        </div>
+      </div>
+      ${sigHtml}
+    `;
+  } catch (error) {
+    console.error("POD error:", error);
+    podBody.innerHTML = `<div class="pod-empty">Could not load proof of delivery. Please try again.</div>`;
   }
 }
 
@@ -159,6 +237,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
 
 
 
