@@ -56,7 +56,8 @@ async function trackShipment() {
         shipment.jkj_reference,
         shipment.service,
         location,
-        updated
+        updated,
+        shipment.latest_scan_description
       );
     } else {
       // Fallback: original direct-DOM rendering, kept for safety if
@@ -237,6 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
 
 
 

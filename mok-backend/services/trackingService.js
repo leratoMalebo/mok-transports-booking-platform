@@ -42,6 +42,29 @@ async function makeTrackingCall(className, method, params) {
 }
 
 // ── TRACK SHIPMENT ────────────────────────────────────────────
+// Maps the mapped event list to one of the exact status keys the
+// frontend's badge understands: booked / sent_to_jkj / in_transit /
+// delivered. Checked in priority order from most-advanced to
+// least-advanced, so a shipment with a mix of events is classified by
+// how far it's actually progressed.
+function normalizeStatus(events) {
+    if (!events.length) return 'booked';
+
+    const text = events.map(e => (e.status || '').toLowerCase()).join(' | ');
+    const types = events.map(e => (e.eventType || '').toUpperCase());
+
+    if (types.includes('P') || types.includes('I') || text.includes('proof of delivery') || text.includes('delivered')) {
+        return 'delivered';
+    }
+    if (text.includes('dispatch') || text.includes('arrived at destination') || text.includes('loaded for delivery') || text.includes('out for delivery')) {
+        return 'in_transit';
+    }
+    if (text.includes('collected') || text.includes('checked in') || text.includes('manifest') || text.includes('ready for collection')) {
+        return 'sent_to_jkj';
+    }
+    return 'booked';
+}
+
 async function trackShipment(trackingNo) {
     try {
 
@@ -138,9 +161,21 @@ async function trackShipment(trackingNo) {
             };
         });
 
-        const latestStatus = events.length > 0 ? events[0].status : 'Booked';
-        const latestLocation = events.length > 0 ? events[0].location : null;
-        const latestEventDate = events.length > 0 ? events[0].date : null;
+        // JKJ returns events in chronological order (oldest first) — the
+        // LAST item is the most recent scan, not the first. Reading
+        // events[0] here was the bug causing status/location/updated to
+        // always show the very first "Ready for Collection" scan.
+        const latest = events.length > 0 ? events[events.length - 1] : null;
+        const latestRawStatus = latest ? latest.status : 'Booked';
+        const latestLocation = latest ? latest.location : null;
+        const latestEventDate = latest ? latest.date : null;
+
+        // Normalize into the exact status keys the frontend badge expects
+        // (booked / sent_to_jkj / in_transit / delivered) — the raw scan
+        // text ("Proof of delivery image scanned") never matched any of
+        // those keys, which is why the badge fell back to "In Progress"
+        // even after delivery.
+        const latestStatus = normalizeStatus(events);
 
         // 4. Best-effort: sync the status back onto our own waybills row
         // for other views (e.g. the Waybills list) to reflect. This is
@@ -165,6 +200,7 @@ async function trackShipment(trackingNo) {
                 waybill_no: shipment.waybill_no,
                 jkj_reference: shipment.jkj_reference,
                 current_status: latestStatus,
+                latest_scan_description: latestRawStatus,
                 service: shipment.service,
                 tracking_location: latestLocation,
                 tracking_updated_at: latestEventDate,

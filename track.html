@@ -440,6 +440,7 @@
         <div>
           <div class="status-label">Current Status</div>
           <div id="statusBox">—</div>
+          <div id="statusDetail" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
         </div>
       </div>
       <div class="status-right">
@@ -499,12 +500,13 @@
     };
 
     // Override renderTrackingResult if tracking.js defines it
-    window.renderStatus = function(status, waybill, jkjRef, service, location, updated) {
+    window.renderStatus = function(status, waybill, jkjRef, service, location, updated, scanDescription) {
       const cfg = statusConfig[status?.toLowerCase()] || statusConfig.default;
       document.getElementById('statusBox').textContent   = cfg.label;
       document.getElementById('statusBox').className     = cfg.cls;
       document.getElementById('statusIcon').textContent  = cfg.emoji;
       document.getElementById('statusIcon').className    = 'status-icon ' + cfg.iconCls;
+      document.getElementById('statusDetail').textContent = scanDescription || '';
       document.getElementById('waybillNo').textContent   = waybill  || '—';
       document.getElementById('jkjRef').textContent      = jkjRef   || '—';
       document.getElementById('serviceType').textContent = service  || '—';
@@ -561,6 +563,7 @@
 
 </body>
 </html>
+
 
 
 
