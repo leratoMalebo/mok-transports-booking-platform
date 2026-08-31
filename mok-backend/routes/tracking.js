@@ -32,5 +32,30 @@ router.get("/:trackingNo", async (req, res) => {
 
 });
 
+router.get("/:trackingNo/pod", async (req, res) => {
+
+  try {
+
+    const result =
+      await trackingService.getProofOfDelivery(
+        req.params.trackingNo
+      );
+
+    res.json(result);
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to load proof of delivery"
+    });
+
+  }
+
+});
+
 module.exports = router;
+
 
