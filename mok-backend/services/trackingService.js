@@ -219,13 +219,27 @@ async function getProofOfDelivery(trackingNo) {
 
         const primaryTrackNo = trackNumbers[0];
 
-        // POD details (recipient name, date/time delivered, etc.)
-        const podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: primaryTrackNo });
-        console.log('[TRACKING] getPOD response:', JSON.stringify(podData, null, 2));
+        // getPOD and getPODSignature are documented differently from
+        // getEvents — their descriptions specifically say "a single
+        // waybill" / "a waybill's POD signature", not "waybill/tracking
+        // number" like getEvents does. Try the actual waybill number
+        // first (matching that wording), falling back to the piece-level
+        // tracking number if the waybill number doesn't resolve either.
+        let podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: waybillRef });
+        console.log('[TRACKING] getPOD (waybill number) response:', JSON.stringify(podData, null, 2));
 
-        // POD signature image (base64)
-        const sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: primaryTrackNo });
-        console.log('[TRACKING] getPODSignature response:', JSON.stringify(sigData, null, 2));
+        if (Number(podData.errorcode) !== 0) {
+            podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: primaryTrackNo });
+            console.log('[TRACKING] getPOD (tracking number) response:', JSON.stringify(podData, null, 2));
+        }
+
+        let sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: waybillRef });
+        console.log('[TRACKING] getPODSignature (waybill number) response:', JSON.stringify(sigData, null, 2));
+
+        if (Number(sigData.errorcode) !== 0) {
+            sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: primaryTrackNo });
+            console.log('[TRACKING] getPODSignature (tracking number) response:', JSON.stringify(sigData, null, 2));
+        }
 
         if (Number(podData.errorcode) !== 0) {
             return {
@@ -267,9 +281,5 @@ async function getProofOfDelivery(trackingNo) {
 }
 
 module.exports = { trackShipment, getProofOfDelivery };
-
-
-
-
 
 
