@@ -78,6 +78,26 @@
     .party-name{font-size:17px;font-weight:700;color:var(--navy)}
     .party-sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.7}
 
+    /* EDITABLE "INVOICE TO" FIELDS */
+    .bt-field{margin-bottom:8px}
+    .bt-field:last-child{margin-bottom:0}
+    .bt-field-label{font-size:9px;font-weight:700;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:2px}
+    .bt-input{width:100%;height:30px;border:1px dashed #c9c2a8;border-radius:5px;
+      background:#fffef9;padding:0 8px;font-family:'DM Sans',sans-serif;
+      font-size:13px;font-weight:600;color:var(--navy);outline:none;transition:.15s}
+    .bt-input.bt-name{font-size:15px;font-weight:700;height:32px}
+    .bt-input:focus{border-style:solid;border-color:var(--blue);
+      background:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+    .bt-input::placeholder{font-weight:400;color:#9aa5b1}
+    .bt-save-status{font-size:11px;color:var(--green);font-weight:600;opacity:0;
+      transition:opacity .3s;display:block;margin-top:4px}
+    .bt-save-status.show{opacity:1}
+    @media print{
+      .bt-input{border:none;background:transparent;padding:0;height:auto}
+      .bt-save-status{display:none}
+    }
+
     /* SHIPMENT DETAILS BAND */
     .inv-details{display:grid;grid-template-columns:repeat(4,1fr);
       background:#f8fafc;border-bottom:2px solid var(--border)}
@@ -535,12 +555,31 @@ function renderInvoice(inv) {
         </div>
         <div class="inv-party">
           <div class="party-label">Invoice To</div>
-          <div class="party-name">${inv.receiver_name || inv.client_name||'—'}</div>
-          <div class="party-sub">
-            ${inv.receiver_company ? inv.receiver_company+'<br>' : ''}
-            ${inv.receiver_phone || inv.client_phone||''}<br>
-            ${inv.receiver_email || inv.client_email||''}
+          <div class="bt-field">
+            <input type="text" class="bt-input bt-name" id="btName"
+              placeholder="Client name…" onblur="saveBillTo('${inv.invoice_no}')">
           </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Company</span>
+            <input type="text" class="bt-input" id="btCompany"
+              placeholder="Company name…" onblur="saveBillTo('${inv.invoice_no}')">
+          </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Phone</span>
+            <input type="text" class="bt-input" id="btPhone"
+              placeholder="Phone number…" onblur="saveBillTo('${inv.invoice_no}')">
+          </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Email</span>
+            <input type="text" class="bt-input" id="btEmail"
+              placeholder="Email address…" onblur="saveBillTo('${inv.invoice_no}')">
+          </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Client VAT No</span>
+            <input type="text" class="bt-input" id="btVatNo"
+              placeholder="Client's VAT number (if provided)…" onblur="saveBillTo('${inv.invoice_no}')">
+          </div>
+          <span class="bt-save-status" id="btSaveStatus">Saved ✓</span>
         </div>
       </div>
 
@@ -741,9 +780,65 @@ function renderInvoice(inv) {
   if (poInput)  poInput.value  = po;
   if (refInput) refInput.value = ref;
 
+  // Invoice To — invoice-level fields win if they've been edited before;
+  // otherwise fall back to what came through from the booking, same as
+  // the old static display did.
+  const btName    = document.getElementById('btName');
+  const btCompany = document.getElementById('btCompany');
+  const btPhone   = document.getElementById('btPhone');
+  const btEmail   = document.getElementById('btEmail');
+  const btVatNo   = document.getElementById('btVatNo');
+  if (btName)    btName.value    = inv.client_name    || inv.receiver_name    || '';
+  if (btCompany) btCompany.value = inv.client_company  || inv.receiver_company || '';
+  if (btPhone)   btPhone.value   = inv.client_phone    || inv.receiver_phone   || '';
+  if (btEmail)   btEmail.value   = inv.client_email    || inv.receiver_email   || '';
+  if (btVatNo)   btVatNo.value   = inv.client_vat_no   || '';
+
   // Populate the charges editor from whatever's currently saved
   _chargeDraft = JSON.parse(JSON.stringify(inv.extra_charges || []));
   renderChargeRows();
+}
+
+// ── SAVE INVOICE TO (BILL TO) FIELDS ──────────
+let btSaveTimer = null;
+async function saveBillTo(invoiceNo) {
+  const val = id => document.getElementById(id)?.value.trim() || '';
+  const payload = {
+    client_name: val('btName'),
+    client_company: val('btCompany'),
+    client_phone: val('btPhone'),
+    client_email: val('btEmail'),
+    client_vat_no: val('btVatNo')
+  };
+
+  // Skip a pointless write if nothing changed
+  const current = {
+    client_name: invoiceData?.client_name || invoiceData?.receiver_name || '',
+    client_company: invoiceData?.client_company || invoiceData?.receiver_company || '',
+    client_phone: invoiceData?.client_phone || invoiceData?.receiver_phone || '',
+    client_email: invoiceData?.client_email || invoiceData?.receiver_email || '',
+    client_vat_no: invoiceData?.client_vat_no || ''
+  };
+  if (JSON.stringify(payload) === JSON.stringify(current)) return;
+
+  try {
+    const res = await fetch(`${API}/truck-invoices/${invoiceNo}/bill-to`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error();
+    invoiceData = await res.json();
+
+    const status = document.getElementById('btSaveStatus');
+    if (status) {
+      status.classList.add('show');
+      clearTimeout(btSaveTimer);
+      btSaveTimer = setTimeout(() => status.classList.remove('show'), 2000);
+    }
+  } catch {
+    alert('Failed to save the Invoice To details. Please try again.');
+  }
 }
 
 // Combine the PO Number + Client Reference fields into the single string
@@ -827,6 +922,18 @@ function downloadPDF() {
     : (inv.client_reference || inv.booking_client_reference || '');
   if (poNumInput || refInput) savePORef(inv.invoice_no, true);
 
+  // Same for the Invoice To fields — sync live-typed values into inv
+  // before drawing, and persist them in the background.
+  const btName = document.getElementById('btName');
+  if (btName) {
+    inv.client_name    = document.getElementById('btName').value.trim();
+    inv.client_company = document.getElementById('btCompany')?.value.trim() || '';
+    inv.client_phone   = document.getElementById('btPhone')?.value.trim() || '';
+    inv.client_email   = document.getElementById('btEmail')?.value.trim() || '';
+    inv.client_vat_no  = document.getElementById('btVatNo')?.value.trim() || '';
+    saveBillTo(inv.invoice_no);
+  }
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
   const W=210, M=14, pad=2.5;
@@ -887,20 +994,32 @@ function downloadPDF() {
     }
 
     // FROM / TO boxes
-    const bw=(W-2*M)/2-2;
-    doc.setFillColor(245,247,252); doc.roundedRect(M,y,bw,38,2,2,'F');
-    doc.setFillColor(245,247,252); doc.roundedRect(M+bw+4,y,bw,38,2,2,'F');
+    const bw=(W-2*M)/2-2, partyBoxH=46;
+    doc.setFillColor(245,247,252); doc.roundedRect(M,y,bw,partyBoxH,2,2,'F');
+    doc.setFillColor(245,247,252); doc.roundedRect(M+bw+4,y,bw,partyBoxH,2,2,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
     doc.text('FROM:',M+3,y+7); doc.text('INVOICE TO:',M+bw+7,y+7);
     doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
     doc.text('Mok Transports Pty Ltd',M+3,y+14);
     doc.text('Reg No: 2015/162275/07',M+3,y+20);
     doc.text('VAT No: 4400269363',M+3,y+26);
-    const cnLines=doc.splitTextToSize(pdfSafe(inv.client_name)||'—',bw-8);
-    doc.text(cnLines,M+bw+7,y+14);
-    if(inv.client_phone) doc.text(`Tel: ${inv.client_phone}`,M+bw+7,y+20);
-    if(inv.client_email) doc.text(inv.client_email,M+bw+7,y+26);
-    y+=44;
+
+    // Invoice To — invoice-level edits win, falling back to the booking's
+    // details if accounts hasn't edited them yet.
+    const toName    = pdfSafe(inv.client_name || inv.receiver_name) || '—';
+    const toCompany = pdfSafe(inv.client_company || inv.receiver_company);
+    const toPhone   = inv.client_phone || inv.receiver_phone || '';
+    const toEmail   = inv.client_email || inv.receiver_email || '';
+    const toVatNo   = inv.client_vat_no || '';
+
+    let ty = y+14;
+    const cnLines = doc.splitTextToSize(toName, bw-8);
+    doc.text(cnLines, M+bw+7, ty); ty += cnLines.length*5;
+    if (toCompany) { doc.text(toCompany, M+bw+7, ty); ty += 5; }
+    if (toPhone)   { doc.text(`Tel: ${toPhone}`, M+bw+7, ty); ty += 5; }
+    if (toEmail)   { doc.text(toEmail, M+bw+7, ty); ty += 5; }
+    if (toVatNo)   { doc.text(`VAT No: ${toVatNo}`, M+bw+7, ty); ty += 5; }
+    y+=partyBoxH+6;
 
     // Shipment details band
     doc.setFillColor(240,244,248); doc.rect(M,y,W-2*M,10,'F');

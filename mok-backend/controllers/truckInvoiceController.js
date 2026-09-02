@@ -165,6 +165,41 @@ exports.updateReference = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
+// UPDATE "INVOICE TO" (BILL-TO) DETAILS
+// PATCH /api/truck-invoices/:invoiceNo/bill-to
+// Body: { client_name, client_company, client_phone, client_email, client_vat_no }
+// Lets accounts correct or add to the client's invoice-to details —
+// e.g. adding a VAT number a client only provides at invoicing time.
+// This edits the invoice's own copy only; it never touches the
+// underlying booking or client_addresses record.
+// ─────────────────────────────────────────────
+exports.updateBillTo = async (req, res) => {
+  try {
+    const { client_name, client_company, client_phone, client_email, client_vat_no } = req.body;
+    const result = await db.query(
+      `UPDATE truck_invoices SET
+         client_name = $1, client_company = $2, client_phone = $3,
+         client_email = $4, client_vat_no = $5
+       WHERE invoice_no = $6 RETURNING *`,
+      [
+        (client_name || '').trim() || null,
+        (client_company || '').trim() || null,
+        (client_phone || '').trim() || null,
+        (client_email || '').trim() || null,
+        (client_vat_no || '').trim() || null,
+        req.params.invoiceNo
+      ]
+    );
+    if (!result.rows.length)
+      return res.status(404).json({ error: 'Invoice not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('UPDATE INVOICE BILL-TO ERROR:', err.message);
+    res.status(500).json({ error: 'Failed to update invoice-to details' });
+  }
+};
+
+// ─────────────────────────────────────────────
 // UPDATE CHARGES
 // PATCH /api/truck-invoices/:invoiceNo/charges
 // Body: { extra_charges: [{ description: 'Detention - 2hrs', amount: 850 }, ...] }
@@ -236,6 +271,8 @@ exports.markPaid = async (req, res) => {
     res.status(500).json({ error: 'Failed to update invoice' });
   }
 };
+
+
 
 
 
