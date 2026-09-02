@@ -99,6 +99,7 @@ exports.sendToJKJ = async (req, res) => {
       `SELECT 
         w.*,
         b.service,
+        b.booking_date,
         b.consignor_name,
         b.consignor_address,
        b.consignor_contact,

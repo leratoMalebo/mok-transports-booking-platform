@@ -54,7 +54,15 @@ function mapServiceToJKJ(service) {
 
 // ── DATE HELPER ───────────────────────────────────────────────
 function todayDDMMYYYY() {
-  const d = new Date();
+  return formatDDMMYYYY(new Date());
+}
+
+// Formats any date-like input (JS Date, ISO string from Postgres, etc.)
+// into JKJ's dd.mm.yyyy convention, matching the existing waydate field.
+// Falls back to today if the input is missing or unparseable.
+function formatDDMMYYYY(dateInput) {
+  const d = dateInput ? new Date(dateInput) : new Date();
+  if (isNaN(d.getTime())) return todayDDMMYYYY();
   const dd = String(d.getDate()).padStart(2, '0');
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const yyyy = d.getFullYear();
@@ -146,6 +154,25 @@ exports.submitWaybillToJKJ = async (waybill) => {
       service: mapServiceToJKJ(waybill.service),
       waydate: todayDDMMYYYY(),
 
+      // ── COLLECTION REQUEST ──────────────────────────────────
+      // Confirmed by Parcel Perfect support: isCollection + collectiondate
+      // automatically queue a driver collection on waybill submission,
+      // removing the need to manually email JKJ dispatch for every
+      // booking. collectiondate uses the client's actual pickup date
+      // (booking_date) when available, falling back to today.
+      //
+      // Parcel Perfect's reply mentioned "due date and due time" fields
+      // can also be set but didn't name them explicitly — duedate/duetime
+      // below is our best-reasoned guess (matching the naming convention
+      // of every other field in this payload, e.g. waydate). This part
+      // needs confirming against the actual JKJ response once tested —
+      // check the [JKJ] Submit result log after a real booking to verify
+      // the collection was accepted with these field names.
+      isCollection: 1,
+      collectiondate: formatDDMMYYYY(waybill.booking_date),
+      duedate: formatDDMMYYYY(waybill.booking_date),
+      duetime: '17:00',
+
       // Consignor (sender)
       origpers: sanitizeJKJ(
         waybill.consignor_contact_name || waybill.consignor_name || "Mok Transports",
@@ -209,7 +236,6 @@ exports.submitWaybillToJKJ = async (waybill) => {
   console.log('✅ [JKJ] Waybill submitted successfully:', waybill.waybill_no);
   return result;
 };
-
 
 
 
