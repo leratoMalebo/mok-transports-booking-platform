@@ -93,6 +93,7 @@
     .bt-save-status{font-size:11px;color:var(--green);font-weight:600;opacity:0;
       transition:opacity .3s;display:block;margin-top:4px}
     .bt-save-status.show{opacity:1}
+    .bt-save-status.bt-save-error{color:#c62828}
     .bt-textarea{width:100%;min-height:44px;border:1px dashed #c9c2a8;border-radius:5px;
       background:#fffef9;padding:6px 8px;font-family:'DM Sans',sans-serif;
       font-size:13px;font-weight:600;color:var(--navy);outline:none;resize:vertical;transition:.15s}
@@ -714,6 +715,9 @@ function renderInvoice(inv) {
         </div>
 
       </div>
+      <div style="padding:0 20px 10px">
+        <span class="bt-save-status" id="srSaveStatus">Saved ✓</span>
+      </div>
 
       <!-- LINE ITEMS -->
       <div class="inv-table-wrap">
@@ -899,17 +903,36 @@ async function saveDetails(invoiceNo) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error();
+    if (!res.ok) {
+      let msg = `Save failed (HTTP ${res.status})`;
+      try { const body = await res.json(); if (body?.error) msg += ` — ${body.error}`; } catch(_){}
+      throw new Error(msg);
+    }
     invoiceData = await res.json();
 
-    const status = document.getElementById('btSaveStatus');
-    if (status) {
+    document.querySelectorAll('.bt-save-status').forEach(status => {
+      status.textContent = 'Saved ✓';
+      status.classList.remove('bt-save-error');
       status.classList.add('show');
-      clearTimeout(detailsSaveTimer);
-      detailsSaveTimer = setTimeout(() => status.classList.remove('show'), 2000);
-    }
-  } catch {
-    alert('Failed to save the invoice details. Please try again.');
+    });
+    clearTimeout(detailsSaveTimer);
+    detailsSaveTimer = setTimeout(() => {
+      document.querySelectorAll('.bt-save-status').forEach(s => s.classList.remove('show'));
+    }, 2000);
+  } catch (err) {
+    // Inline and persistent rather than a dismissible alert() — a save
+    // failure is easy to miss (and easy to click past) otherwise, and the
+    // downloaded PDF pulls from these same fields live, so it can look
+    // fine even when nothing was actually saved to the database.
+    console.error('Save invoice details failed:', err);
+    document.querySelectorAll('.bt-save-status').forEach(status => {
+      status.textContent = '⚠ ' + (err.message || 'Failed to save — please try again.');
+      status.classList.add('show', 'bt-save-error');
+    });
+    clearTimeout(detailsSaveTimer);
+    detailsSaveTimer = setTimeout(() => {
+      document.querySelectorAll('.bt-save-status').forEach(s => s.classList.remove('show'));
+    }, 8000);
   }
 }
 
@@ -1040,6 +1063,14 @@ function downloadPDF() {
       .replace(/[\u{1F300}-\u{1FAFF}]/gu, '')
       .trim();
 
+    // Multi-line address fields (typed with real line breaks in a
+    // textarea) can pick up a blank trailing/leading line, which
+    // jsPDF then renders as genuine dead vertical space. Collapse to
+    // clean, comma-separated text so it always reads as one tidy block
+    // regardless of how it was typed.
+    const cleanAddress = (str) => pdfSafe(str)
+      .split(/\r?\n/).map(s => s.trim()).filter(Boolean).join(', ');
+
     // ── HEADER ──────────────────────────────────
     const headerH = 34;
     doc.setFillColor(13,33,55); doc.rect(0,0,W,headerH,'F');
@@ -1092,7 +1123,7 @@ function downloadPDF() {
     // details if accounts hasn't edited them yet.
     const toName    = pdfSafe(inv.client_name || inv.receiver_name) || '—';
     const toCompany = pdfSafe(inv.client_company || inv.receiver_company);
-    const toAddress = pdfSafe(inv.client_address);
+    const toAddress = cleanAddress(inv.client_address);
     const toPhone   = inv.client_phone || inv.receiver_phone || '';
     const toEmail   = inv.client_email || inv.receiver_email || '';
     const toVatNo   = inv.client_vat_no || '';
@@ -1150,11 +1181,11 @@ function downloadPDF() {
     const shipRecH = 28;
     const hw2 = (W-2*M)/2-2;
     const shipNameVal    = pdfSafe(inv.ship_name    || inv.client_name)    || '—';
-    const shipAddressVal = pdfSafe(inv.ship_address  || inv.pickup)        || '—';
+    const shipAddressVal = cleanAddress(inv.ship_address  || inv.pickup)   || '—';
     const shipPhoneVal   = inv.ship_phone   || inv.client_phone            || '';
     const recNameVal     = pdfSafe(inv.recv_name    || inv.receiver_name || inv.client_name) || '—';
     const recCompanyVal  = pdfSafe(inv.recv_company || inv.receiver_company);
-    const recAddressVal  = pdfSafe(inv.recv_address || inv.delivery || inv.city) || '—';
+    const recAddressVal  = cleanAddress(inv.recv_address || inv.delivery || inv.city) || '—';
     const recPhoneVal    = inv.recv_phone   || inv.receiver_phone || inv.client_phone || '';
     // Shipper box
     doc.setFillColor(255,251,245); doc.rect(M,y,hw2,shipRecH,'F');
