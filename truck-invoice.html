@@ -93,6 +93,37 @@
     .bt-save-status{font-size:11px;color:var(--green);font-weight:600;opacity:0;
       transition:opacity .3s;display:block;margin-top:4px}
     .bt-save-status.show{opacity:1}
+    .bt-textarea{width:100%;min-height:44px;border:1px dashed #c9c2a8;border-radius:5px;
+      background:#fffef9;padding:6px 8px;font-family:'DM Sans',sans-serif;
+      font-size:13px;font-weight:600;color:var(--navy);outline:none;resize:vertical;transition:.15s}
+    .bt-textarea:focus{border-style:solid;border-color:var(--blue);
+      background:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+    .bt-textarea::placeholder{font-weight:400;color:#9aa5b1}
+    /* Shipper/Receiver editable cards */
+    .sr-card{padding:16px 20px}
+    .sr-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+      letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+    .sr-dot{display:inline-block;width:6px;height:6px;border-radius:50%}
+    .sr-input{width:100%;height:28px;border:1px dashed #c9c2a8;border-radius:5px;
+      background:#fffef9;padding:0 8px;font-family:'DM Sans',sans-serif;font-size:12.5px;
+      font-weight:600;color:var(--navy);outline:none;margin-bottom:6px;transition:.15s}
+    .sr-input:last-child{margin-bottom:0}
+    .sr-input.sr-name{font-size:14px;font-weight:700;height:30px}
+    .sr-input:focus{border-style:solid;border-color:var(--blue);
+      background:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+    .sr-input::placeholder{font-weight:400;color:#9aa5b1}
+    @media print{
+      .bt-textarea,.sr-input{border:none;background:transparent;padding:0;height:auto;margin-bottom:2px}
+    }
+    /* Editable line-item description */
+    .li-input{width:100%;border:1px dashed #c9c2a8;border-radius:5px;background:#fffef9;
+      padding:4px 8px;font-family:'DM Sans',sans-serif;outline:none;transition:.15s}
+    .li-input.li-main{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px}
+    .li-input.li-sub{font-size:11px;color:var(--muted)}
+    .li-input:focus{border-style:solid;border-color:var(--blue);
+      background:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+    .li-input::placeholder{font-weight:400;color:#9aa5b1}
+    @media print{.li-input{border:none;background:transparent;padding:0}}
     @media print{
       .bt-input{border:none;background:transparent;padding:0;height:auto}
       .bt-save-status{display:none}
@@ -490,6 +521,8 @@ function renderInvoice(inv) {
     d.setDate(d.getDate()+30);
     return fmt(d);
   })();
+  const defaultLineDesc    = `${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent / Dedicated':'Standard Delivery'}`;
+  const defaultLineSubdesc = `${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}`;
 
   document.getElementById('invoiceContainer').innerHTML = `
 
@@ -557,27 +590,32 @@ function renderInvoice(inv) {
           <div class="party-label">Invoice To</div>
           <div class="bt-field">
             <input type="text" class="bt-input bt-name" id="btName"
-              placeholder="Client name…" onblur="saveBillTo('${inv.invoice_no}')">
+              placeholder="Client name…" onblur="saveDetails('${inv.invoice_no}')">
           </div>
           <div class="bt-field">
             <span class="bt-field-label">Company</span>
             <input type="text" class="bt-input" id="btCompany"
-              placeholder="Company name…" onblur="saveBillTo('${inv.invoice_no}')">
+              placeholder="Company name…" onblur="saveDetails('${inv.invoice_no}')">
+          </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Address</span>
+            <textarea class="bt-textarea" id="btAddress" rows="2"
+              placeholder="Full billing address…" onblur="saveDetails('${inv.invoice_no}')"></textarea>
           </div>
           <div class="bt-field">
             <span class="bt-field-label">Phone</span>
             <input type="text" class="bt-input" id="btPhone"
-              placeholder="Phone number…" onblur="saveBillTo('${inv.invoice_no}')">
+              placeholder="Phone number…" onblur="saveDetails('${inv.invoice_no}')">
           </div>
           <div class="bt-field">
             <span class="bt-field-label">Email</span>
             <input type="text" class="bt-input" id="btEmail"
-              placeholder="Email address…" onblur="saveBillTo('${inv.invoice_no}')">
+              placeholder="Email address…" onblur="saveDetails('${inv.invoice_no}')">
           </div>
           <div class="bt-field">
             <span class="bt-field-label">Client VAT No</span>
             <input type="text" class="bt-input" id="btVatNo"
-              placeholder="Client's VAT number (if provided)…" onblur="saveBillTo('${inv.invoice_no}')">
+              placeholder="Client's VAT number (if provided)…" onblur="saveDetails('${inv.invoice_no}')">
           </div>
           <span class="bt-save-status" id="btSaveStatus">Saved ✓</span>
         </div>
@@ -598,8 +636,22 @@ function renderInvoice(inv) {
           <div class="idc-value">${shipDate}</div>
         </div>
         <div class="inv-det-cell">
-          <div class="idc-label">Delivery Note</div>
+          <div class="idc-label">Delivery Note (Mok)</div>
           <div class="idc-value">${inv.delivery_note_no||'—'}</div>
+        </div>
+      </div>
+
+      <!-- CLIENT DELIVERY NOTE (editable — some clients use their own reference) -->
+      <div class="po-ref-band">
+        <div class="po-ref-group">
+          <span class="po-ref-label">Client Delivery Note</span>
+          <input
+            type="text"
+            class="po-ref-input"
+            id="clientDeliveryNoteInput"
+            placeholder="Client's own delivery note no. (if they use one)…"
+            onblur="saveDetails('${inv.invoice_no}')"
+          >
         </div>
       </div>
 
@@ -638,38 +690,27 @@ function renderInvoice(inv) {
       <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)">
 
         <!-- SHIPPER -->
-        <div style="padding:16px 20px;border-right:1px solid var(--border)">
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
-            letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;
-              background:var(--orange)"></span>
-            Shipper
-          </div>
-          <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px">
-            ${inv.client_name||'—'}
-          </div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.8">
-            ${inv.pickup ? inv.pickup.split(',').slice(0,2).join(', ') : '—'}<br>
-            ${inv.client_phone||''}
-          </div>
+        <div class="sr-card" style="border-right:1px solid var(--border)">
+          <div class="sr-label"><span class="sr-dot" style="background:var(--orange)"></span>Shipper</div>
+          <input type="text" class="sr-input sr-name" id="shipNameInput" placeholder="Shipper name…"
+            onblur="saveDetails('${inv.invoice_no}')">
+          <input type="text" class="sr-input" id="shipAddressInput" placeholder="Shipper address…"
+            onblur="saveDetails('${inv.invoice_no}')">
+          <input type="text" class="sr-input" id="shipPhoneInput" placeholder="Shipper phone…"
+            onblur="saveDetails('${inv.invoice_no}')">
         </div>
 
         <!-- RECEIVER -->
-        <div style="padding:16px 20px">
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
-            letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;
-              background:var(--blue)"></span>
-            Receiver
-          </div>
-          <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px">
-            ${inv.receiver_name || inv.client_name || '—'}
-          </div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.8">
-            ${inv.receiver_company ? inv.receiver_company+'<br>' : ''}
-            ${inv.delivery ? inv.delivery.split(',').slice(0,2).join(', ') : (inv.city||'—')}<br>
-            ${inv.receiver_phone || inv.client_phone || ''}
-          </div>
+        <div class="sr-card">
+          <div class="sr-label"><span class="sr-dot" style="background:var(--blue)"></span>Receiver</div>
+          <input type="text" class="sr-input sr-name" id="recvNameInput" placeholder="Receiver name…"
+            onblur="saveDetails('${inv.invoice_no}')">
+          <input type="text" class="sr-input" id="recvCompanyInput" placeholder="Receiver company…"
+            onblur="saveDetails('${inv.invoice_no}')">
+          <input type="text" class="sr-input" id="recvAddressInput" placeholder="Receiver address…"
+            onblur="saveDetails('${inv.invoice_no}')">
+          <input type="text" class="sr-input" id="recvPhoneInput" placeholder="Receiver phone…"
+            onblur="saveDetails('${inv.invoice_no}')">
         </div>
 
       </div>
@@ -686,10 +727,12 @@ function renderInvoice(inv) {
           <tbody id="lineItemsBody">
             <tr>
               <td>
-                <div class="desc-main">${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent / Dedicated':'Standard Delivery'}</div>
-                <div class="desc-sub">
-                  ${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}
-                </div>
+                <input type="text" class="li-input li-main" id="lineDescInput"
+                  placeholder="${escapeHtml(defaultLineDesc)}" value="${escapeHtml(inv.line_description||'')}"
+                  onblur="saveDetails('${inv.invoice_no}')">
+                <input type="text" class="li-input li-sub" id="lineSubdescInput"
+                  placeholder="${escapeHtml(defaultLineSubdesc)}" value="${escapeHtml(inv.line_subdescription||'')}"
+                  onblur="saveDetails('${inv.invoice_no}')">
               </td>
               <td class="text-right">
                 <div class="amount-cell">${money(baseFreightAmount(inv))}</div>
@@ -785,44 +828,73 @@ function renderInvoice(inv) {
   // the old static display did.
   const btName    = document.getElementById('btName');
   const btCompany = document.getElementById('btCompany');
+  const btAddress = document.getElementById('btAddress');
   const btPhone   = document.getElementById('btPhone');
   const btEmail   = document.getElementById('btEmail');
   const btVatNo   = document.getElementById('btVatNo');
   if (btName)    btName.value    = inv.client_name    || inv.receiver_name    || '';
   if (btCompany) btCompany.value = inv.client_company  || inv.receiver_company || '';
+  if (btAddress) btAddress.value = inv.client_address  || '';
   if (btPhone)   btPhone.value   = inv.client_phone    || inv.receiver_phone   || '';
   if (btEmail)   btEmail.value   = inv.client_email    || inv.receiver_email   || '';
   if (btVatNo)   btVatNo.value   = inv.client_vat_no   || '';
+
+  // Client's own delivery note (some clients use their own reference
+  // instead of / alongside Mok's system-generated one)
+  const cdnInput = document.getElementById('clientDeliveryNoteInput');
+  if (cdnInput) cdnInput.value = inv.client_delivery_note || '';
+
+  // Shipper / Receiver — same invoice-level-wins pattern, falling back to
+  // whatever came through from the linked booking.
+  const shipName    = document.getElementById('shipNameInput');
+  const shipAddress = document.getElementById('shipAddressInput');
+  const shipPhone   = document.getElementById('shipPhoneInput');
+  const recvName    = document.getElementById('recvNameInput');
+  const recvCompany = document.getElementById('recvCompanyInput');
+  const recvAddress = document.getElementById('recvAddressInput');
+  const recvPhone   = document.getElementById('recvPhoneInput');
+  if (shipName)    shipName.value    = inv.ship_name    || inv.client_name || '';
+  if (shipAddress) shipAddress.value = inv.ship_address || inv.pickup      || '';
+  if (shipPhone)   shipPhone.value   = inv.ship_phone   || inv.client_phone|| '';
+  if (recvName)    recvName.value    = inv.recv_name    || inv.receiver_name    || inv.client_name || '';
+  if (recvCompany) recvCompany.value = inv.recv_company || inv.receiver_company || '';
+  if (recvAddress) recvAddress.value = inv.recv_address || inv.delivery || inv.city || '';
+  if (recvPhone)   recvPhone.value   = inv.recv_phone   || inv.receiver_phone || inv.client_phone || '';
 
   // Populate the charges editor from whatever's currently saved
   _chargeDraft = JSON.parse(JSON.stringify(inv.extra_charges || []));
   renderChargeRows();
 }
 
-// ── SAVE INVOICE TO (BILL TO) FIELDS ──────────
-let btSaveTimer = null;
-async function saveBillTo(invoiceNo) {
+// ── SAVE EDITABLE INVOICE DETAILS ─────────────
+// Covers Invoice To, Shipper, Receiver, Client Delivery Note and the
+// line-item description — one endpoint, one save path, so a field
+// getting missed off the route registration doesn't quietly break
+// half the page.
+let detailsSaveTimer = null;
+async function saveDetails(invoiceNo) {
   const val = id => document.getElementById(id)?.value.trim() || '';
   const payload = {
     client_name: val('btName'),
     client_company: val('btCompany'),
+    client_address: val('btAddress'),
     client_phone: val('btPhone'),
     client_email: val('btEmail'),
-    client_vat_no: val('btVatNo')
+    client_vat_no: val('btVatNo'),
+    client_delivery_note: val('clientDeliveryNoteInput'),
+    ship_name: val('shipNameInput'),
+    ship_address: val('shipAddressInput'),
+    ship_phone: val('shipPhoneInput'),
+    recv_name: val('recvNameInput'),
+    recv_company: val('recvCompanyInput'),
+    recv_address: val('recvAddressInput'),
+    recv_phone: val('recvPhoneInput'),
+    line_description: val('lineDescInput'),
+    line_subdescription: val('lineSubdescInput')
   };
-
-  // Skip a pointless write if nothing changed
-  const current = {
-    client_name: invoiceData?.client_name || invoiceData?.receiver_name || '',
-    client_company: invoiceData?.client_company || invoiceData?.receiver_company || '',
-    client_phone: invoiceData?.client_phone || invoiceData?.receiver_phone || '',
-    client_email: invoiceData?.client_email || invoiceData?.receiver_email || '',
-    client_vat_no: invoiceData?.client_vat_no || ''
-  };
-  if (JSON.stringify(payload) === JSON.stringify(current)) return;
 
   try {
-    const res = await fetch(`${API}/truck-invoices/${invoiceNo}/bill-to`, {
+    const res = await fetch(`${API}/truck-invoices/${invoiceNo}/details`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -833,11 +905,11 @@ async function saveBillTo(invoiceNo) {
     const status = document.getElementById('btSaveStatus');
     if (status) {
       status.classList.add('show');
-      clearTimeout(btSaveTimer);
-      btSaveTimer = setTimeout(() => status.classList.remove('show'), 2000);
+      clearTimeout(detailsSaveTimer);
+      detailsSaveTimer = setTimeout(() => status.classList.remove('show'), 2000);
     }
   } catch {
-    alert('Failed to save the Invoice To details. Please try again.');
+    alert('Failed to save the invoice details. Please try again.');
   }
 }
 
@@ -922,16 +994,28 @@ function downloadPDF() {
     : (inv.client_reference || inv.booking_client_reference || '');
   if (poNumInput || refInput) savePORef(inv.invoice_no, true);
 
-  // Same for the Invoice To fields — sync live-typed values into inv
-  // before drawing, and persist them in the background.
+  // Same for all the other editable fields — sync live-typed values into
+  // inv before drawing, and persist them in the background.
   const btName = document.getElementById('btName');
   if (btName) {
-    inv.client_name    = document.getElementById('btName').value.trim();
-    inv.client_company = document.getElementById('btCompany')?.value.trim() || '';
-    inv.client_phone   = document.getElementById('btPhone')?.value.trim() || '';
-    inv.client_email   = document.getElementById('btEmail')?.value.trim() || '';
-    inv.client_vat_no  = document.getElementById('btVatNo')?.value.trim() || '';
-    saveBillTo(inv.invoice_no);
+    const val = id => document.getElementById(id)?.value.trim() || '';
+    inv.client_name           = val('btName');
+    inv.client_company        = val('btCompany');
+    inv.client_address        = val('btAddress');
+    inv.client_phone          = val('btPhone');
+    inv.client_email          = val('btEmail');
+    inv.client_vat_no         = val('btVatNo');
+    inv.client_delivery_note  = val('clientDeliveryNoteInput');
+    inv.ship_name             = val('shipNameInput');
+    inv.ship_address          = val('shipAddressInput');
+    inv.ship_phone             = val('shipPhoneInput');
+    inv.recv_name             = val('recvNameInput');
+    inv.recv_company          = val('recvCompanyInput');
+    inv.recv_address          = val('recvAddressInput');
+    inv.recv_phone            = val('recvPhoneInput');
+    inv.line_description      = val('lineDescInput');
+    inv.line_subdescription   = val('lineSubdescInput');
+    saveDetails(inv.invoice_no);
   }
 
   const { jsPDF } = window.jspdf;
@@ -994,7 +1078,7 @@ function downloadPDF() {
     }
 
     // FROM / TO boxes
-    const bw=(W-2*M)/2-2, partyBoxH=46;
+    const bw=(W-2*M)/2-2, partyBoxH=58;
     doc.setFillColor(245,247,252); doc.roundedRect(M,y,bw,partyBoxH,2,2,'F');
     doc.setFillColor(245,247,252); doc.roundedRect(M+bw+4,y,bw,partyBoxH,2,2,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
@@ -1008,6 +1092,7 @@ function downloadPDF() {
     // details if accounts hasn't edited them yet.
     const toName    = pdfSafe(inv.client_name || inv.receiver_name) || '—';
     const toCompany = pdfSafe(inv.client_company || inv.receiver_company);
+    const toAddress = pdfSafe(inv.client_address);
     const toPhone   = inv.client_phone || inv.receiver_phone || '';
     const toEmail   = inv.client_email || inv.receiver_email || '';
     const toVatNo   = inv.client_vat_no || '';
@@ -1016,6 +1101,10 @@ function downloadPDF() {
     const cnLines = doc.splitTextToSize(toName, bw-8);
     doc.text(cnLines, M+bw+7, ty); ty += cnLines.length*5;
     if (toCompany) { doc.text(toCompany, M+bw+7, ty); ty += 5; }
+    if (toAddress) {
+      const addrLines = doc.splitTextToSize(toAddress, bw-8);
+      doc.text(addrLines, M+bw+7, ty); ty += addrLines.length*5;
+    }
     if (toPhone)   { doc.text(`Tel: ${toPhone}`, M+bw+7, ty); ty += 5; }
     if (toEmail)   { doc.text(toEmail, M+bw+7, ty); ty += 5; }
     if (toVatNo)   { doc.text(`VAT No: ${toVatNo}`, M+bw+7, ty); ty += 5; }
@@ -1027,7 +1116,7 @@ function downloadPDF() {
     doc.text('BOOKING REF', M+3,y+7);
     doc.text('VEHICLE',M+50,y+7);
     doc.text('SHIPMENT DATE',M+100,y+7);
-    doc.text('DELIVERY NOTE',M+150,y+7);
+    doc.text('DELIVERY NOTE (MOK)',M+150,y+7);
     y+=10;
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
     doc.text(inv.booking_ref||'—',M+3,y+7);
@@ -1035,6 +1124,13 @@ function downloadPDF() {
     doc.text(fmt2(inv.shipment_date),M+100,y+7);
     doc.text(inv.delivery_note_no||'—',M+150,y+7);
     y+=14;
+
+    // Client's own delivery note reference, if they use one
+    if (inv.client_delivery_note) {
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+      doc.text(`Client Delivery Note: ${pdfSafe(inv.client_delivery_note)}`, M, y);
+      y+=8;
+    }
     // Route band
     doc.setFillColor(240,244,248); doc.rect(M,y,W-2*M,10,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(10,42,67);
@@ -1053,6 +1149,13 @@ function downloadPDF() {
     // Shipper / Receiver boxes
     const shipRecH = 28;
     const hw2 = (W-2*M)/2-2;
+    const shipNameVal    = pdfSafe(inv.ship_name    || inv.client_name)    || '—';
+    const shipAddressVal = pdfSafe(inv.ship_address  || inv.pickup)        || '—';
+    const shipPhoneVal   = inv.ship_phone   || inv.client_phone            || '';
+    const recNameVal     = pdfSafe(inv.recv_name    || inv.receiver_name || inv.client_name) || '—';
+    const recCompanyVal  = pdfSafe(inv.recv_company || inv.receiver_company);
+    const recAddressVal  = pdfSafe(inv.recv_address || inv.delivery || inv.city) || '—';
+    const recPhoneVal    = inv.recv_phone   || inv.receiver_phone || inv.client_phone || '';
     // Shipper box
     doc.setFillColor(255,251,245); doc.rect(M,y,hw2,shipRecH,'F');
     doc.setDrawColor(245,124,0); doc.setLineWidth(0.5); doc.rect(M,y,hw2,shipRecH);
@@ -1060,28 +1163,24 @@ function downloadPDF() {
     doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(245,124,0);
     doc.text('SHIPPER', M+6.5, y+6);
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(13,33,55);
-    const shipNameLines = doc.splitTextToSize(pdfSafe(inv.client_name)||'—', hw2-6);
+    const shipNameLines = doc.splitTextToSize(shipNameVal, hw2-6);
     doc.text(shipNameLines, M+3, y+12);
     doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(96,125,139);
-    const shipAddr = inv.pickup ? pdfSafe(inv.pickup).split(',').slice(0,2).join(', ') : '—';
-    doc.text(doc.splitTextToSize(shipAddr, hw2-6), M+3, y+12+shipNameLines.length*5);
-    if(inv.client_phone) doc.text(inv.client_phone, M+3, y+shipRecH-4);
+    doc.text(doc.splitTextToSize(shipAddressVal, hw2-6), M+3, y+12+shipNameLines.length*5);
+    if(shipPhoneVal) doc.text(shipPhoneVal, M+3, y+shipRecH-4);
     // Receiver box
     doc.setFillColor(245,248,255); doc.rect(M+hw2+4,y,hw2,shipRecH,'F');
     doc.setDrawColor(21,101,192); doc.setLineWidth(0.5); doc.rect(M+hw2+4,y,hw2,shipRecH);
     doc.setFillColor(21,101,192); doc.circle(M+hw2+7.5,y+4.5,1,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(21,101,192);
     doc.text('RECEIVER', M+hw2+10.5, y+6);
-    const recName = pdfSafe(inv.receiver_name || inv.client_name)||'—';
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(13,33,55);
-    const recNameLines = doc.splitTextToSize(recName, hw2-6);
+    const recNameLines = doc.splitTextToSize(recNameVal, hw2-6);
     doc.text(recNameLines, M+hw2+7, y+12);
     doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(96,125,139);
-    if(inv.receiver_company) doc.text(pdfSafe(inv.receiver_company), M+hw2+7, y+12+recNameLines.length*5);
-    const recAddr = inv.delivery ? pdfSafe(inv.delivery).split(',').slice(0,2).join(', ') : pdfSafe(inv.city)||'—';
-    doc.text(doc.splitTextToSize(recAddr, hw2-6), M+hw2+7, y+12+recNameLines.length*5+(inv.receiver_company?5:0));
-    const recPh = inv.receiver_phone || inv.client_phone || '';
-    if(recPh) doc.text(recPh, M+hw2+7, y+shipRecH-4);
+    if(recCompanyVal) doc.text(recCompanyVal, M+hw2+7, y+12+recNameLines.length*5);
+    doc.text(doc.splitTextToSize(recAddressVal, hw2-6), M+hw2+7, y+12+recNameLines.length*5+(recCompanyVal?5:0));
+    if(recPhoneVal) doc.text(recPhoneVal, M+hw2+7, y+shipRecH-4);
     y += shipRecH+6;
 
     // Line items header
@@ -1092,8 +1191,8 @@ function downloadPDF() {
     y+=8;
 
     // Line 1 — Freight
-    const desc1 = `${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent/Dedicated':'Standard Delivery'}`;
-    const sub1  = `${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}`;
+    const desc1 = pdfSafe(inv.line_description) || `${inv.vehicle||'Truck Freight'} — ${inv.delivery_type==='Dedicated'?'Urgent/Dedicated':'Standard Delivery'}`;
+    const sub1  = pdfSafe(inv.line_subdescription) || `${inv.commodity||'General Freight'}${inv.distance_km?' · '+inv.distance_km+' km':''}`;
     const d1Lines = doc.splitTextToSize(desc1, W-2*M-40);
     const s1Lines = doc.splitTextToSize(sub1,  W-2*M-40);
     const rh1 = (d1Lines.length + s1Lines.length) * 5 + 10;

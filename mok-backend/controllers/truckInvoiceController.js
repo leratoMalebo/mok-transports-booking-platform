@@ -165,37 +165,58 @@ exports.updateReference = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// UPDATE "INVOICE TO" (BILL-TO) DETAILS
-// PATCH /api/truck-invoices/:invoiceNo/bill-to
-// Body: { client_name, client_company, client_phone, client_email, client_vat_no }
-// Lets accounts correct or add to the client's invoice-to details —
-// e.g. adding a VAT number a client only provides at invoicing time.
-// This edits the invoice's own copy only; it never touches the
-// underlying booking or client_addresses record.
+// UPDATE EDITABLE INVOICE DETAILS
+// PATCH /api/truck-invoices/:invoiceNo/details
+// Body: any subset of —
+//   client_name, client_company, client_address, client_phone,
+//   client_email, client_vat_no, client_delivery_note,
+//   ship_name, ship_address, ship_phone,
+//   recv_name, recv_company, recv_address, recv_phone,
+//   line_description, line_subdescription
+// Covers Invoice To, Shipper, Receiver, the client's own delivery note
+// reference, and the editable freight line-item description — one
+// endpoint for everything editable on the invoice face, so there's only
+// ever one route to remember to register. This edits the invoice's own
+// copy only; it never touches the underlying booking or client_addresses
+// record. Only whitelisted fields are ever written — anything else in
+// the body is silently ignored.
 // ─────────────────────────────────────────────
-exports.updateBillTo = async (req, res) => {
+const INVOICE_DETAIL_FIELDS = [
+  'client_name', 'client_company', 'client_address', 'client_phone',
+  'client_email', 'client_vat_no', 'client_delivery_note',
+  'ship_name', 'ship_address', 'ship_phone',
+  'recv_name', 'recv_company', 'recv_address', 'recv_phone',
+  'line_description', 'line_subdescription'
+];
+
+exports.updateDetails = async (req, res) => {
   try {
-    const { client_name, client_company, client_phone, client_email, client_vat_no } = req.body;
+    const sets = [];
+    const values = [];
+    let idx = 1;
+
+    for (const field of INVOICE_DETAIL_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        sets.push(`${field} = $${idx++}`);
+        values.push((req.body[field] ?? '').toString().trim() || null);
+      }
+    }
+
+    if (!sets.length)
+      return res.status(400).json({ error: 'No editable fields provided' });
+
+    values.push(req.params.invoiceNo);
     const result = await db.query(
-      `UPDATE truck_invoices SET
-         client_name = $1, client_company = $2, client_phone = $3,
-         client_email = $4, client_vat_no = $5
-       WHERE invoice_no = $6 RETURNING *`,
-      [
-        (client_name || '').trim() || null,
-        (client_company || '').trim() || null,
-        (client_phone || '').trim() || null,
-        (client_email || '').trim() || null,
-        (client_vat_no || '').trim() || null,
-        req.params.invoiceNo
-      ]
+      `UPDATE truck_invoices SET ${sets.join(', ')}
+       WHERE invoice_no = $${idx} RETURNING *`,
+      values
     );
     if (!result.rows.length)
       return res.status(404).json({ error: 'Invoice not found' });
     res.json(result.rows[0]);
   } catch (err) {
-    console.error('UPDATE INVOICE BILL-TO ERROR:', err.message);
-    res.status(500).json({ error: 'Failed to update invoice-to details' });
+    console.error('UPDATE INVOICE DETAILS ERROR:', err.message);
+    res.status(500).json({ error: 'Failed to update invoice details' });
   }
 };
 
@@ -271,6 +292,7 @@ exports.markPaid = async (req, res) => {
     res.status(500).json({ error: 'Failed to update invoice' });
   }
 };
+
 
 
 
