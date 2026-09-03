@@ -692,8 +692,8 @@ function renderInvoice(inv) {
 
         <!-- SHIPPER -->
         <div class="sr-card" style="border-right:1px solid var(--border)">
-          <div class="sr-label"><span class="sr-dot" style="background:var(--orange)"></span>Shipper</div>
-          <input type="text" class="sr-input sr-name" id="shipNameInput" placeholder="Shipper name…"
+          <div class="sr-label"><span class="sr-dot" style="background:var(--navy)"></span>Shipper</div>
+          <input type="text" class="sr-input sr-name" id="shipNameInput" placeholder="Shipper company name…"
             onblur="saveDetails('${inv.invoice_no}')">
           <input type="text" class="sr-input" id="shipAddressInput" placeholder="Shipper address…"
             onblur="saveDetails('${inv.invoice_no}')">
@@ -704,9 +704,7 @@ function renderInvoice(inv) {
         <!-- RECEIVER -->
         <div class="sr-card">
           <div class="sr-label"><span class="sr-dot" style="background:var(--blue)"></span>Receiver</div>
-          <input type="text" class="sr-input sr-name" id="recvNameInput" placeholder="Receiver name…"
-            onblur="saveDetails('${inv.invoice_no}')">
-          <input type="text" class="sr-input" id="recvCompanyInput" placeholder="Receiver company…"
+          <input type="text" class="sr-input sr-name" id="recvCompanyInput" placeholder="Receiver company name…"
             onblur="saveDetails('${inv.invoice_no}')">
           <input type="text" class="sr-input" id="recvAddressInput" placeholder="Receiver address…"
             onblur="saveDetails('${inv.invoice_no}')">
@@ -848,19 +846,18 @@ function renderInvoice(inv) {
   const cdnInput = document.getElementById('clientDeliveryNoteInput');
   if (cdnInput) cdnInput.value = inv.client_delivery_note || '';
 
-  // Shipper / Receiver — same invoice-level-wins pattern, falling back to
-  // whatever came through from the linked booking.
+  // Shipper / Receiver — company + address + phone only (no personal
+  // names), invoice-level edits win, falling back to whatever came
+  // through from the linked booking.
   const shipName    = document.getElementById('shipNameInput');
   const shipAddress = document.getElementById('shipAddressInput');
   const shipPhone   = document.getElementById('shipPhoneInput');
-  const recvName    = document.getElementById('recvNameInput');
   const recvCompany = document.getElementById('recvCompanyInput');
   const recvAddress = document.getElementById('recvAddressInput');
   const recvPhone   = document.getElementById('recvPhoneInput');
-  if (shipName)    shipName.value    = inv.ship_name    || inv.client_name || '';
-  if (shipAddress) shipAddress.value = inv.ship_address || inv.pickup      || '';
-  if (shipPhone)   shipPhone.value   = inv.ship_phone   || inv.client_phone|| '';
-  if (recvName)    recvName.value    = inv.recv_name    || inv.receiver_name    || inv.client_name || '';
+  if (shipName)    shipName.value    = inv.ship_name    || inv.client_company || inv.client_name || '';
+  if (shipAddress) shipAddress.value = inv.ship_address || inv.pickup         || '';
+  if (shipPhone)   shipPhone.value   = inv.ship_phone   || inv.client_phone   || '';
   if (recvCompany) recvCompany.value = inv.recv_company || inv.receiver_company || '';
   if (recvAddress) recvAddress.value = inv.recv_address || inv.delivery || inv.city || '';
   if (recvPhone)   recvPhone.value   = inv.recv_phone   || inv.receiver_phone || inv.client_phone || '';
@@ -889,7 +886,6 @@ async function saveDetails(invoiceNo) {
     ship_name: val('shipNameInput'),
     ship_address: val('shipAddressInput'),
     ship_phone: val('shipPhoneInput'),
-    recv_name: val('recvNameInput'),
     recv_company: val('recvCompanyInput'),
     recv_address: val('recvAddressInput'),
     recv_phone: val('recvPhoneInput'),
@@ -1032,7 +1028,6 @@ function downloadPDF() {
     inv.ship_name             = val('shipNameInput');
     inv.ship_address          = val('shipAddressInput');
     inv.ship_phone             = val('shipPhoneInput');
-    inv.recv_name             = val('recvNameInput');
     inv.recv_company          = val('recvCompanyInput');
     inv.recv_address          = val('recvAddressInput');
     inv.recv_phone            = val('recvPhoneInput');
@@ -1177,38 +1172,55 @@ function downloadPDF() {
       y+=14;
     }
 
-    // Shipper / Receiver boxes
-    const shipRecH = 28;
+    // Shipper / Receiver boxes — company + address + phone only (no
+    // personal names), sized to fit however many lines the address wraps
+    // to so long addresses can never spill past the box edge.
     const hw2 = (W-2*M)/2-2;
-    const shipNameVal    = pdfSafe(inv.ship_name    || inv.client_name)    || '—';
-    const shipAddressVal = cleanAddress(inv.ship_address  || inv.pickup)   || '—';
-    const shipPhoneVal   = inv.ship_phone   || inv.client_phone            || '';
-    const recNameVal     = pdfSafe(inv.recv_name    || inv.receiver_name || inv.client_name) || '—';
-    const recCompanyVal  = pdfSafe(inv.recv_company || inv.receiver_company);
+    const srTextW = hw2-10;
+    const shipCompanyVal = pdfSafe(inv.ship_name    || inv.client_company || inv.client_name) || '—';
+    const shipAddressVal = cleanAddress(inv.ship_address || inv.pickup) || '—';
+    const shipPhoneVal   = inv.ship_phone || inv.client_phone || '';
+    const recCompanyVal  = pdfSafe(inv.recv_company || inv.receiver_company) || '—';
     const recAddressVal  = cleanAddress(inv.recv_address || inv.delivery || inv.city) || '—';
-    const recPhoneVal    = inv.recv_phone   || inv.receiver_phone || inv.client_phone || '';
-    // Shipper box
-    doc.setFillColor(255,251,245); doc.rect(M,y,hw2,shipRecH,'F');
-    doc.setDrawColor(245,124,0); doc.setLineWidth(0.5); doc.rect(M,y,hw2,shipRecH);
-    doc.setFillColor(245,124,0); doc.circle(M+3.5,y+4.5,1,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(245,124,0);
+    const recPhoneVal    = inv.recv_phone || inv.receiver_phone || inv.client_phone || '';
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    const shipCompanyLines = doc.splitTextToSize(shipCompanyVal, srTextW);
+    const recCompanyLines  = doc.splitTextToSize(recCompanyVal,  srTextW);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    const shipAddrLines = doc.splitTextToSize(shipAddressVal, srTextW);
+    const recAddrLines  = doc.splitTextToSize(recAddressVal,  srTextW);
+
+    const shipContentLines = shipCompanyLines.length + shipAddrLines.length + (shipPhoneVal?1:0);
+    const recContentLines  = recCompanyLines.length  + recAddrLines.length  + (recPhoneVal?1:0);
+    const shipRecH = Math.max(28, Math.max(shipContentLines, recContentLines)*4.6 + 12);
+
+    // Shipper box — navy accent (Mok's own brand colour, not an
+    // unrelated orange)
+    doc.setFillColor(247,249,252); doc.rect(M,y,hw2,shipRecH,'F');
+    doc.setDrawColor(13,33,55); doc.setLineWidth(0.5); doc.rect(M,y,hw2,shipRecH);
+    doc.setFillColor(13,33,55); doc.circle(M+3.5,y+4.5,1,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(13,33,55);
     doc.text('SHIPPER', M+6.5, y+6);
+    let sy = y+12;
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(13,33,55);
-    const shipNameLines = doc.splitTextToSize(shipNameVal, hw2-6);
-    doc.text(shipNameLines, M+3, y+12);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(96,125,139);
-    doc.text(doc.splitTextToSize(shipAddressVal, hw2-6), M+3, y+12+shipNameLines.length*5);
-    if(shipPhoneVal) doc.text(shipPhoneVal, M+3, y+shipRecH-4);
-    // Receiver box
+    doc.text(shipCompanyLines, M+3, sy); sy += shipCompanyLines.length*4.6;
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(96,125,139);
+    doc.text(shipAddrLines, M+3, sy); sy += shipAddrLines.length*4.6;
+    if(shipPhoneVal) doc.text(shipPhoneVal, M+3, sy);
+
+    // Receiver box — blue accent (matches the TAX INVOICE badge)
     doc.setFillColor(245,248,255); doc.rect(M+hw2+4,y,hw2,shipRecH,'F');
     doc.setDrawColor(21,101,192); doc.setLineWidth(0.5); doc.rect(M+hw2+4,y,hw2,shipRecH);
     doc.setFillColor(21,101,192); doc.circle(M+hw2+7.5,y+4.5,1,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(21,101,192);
     doc.text('RECEIVER', M+hw2+10.5, y+6);
+    let ry = y+12;
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(13,33,55);
-    const recNameLines = doc.splitTextToSize(recNameVal, hw2-6);
-    doc.text(recNameLines, M+hw2+7, y+12);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(96,125,139);
+    doc.text(recCompanyLines, M+hw2+7, ry); ry += recCompanyLines.length*4.6;
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(96,125,139);
+    doc.text(recAddrLines, M+hw2+7, ry); ry += recAddrLines.length*4.6;
+    if(recPhoneVal) doc.text(recPhoneVal, M+hw2+7, ry);
     if(recCompanyVal) doc.text(recCompanyVal, M+hw2+7, y+12+recNameLines.length*5);
     doc.text(doc.splitTextToSize(recAddressVal, hw2-6), M+hw2+7, y+12+recNameLines.length*5+(recCompanyVal?5:0));
     if(recPhoneVal) doc.text(recPhoneVal, M+hw2+7, y+shipRecH-4);
@@ -1298,6 +1310,8 @@ function downloadPDF() {
 </script>
 </body>
 </html>
+
+
 
 
 
