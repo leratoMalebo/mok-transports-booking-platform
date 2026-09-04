@@ -13,6 +13,9 @@ exports.getUninvoicedWaybills = async (req, res) => {
         w.waybill_no,
         w.weight,
         w.volumetric_weight,
+        w.length,
+        w.width,
+        w.height,
         w.status,
         w.created_at,
         b.service,
@@ -60,6 +63,65 @@ exports.getClientsWithWaybills = async (req, res) => {
   } catch (err) {
     console.error('GET CLIENTS ERROR:', err.message);
     res.status(500).json({ error: 'Failed to fetch clients' });
+  }
+};
+
+// ─────────────────────────────────────────────
+// SEARCH ALL WAYBILLS (for the per-row Waybill No. picker)
+// GET /api/invoices/waybills-search?q=...
+// Unlike getUninvoicedWaybills, this isn't scoped to one known
+// client — it searches across everything, since accounts staff are
+// looking a waybill UP (they don't necessarily know the client yet).
+// Includes billing client details (via bookings.user_id -> users)
+// so the frontend can auto-populate "Invoice To" once a waybill is
+// selected, plus dimensions for invoices that need to show them.
+// ─────────────────────────────────────────────
+exports.searchAllWaybills = async (req, res) => {
+  try {
+    const q = req.query.q || '';
+    const result = await db.query(`
+      SELECT
+        w.id,
+        w.waybill_no,
+        w.weight,
+        w.volumetric_weight,
+        w.length,
+        w.width,
+        w.height,
+        w.status,
+        w.invoiced,
+        w.created_at,
+        b.service,
+        b.consignor_name,
+        b.consignor_address,
+        b.consignor_town,
+        b.consignee_name,
+        b.consignee_address,
+        b.consignee_town,
+        b.price,
+        b.zone_label,
+        b.booking_date,
+        u.id      AS client_id,
+        u.name    AS client_name,
+        u.email   AS client_email,
+        u.company AS client_company
+      FROM waybills w
+      LEFT JOIN bookings b ON b.id = w.booking_id
+      LEFT JOIN users u    ON u.id = b.user_id
+      WHERE
+        w.waybill_no     ILIKE $1
+        OR b.consignor_name ILIKE $1
+        OR b.consignee_name ILIKE $1
+        OR u.company        ILIKE $1
+        OR u.name            ILIKE $1
+      ORDER BY w.created_at DESC
+      LIMIT 50
+    `, [`%${q}%`]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('SEARCH ALL WAYBILLS ERROR:', err.message);
+    res.status(500).json({ error: 'Failed to search waybills' });
   }
 };
 
@@ -254,6 +316,7 @@ exports.getInvoiceById = async (req, res) => {
     const wbResult = await db.query(`
       SELECT
         w.id, w.waybill_no, w.weight, w.volumetric_weight, w.status,
+        w.length, w.width, w.height,
         b.service, b.consignor_name, b.consignee_name,
         b.consignee_address, b.price, b.zone_label, b.booking_date
       FROM invoice_waybills iw
@@ -290,7 +353,6 @@ exports.markPaid = async (req, res) => {
     res.status(500).json({ error: 'Failed to update invoice' });
   }
 };
-
 
 
 

@@ -154,6 +154,16 @@
     .po-ref-status{font-size:11px;color:var(--green);font-weight:600;opacity:0;
       transition:opacity .3s}
     .po-ref-status.show{opacity:1}
+    .po-ref-status.bt-save-error{color:#c62828}
+    /* Save Invoice confirmation toast */
+    .save-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);
+      background:var(--navy);color:#fff;padding:12px 22px;border-radius:8px;
+      font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+      box-shadow:0 8px 24px rgba(13,33,55,.28);opacity:0;pointer-events:none;
+      transition:opacity .25s,transform .25s;z-index:999}
+    .save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .save-toast.save-toast-error{background:#c62828}
+    @media print{.save-toast{display:none}}
     @media print{
       .po-ref-band{background:#fff}
       .po-ref-input{border:none;background:transparent;padding:0;height:auto;
@@ -294,6 +304,10 @@
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
+    <button class="tbtn tbtn-green" onclick="saveInvoiceNow()" id="saveInvoiceBtn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save Invoice
+    </button>
     <button class="tbtn tbtn-orange" onclick="window.print()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Print
@@ -508,8 +522,10 @@ async function saveCharges(invoiceNo) {
       s.textContent = 'Saved ✓'; s.classList.add('show');
       setTimeout(() => s.classList.remove('show'), 2500);
     }
+    return true;
   } catch {
     if (status) status.textContent = 'Failed to save — please try again.';
+    return false;
   }
 }
 
@@ -915,6 +931,7 @@ async function saveDetails(invoiceNo) {
     detailsSaveTimer = setTimeout(() => {
       document.querySelectorAll('.bt-save-status').forEach(s => s.classList.remove('show'));
     }, 2000);
+    return true;
   } catch (err) {
     // Inline and persistent rather than a dismissible alert() — a save
     // failure is easy to miss (and easy to click past) otherwise, and the
@@ -929,6 +946,7 @@ async function saveDetails(invoiceNo) {
     detailsSaveTimer = setTimeout(() => {
       document.querySelectorAll('.bt-save-status').forEach(s => s.classList.remove('show'));
     }, 8000);
+    return false;
   }
 }
 
@@ -968,12 +986,12 @@ let poRefSaveTimer = null;
 async function savePORef(invoiceNo, silent) {
   const poInput  = document.getElementById('poNumberInput');
   const refInput = document.getElementById('clientRefInput');
-  if (!poInput || !refInput) return;
+  if (!poInput || !refInput) return true;
   const value = combinePoRef(poInput.value, refInput.value);
 
   // Avoid a pointless write if nothing actually changed
   const current = invoiceData?.client_reference || invoiceData?.booking_client_reference || '';
-  if (value === current) return;
+  if (value === current) return true;
 
   try {
     const res = await fetch(`${API}/truck-invoices/${invoiceNo}/reference`, {
@@ -988,14 +1006,67 @@ async function savePORef(invoiceNo, silent) {
     if (!silent) {
       const status = document.getElementById('poRefStatus');
       if (status) {
+        status.classList.remove('bt-save-error');
+        status.textContent = 'Saved ✓';
         status.classList.add('show');
         clearTimeout(poRefSaveTimer);
         poRefSaveTimer = setTimeout(() => status.classList.remove('show'), 2000);
       }
     }
+    return true;
   } catch {
-    if (!silent) alert('Failed to save the PO number / reference. Please try again.');
+    if (!silent) {
+      const status = document.getElementById('poRefStatus');
+      if (status) {
+        status.textContent = '⚠ Failed to save — please try again.';
+        status.classList.add('show', 'bt-save-error');
+        clearTimeout(poRefSaveTimer);
+        poRefSaveTimer = setTimeout(() => status.classList.remove('show'), 8000);
+      }
+    }
+    return false;
   }
+}
+
+// ── SAVE INVOICE (explicit action — saves everything at once,
+//    no PDF download required) ─────────────────
+async function saveInvoiceNow() {
+  const btn = document.getElementById('saveInvoiceBtn');
+  if (!invoiceData || !btn) return;
+  const invoiceNo = invoiceData.invoice_no;
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Saving…';
+
+  const results = await Promise.all([
+    saveDetails(invoiceNo),
+    savePORef(invoiceNo, true),
+    saveCharges(invoiceNo)
+  ]);
+  const allOk = results.every(Boolean);
+
+  showSaveToast(
+    allOk ? 'Invoice saved.' : 'Some changes failed to save — check the fields above for details.',
+    !allOk
+  );
+
+  btn.innerHTML = originalHTML;
+  btn.disabled = false;
+}
+
+function showSaveToast(message, isError) {
+  let toast = document.getElementById('saveToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'saveToast';
+    toast.className = 'save-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.toggle('save-toast-error', !!isError);
+  toast.classList.add('show');
+  clearTimeout(showSaveToast._t);
+  showSaveToast._t = setTimeout(() => toast.classList.remove('show'), isError ? 6000 : 3000);
 }
 
 // ── PDF DOWNLOAD ──────────────────────────────
@@ -1221,9 +1292,6 @@ function downloadPDF() {
     doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(96,125,139);
     doc.text(recAddrLines, M+hw2+7, ry); ry += recAddrLines.length*4.6;
     if(recPhoneVal) doc.text(recPhoneVal, M+hw2+7, ry);
-    if(recCompanyVal) doc.text(recCompanyVal, M+hw2+7, y+12+recNameLines.length*5);
-    doc.text(doc.splitTextToSize(recAddressVal, hw2-6), M+hw2+7, y+12+recNameLines.length*5+(recCompanyVal?5:0));
-    if(recPhoneVal) doc.text(recPhoneVal, M+hw2+7, y+shipRecH-4);
     y += shipRecH+6;
 
     // Line items header
@@ -1310,6 +1378,7 @@ function downloadPDF() {
 </script>
 </body>
 </html>
+
 
 
 
