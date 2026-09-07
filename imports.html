@@ -569,16 +569,44 @@
         padding: 0 16px
       }
     }
+
     /* ── SEARCHABLE ADDRESS BOOK DROPDOWNS ── */
-    .dhl-searchable { position: relative; }
-    .dhl-search-dropdown {
-      display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-      max-height: 240px; overflow-y: auto; background: #fff; border: 1px solid #dce3ec;
-      border-radius: 7px; box-shadow: 0 10px 28px rgba(10,22,40,.15); z-index: 80;
+    .dhl-searchable {
+      position: relative;
     }
-    .dhl-search-item { padding: 9px 12px; font-size: 13.5px; color: #1a2535; cursor: pointer; }
-    .dhl-search-item:hover, .dhl-search-item.active { background: #f0f4ff; }
-    .dhl-search-empty { padding: 10px 12px; font-size: 13px; color: #90a4ae; }
+
+    .dhl-search-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      max-height: 240px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #dce3ec;
+      border-radius: 7px;
+      box-shadow: 0 10px 28px rgba(10, 22, 40, .15);
+      z-index: 80;
+    }
+
+    .dhl-search-item {
+      padding: 9px 12px;
+      font-size: 13.5px;
+      color: #1a2535;
+      cursor: pointer;
+    }
+
+    .dhl-search-item:hover,
+    .dhl-search-item.active {
+      background: #f0f4ff;
+    }
+
+    .dhl-search-empty {
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #90a4ae;
+    }
   </style>
 </head>
 
@@ -677,6 +705,7 @@
           <div class="fg"><label>Mobile Phone</label><input id="shipperMobile" placeholder="+27 84 902 2258"></div>
           <div class="fg"><label>Country Code *</label>
             <select id="shipperCountry">
+              <option value="TW">TW — Taiwan</option>
               <option value="ZA" selected>ZA — South Africa</option>
               <option value="ZW">ZW — Zimbabwe</option>
               <option value="ZM">ZM — Zambia</option>
@@ -689,7 +718,7 @@
               <option value="GB">GB — United Kingdom</option>
               <option value="US">US — United States</option>
               <option value="DE">DE — Germany</option>
-              <option value="UAE">UAE — United Arab Emirates</option>
+              <option value="AE">AE — United Arab Emirates</option>
               <option value="CH">CH — Switzerland</option>
               <option value="CN">CN — China</option>
               <option value="CA">CA — Canada</option>
@@ -764,6 +793,7 @@
           <div class="fg"><label>Mobile Phone</label><input id="receiverMobile" placeholder="+XX XXX XXX XXXX"></div>
           <div class="fg"><label>Country Code *</label>
             <select id="receiverCountry">
+              <option value="TW">TW — Taiwan</option>
               <option value="ZA">ZA — South Africa</option>
               <option value="ZW">ZW — Zimbabwe</option>
               <option value="ZM">ZM — Zambia</option>
@@ -777,6 +807,7 @@
               <option value="US">US — United States</option>
               <option value="CA">CA — Canada</option>
               <option value="DE">DE — Germany</option>
+              <option value="AE">AE — United Arab Emirates</option>
               <option value="CH">CH — Switzerland</option>
               <option value="CN">CN — China</option>
               <option value="AU">AU — Australia</option>
@@ -838,11 +869,9 @@
             <label>Pickup Requested</label>
             <div class="radio-group">
               <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupYes" value="true" checked
-                  onchange="togglePickupTimeFields()"><label
-                  for="pickupYes">Yes — Request Pickup</label></div>
+                  onchange="togglePickupTimeFields()"><label for="pickupYes">Yes — Request Pickup</label></div>
               <div class="radio-opt"><input type="radio" name="pickupReq" id="pickupNo" value="false"
-                  onchange="togglePickupTimeFields()"><label
-                  for="pickupNo">No — Drop Off</label></div>
+                  onchange="togglePickupTimeFields()"><label for="pickupNo">No — Drop Off</label></div>
             </div>
           </div>
         </div>
