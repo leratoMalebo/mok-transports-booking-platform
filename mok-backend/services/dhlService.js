@@ -103,7 +103,16 @@ exports.createShipment = async (payload, mode) => {
 // ── TRACK SHIPMENT ────────────────────────────────────────────
 exports.trackShipment = async (trackingNumber) => {
   try {
-    const result = await dhlGet(`/tracking?shipmentTrackingNumber=${trackingNumber}`);
+    // trackingView requests checkpoint history rather than just the
+    // latest status. IMPORTANT: 'all-checkpoints' is DHL's documented
+    // pattern for this param (confirmed via their changelog, which also
+    // lists a variant 'all-check-with-remarks'), but I could not verify
+    // the exact enum value against DHL's live schema/sandbox from here —
+    // test this against a real tracking number before relying on it in
+    // production. If it's wrong, DHL should simply ignore the param and
+    // fall back to their default view rather than erroring, but confirm
+    // that assumption too.
+    const result = await dhlGet(`/tracking?shipmentTrackingNumber=${trackingNumber}&trackingView=all-checkpoints`);
     console.log('[DHL] Tracking result for:', trackingNumber);
     return result;
   } catch (err) {

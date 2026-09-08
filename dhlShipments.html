@@ -147,8 +147,8 @@
                 <img src="assets/images/mok-logo.png" alt="Mok Transports" style="height:70px;">
 
                 <div>
-                    <h1>DHL International Shipments</h1>
-                    <p>
+                    <h1 id="pageTitle">DHL International Shipments</h1>
+                    <p id="pageSub">
                         View DHL shipments, tracking numbers,
                         labels and shipment documents.
                     </p>
@@ -156,7 +156,7 @@
 
             </div>
 
-            <div>
+            <div id="headerActions">
                 <a href="dashboard.html" class="btn btn-outline">Back to Dashboard</a>
                 <a href="imports.html" class="btn btn-dhl">Create DHL Shipment</a>
             </div>
@@ -206,14 +206,37 @@
         const API_BASE =
             "https://bookings.moktransports.com/api";
 
+        // ── SESSION / ROLE GATE ────────────────────────────────
+        // Anyone with the URL could previously see every client's DHL
+        // shipments — this page had no auth check at all. Staff/admin see
+        // everything as before; clients only ever see their own shipments
+        // (filtered server-side via ?client_id=), and can't create new
+        // DHL shipments from here.
+        const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+        if (!session) {
+            window.location.href = 'login.html';
+        }
+        const isStaff = ['staff', 'admin'].includes(session?.role);
+
+        if (!isStaff) {
+            document.getElementById('pageTitle').textContent = 'My DHL Shipments';
+            document.getElementById('pageSub').textContent =
+                'Track your DHL international shipments and download shipping labels.';
+            document.getElementById('headerActions').innerHTML =
+                '<a href="clientDashboard.html" class="btn btn-outline">Back to Dashboard</a>';
+        }
+
         let shipments = [];
 
         async function loadDHLShipments() {
 
             try {
 
-                const response =
-                    await fetch(`${API_BASE}/dhl/shipments`);
+                const url = isStaff
+                    ? `${API_BASE}/dhl/shipments`
+                    : `${API_BASE}/dhl/shipments?client_id=${encodeURIComponent(session.id)}`;
+
+                const response = await fetch(url);
 
                 if (!response.ok)
                     throw new Error("Failed to load DHL shipments");
@@ -250,7 +273,7 @@
                 body.innerHTML = `
       <tr>
         <td colspan="12">
-          No DHL shipments found
+          ${isStaff ? 'No DHL shipments found' : "You don't have any DHL shipments yet"}
         </td>
       </tr>
     `;
@@ -351,6 +374,18 @@ Track
                     String(
                         s.receiver_name || ""
                     ).toLowerCase().includes(query)
+
+                    ||
+
+                    String(
+                        s.client_company || ""
+                    ).toLowerCase().includes(query)
+
+                    ||
+
+                    String(
+                        s.client_name || ""
+                    ).toLowerCase().includes(query)
                 );
 
             renderShipments(filtered);
@@ -358,10 +393,10 @@ Track
 
         function downloadLabel(trackingNo) {
 
-            window.open(
-                `${API_BASE}/dhl/shipments/${trackingNo}/label`,
-                "_blank"
-            );
+            const url = isStaff
+                ? `${API_BASE}/dhl/shipments/${trackingNo}/label`
+                : `${API_BASE}/dhl/shipments/${trackingNo}/label?client_id=${encodeURIComponent(session.id)}`;
+            window.open(url, "_blank");
         }
 
         function trackShipment(trackingNo) {
@@ -377,5 +412,6 @@ Track
 </body>
 
 </html>
+
 
 

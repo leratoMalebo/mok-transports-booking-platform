@@ -129,9 +129,26 @@ exports.getShipmentByTracking = async (req, res) => {
 };
 
 // ── GET /api/dhl/track/:trackingNo ───────────────────────────
+// Optional ?client_id=X — when present (the client-facing tracking page
+// always sends it), verify this tracking number actually belongs to that
+// client before proxying to DHL's live tracking API. Without this check,
+// anyone who knows/guesses any tracking number could look up any
+// shipment through our portal, staff-only or not.
 exports.trackShipment = async (req, res) => {
   try {
     const { trackingNo } = req.params;
+    const { client_id } = req.query;
+
+    if (client_id) {
+      const owned = await db.query(
+        `SELECT id FROM dhl_shipments WHERE tracking_number = $1 AND client_id = $2`,
+        [trackingNo, client_id]
+      );
+      if (!owned.rows.length) {
+        return res.status(404).json({ error: 'Shipment not found.' });
+      }
+    }
+
     const result = await dhlService.trackShipment(trackingNo);
     res.json(result);
   } catch (err) {
@@ -164,12 +181,17 @@ exports.validateAddress = async (req, res) => {
 };
 
 // ── GET /api/dhl/shipments/:trackingNo/label ─────────────────
+// Same ?client_id ownership check as trackShipment — a label PDF can
+// contain shipper/receiver names and addresses, so it shouldn't be
+// fetchable by anyone who just knows the tracking number.
 exports.getLabel = async (req, res) => {
   try {
     const { trackingNo } = req.params;
-    const result = await db.query(
-      `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1`, [trackingNo]
-    );
+    const { client_id } = req.query;
+    const query = client_id
+      ? `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1 AND client_id = $2`
+      : `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1`;
+    const result = await db.query(query, client_id ? [trackingNo, client_id] : [trackingNo]);
     if (!result.rows.length || !result.rows[0].label_pdf_b64)
       return res.status(404).json({ error: 'Label not found.' });
     const pdf = Buffer.from(result.rows[0].label_pdf_b64, 'base64');
@@ -186,9 +208,11 @@ exports.getLabel = async (req, res) => {
 exports.downloadLabel = async (req, res) => {
   try {
     const { trackingNumber } = req.params;
-    const result = await db.query(
-      `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1`, [trackingNumber]
-    );
+    const { client_id } = req.query;
+    const query = client_id
+      ? `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1 AND client_id = $2`
+      : `SELECT label_pdf_b64 FROM dhl_shipments WHERE tracking_number = $1`;
+    const result = await db.query(query, client_id ? [trackingNumber, client_id] : [trackingNumber]);
     if (!result.rows.length || !result.rows[0].label_pdf_b64)
       return res.status(404).json({ error: 'Label not found.' });
     const pdfBuffer = Buffer.from(result.rows[0].label_pdf_b64, 'base64');
@@ -200,6 +224,8 @@ exports.downloadLabel = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
 
 
 
