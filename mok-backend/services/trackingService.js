@@ -261,20 +261,29 @@ async function getProofOfDelivery(trackingNo) {
         // number" like getEvents does. Try the actual waybill number
         // first (matching that wording), falling back to the piece-level
         // tracking number if the waybill number doesn't resolve either.
-        let podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: waybillRef });
-        console.log('[TRACKING] getPOD (waybill number) response:', JSON.stringify(podData, null, 2));
+        //
+        // Also now sending accnum explicitly — every call in the working
+        // submitWaybill integration (jkjService.js) sends accnum
+        // alongside everything else, but getEvents/getTracks apparently
+        // don't need it. POD records are more account-scoped data than
+        // general tracking events, so it's a reasonable bet getPOD /
+        // getPODSignature specifically require it even though the other
+        // two methods don't. Unconfirmed — check the logs below after a
+        // real test to see if this actually changes the result.
+        let podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: waybillRef, accnum: JKJ_ACCOUNT_NO });
+        console.log('[TRACKING] getPOD (waybill number + accnum) response:', JSON.stringify(podData, null, 2));
 
         if (Number(podData.errorcode) !== 0) {
-            podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: primaryTrackNo });
-            console.log('[TRACKING] getPOD (tracking number) response:', JSON.stringify(podData, null, 2));
+            podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: primaryTrackNo, accnum: JKJ_ACCOUNT_NO });
+            console.log('[TRACKING] getPOD (tracking number + accnum) response:', JSON.stringify(podData, null, 2));
         }
 
-        let sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: waybillRef });
-        console.log('[TRACKING] getPODSignature (waybill number) response:', JSON.stringify(sigData, null, 2));
+        let sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: waybillRef, accnum: JKJ_ACCOUNT_NO });
+        console.log('[TRACKING] getPODSignature (waybill number + accnum) response:', JSON.stringify(sigData, null, 2));
 
         if (Number(sigData.errorcode) !== 0) {
-            sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: primaryTrackNo });
-            console.log('[TRACKING] getPODSignature (tracking number) response:', JSON.stringify(sigData, null, 2));
+            sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: primaryTrackNo, accnum: JKJ_ACCOUNT_NO });
+            console.log('[TRACKING] getPODSignature (tracking number + accnum) response:', JSON.stringify(sigData, null, 2));
         }
 
         if (Number(podData.errorcode) !== 0) {
