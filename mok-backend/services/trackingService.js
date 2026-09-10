@@ -255,6 +255,40 @@ async function getProofOfDelivery(trackingNo) {
 
         const primaryTrackNo = trackNumbers[0];
 
+        // ── NEW: getPODsByDate resolution step ─────────────────────
+        // getPOD/getPODSignature have consistently failed regardless of
+        // what identifier we send them. Re-reading the docs: getPODsByDate
+        // ("a list of waybills within a specified date range and their
+        // accompanying POD status") sits in the same relationship to
+        // getPOD/getPODSignature that getTracks sits in relation to
+        // getEvents — a resolving step before the specific-record call.
+        // This is untested — logging fully so we can see exactly what
+        // it returns and adjust field names/format from real evidence,
+        // same as every other method we've cracked so far.
+        const today = new Date();
+        const fmtDate = d => d.toISOString().split('T')[0]; // YYYY-MM-DD, matching getEvents' own eventdate format
+        const dateFrom = new Date(today); dateFrom.setDate(dateFrom.getDate() - 60);
+
+        let podsByDateEntry = null;
+        try {
+            const podsByDateData = await makeTrackingCall('Waybill', 'getPODsByDate', {
+                accnum: JKJ_ACCOUNT_NO,
+                datefrom: fmtDate(dateFrom),
+                dateto: fmtDate(today)
+            });
+            console.log('[TRACKING] getPODsByDate response:', JSON.stringify(podsByDateData, null, 2));
+
+            if (Number(podsByDateData.errorcode) === 0) {
+                podsByDateEntry = (podsByDateData.results || []).find(r =>
+                    (r.waybillno || r.waybill || '').toString() === waybillRef ||
+                    (r.trackno || '').toString() === primaryTrackNo
+                );
+                console.log('[TRACKING] Matched getPODsByDate entry for this waybill:', JSON.stringify(podsByDateEntry, null, 2));
+            }
+        } catch (podsByDateErr) {
+            console.log('[TRACKING] getPODsByDate call failed (non-fatal, continuing):', podsByDateErr.message);
+        }
+
         // getPOD and getPODSignature are documented differently from
         // getEvents — their descriptions specifically say "a single
         // waybill" / "a waybill's POD signature", not "waybill/tracking
@@ -326,5 +360,4 @@ async function getProofOfDelivery(trackingNo) {
 }
 
 module.exports = { trackShipment, getProofOfDelivery };
-
 
