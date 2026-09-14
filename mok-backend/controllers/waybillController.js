@@ -99,7 +99,6 @@ exports.sendToJKJ = async (req, res) => {
       `SELECT 
         w.*,
         b.service,
-        b.booking_date,
         b.consignor_name,
         b.consignor_address,
        b.consignor_contact,
@@ -130,19 +129,11 @@ b.consignee_town,
     }
 
     const jkjResult = await jkjService.submitWaybillToJKJ(waybill);
-    console.log("================================");
-    console.log("RAW JKJ RESULT");
-    console.log(JSON.stringify(jkjResult, null, 2));
 
-
-
-    // JKJ uses the same waybill number we submit.
-    // Keep our canonical waybill number as the JKJ reference.
-    // This prevents duplicate prefixes such as MOKMOK000107.
-    const jkjReference = waybillNo;
-
-    console.log('[JKJ] Canonical JKJ reference:', jkjReference);
-    console.log('[JKJ] JKJ returned waybill:', jkjResult?.results?.[0]?.waybillno);
+    const jkjReference =
+      jkjResult?.results?.[0]?.waybillno ||
+      jkjResult?.results?.[0]?.histid ||
+      null;
 
     const updated = await db.query(
       `UPDATE waybills
@@ -248,10 +239,82 @@ b.consignee_town,
   }
 };
 
+// ─────────────────────────────────────────────
+// SAVE DISPATCH RE-WEIGH
+// PATCH /api/waybills/:waybillNo/reweigh
+// Body: { actual_weight, actual_length, actual_width, actual_height, reweighed_by }
+// Recorded by dispatch/warehouse staff when they physically re-weigh and
+// re-measure a parcel at pickup/collection — the declared weight and
+// dimensions on the waybill are whatever the client typed in at booking
+// time, and are often wrong (under- or over-stated).
+//
+// Volumetric weight is recalculated server-side using JKJ's own
+// published formula (L × W × H ÷ 5000 — confirmed against jkjexpress.co.za
+// and matches existing sample waybills), never trusted from the client,
+// so it can't be tampered with or drift out of sync with the real one.
+//
+// has_discrepancy flags when the actual billable weight (the greater of
+// actual weight vs. recalculated volumetric weight) differs meaningfully
+// from what was declared at booking — this is what should trigger a
+// rebilling conversation with accounts, not just a shrug.
+// ─────────────────────────────────────────────
+const JKJ_VOLUMETRIC_DIVISOR = 5000;
+const DISCREPANCY_TOLERANCE_KG = 0.5;
 
+exports.saveReweigh = async (req, res) => {
+  try {
+    const { waybillNo } = req.params;
+    const { actual_weight, actual_length, actual_width, actual_height, reweighed_by } = req.body;
 
+    const weight = Number(actual_weight);
+    const length = Number(actual_length);
+    const width  = Number(actual_width);
+    const height = Number(actual_height);
 
+    if ([weight, length, width, height].some(n => !Number.isFinite(n) || n <= 0)) {
+      return res.status(400).json({ error: 'Actual weight, length, width and height must all be positive numbers.' });
+    }
 
+    const actualVolumetricWeight = Math.round(((length * width * height) / JKJ_VOLUMETRIC_DIVISOR) * 100) / 100;
+    const actualBillableWeight   = Math.max(weight, actualVolumetricWeight);
+
+    const existing = await db.query(
+      `SELECT weight, volumetric_weight FROM waybills WHERE waybill_no = $1`, [waybillNo]
+    );
+    if (!existing.rows.length) {
+      return res.status(404).json({ error: 'Waybill not found' });
+    }
+    const declaredWeight     = Number(existing.rows[0].weight || 0);
+    const declaredVolumetric = Number(existing.rows[0].volumetric_weight || 0);
+    const declaredBillableWeight = Math.max(declaredWeight, declaredVolumetric);
+    const hasDiscrepancy = Math.abs(actualBillableWeight - declaredBillableWeight) > DISCREPANCY_TOLERANCE_KG;
+
+    const result = await db.query(`
+      UPDATE waybills SET
+        actual_weight = $1,
+        actual_length = $2,
+        actual_width = $3,
+        actual_height = $4,
+        actual_volumetric_weight = $5,
+        reweighed_by = $6,
+        reweighed_at = NOW(),
+        has_discrepancy = $7
+      WHERE waybill_no = $8
+      RETURNING *`,
+      [weight, length, width, height, actualVolumetricWeight,
+       (reweighed_by || '').trim() || null, hasDiscrepancy, waybillNo]
+    );
+
+    res.json({
+      ...result.rows[0],
+      actual_billable_weight: actualBillableWeight,
+      declared_billable_weight: declaredBillableWeight
+    });
+  } catch (err) {
+    console.error('SAVE REWEIGH ERROR:', err.message);
+    res.status(500).json({ error: 'Failed to save re-weigh details' });
+  }
+};
 
 
 

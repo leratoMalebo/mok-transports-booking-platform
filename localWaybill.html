@@ -203,6 +203,105 @@
       display: inline-block;
     }
 
+    /* DISPATCH RE-WEIGH — boxes stay bordered even in print, since an
+       empty box is exactly what a driver needs to write into by hand */
+    .reweigh-note {
+      font-size: 11.5px;
+      color: #607d8b;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .reweigh-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .reweigh-field-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #607d8b;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 3px;
+      display: block;
+    }
+    .reweigh-input {
+      width: 100%;
+      height: 34px;
+      border: 1.5px solid var(--mok-navy);
+      border-radius: 4px;
+      padding: 0 8px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--mok-navy);
+      outline: none;
+      background: #fffef9;
+    }
+    .reweigh-input:focus {
+      border-color: var(--mok-blue);
+      background: #fff;
+    }
+    .reweigh-input[readonly] {
+      background: #eceff1;
+      color: #37474f;
+    }
+    .reweigh-meta-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .reweigh-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .reweigh-save-btn {
+      height: 34px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 4px;
+      background: #2e7d32;
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .reweigh-status {
+      font-size: 12px;
+      font-weight: 600;
+      color: #2e7d32;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .reweigh-status.show { opacity: 1; }
+    .reweigh-status.reweigh-error { color: #c62828; }
+    .discrepancy-banner {
+      display: none;
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      background: #fdecea;
+      color: #c62828;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .discrepancy-banner.show { display: block; }
+    @media(max-width:700px) {
+      .reweigh-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media print {
+      .reweigh-input { border: 1.5px solid #000 !important; background: #fff !important; color: #000 !important; }
+      .reweigh-input[readonly] { background: #fff !important; }
+      .reweigh-actions, .reweigh-status { display: none !important; }
+    }
+
     @media print {
       .action-bar {
         display: none;
@@ -310,6 +409,56 @@
         </div>
       </div>
 
+      <!-- DISPATCH RE-WEIGH -->
+      <div class="waybill-section">
+        <div class="waybill-section-title">Dispatch Re-Weigh — Warehouse / Driver Use</div>
+        <div class="waybill-section-body">
+          <div class="reweigh-note">
+            To be completed by dispatch at pickup or depot check-in. Volumetric weight is
+            calculated automatically as (Length × Width × Height) ÷ 5000 — JKJ's standard formula.
+          </div>
+          <div class="reweigh-grid">
+            <div>
+              <span class="reweigh-field-label">Actual Wt (kg)</span>
+              <input type="number" step="0.01" min="0" class="reweigh-input" id="rwWeight" oninput="recalcReweigh()">
+            </div>
+            <div>
+              <span class="reweigh-field-label">Length (cm)</span>
+              <input type="number" step="0.1" min="0" class="reweigh-input" id="rwLength" oninput="recalcReweigh()">
+            </div>
+            <div>
+              <span class="reweigh-field-label">Width (cm)</span>
+              <input type="number" step="0.1" min="0" class="reweigh-input" id="rwWidth" oninput="recalcReweigh()">
+            </div>
+            <div>
+              <span class="reweigh-field-label">Height (cm)</span>
+              <input type="number" step="0.1" min="0" class="reweigh-input" id="rwHeight" oninput="recalcReweigh()">
+            </div>
+            <div>
+              <span class="reweigh-field-label">Volumetric (kg)</span>
+              <input type="text" class="reweigh-input" id="rwVolumetric" readonly>
+            </div>
+          </div>
+          <div class="reweigh-meta-row">
+            <div>
+              <span class="reweigh-field-label">Re-weighed By</span>
+              <input type="text" class="reweigh-input" id="rwBy" placeholder="Dispatch / driver name…">
+            </div>
+            <div>
+              <span class="reweigh-field-label">Billable Wt (kg)</span>
+              <input type="text" class="reweigh-input" id="rwBillable" readonly>
+            </div>
+          </div>
+          <div class="reweigh-actions">
+            <button type="button" class="reweigh-save-btn" onclick="saveReweigh()">Save Re-Weigh</button>
+            <span class="reweigh-status" id="rwStatus">Saved ✓</span>
+          </div>
+          <div class="discrepancy-banner" id="rwDiscrepancyBanner">
+            ⚠ Actual billable weight differs from what was declared at booking — flag this to accounts for possible rebilling.
+          </div>
+        </div>
+      </div>
+
       <!-- QR + COST -->
       <div class="detail-grid" style="margin-bottom:16px">
         <div class="waybill-section">
@@ -371,6 +520,95 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="assets/js/localWaybill.js"></script>
+
+  <script>
+    // ── DISPATCH RE-WEIGH ──────────────────────────────────────
+    // Deliberately self-contained rather than hooked into
+    // assets/js/localWaybill.js's data flow, so this ships without
+    // needing to know that file's internals. Uses the same ?waybill=
+    // URL param the rest of the page already relies on.
+    const REWEIGH_API_BASE = 'https://bookings.moktransports.com/api';
+    const REWEIGH_DIVISOR = 5000; // JKJ's published formula — L×W×H÷5000
+    const rwWaybillNo = new URLSearchParams(window.location.search).get('waybill');
+
+    function recalcReweigh() {
+      const w = parseFloat(document.getElementById('rwWeight').value) || 0;
+      const l = parseFloat(document.getElementById('rwLength').value) || 0;
+      const wd = parseFloat(document.getElementById('rwWidth').value) || 0;
+      const h = parseFloat(document.getElementById('rwHeight').value) || 0;
+
+      const volumetric = (l && wd && h) ? Math.round(((l * wd * h) / REWEIGH_DIVISOR) * 100) / 100 : 0;
+      document.getElementById('rwVolumetric').value = volumetric ? volumetric.toFixed(2) : '';
+      document.getElementById('rwBillable').value = (w || volumetric) ? Math.max(w, volumetric).toFixed(2) : '';
+    }
+
+    async function loadReweigh() {
+      if (!rwWaybillNo) return;
+      try {
+        const res = await fetch(`${REWEIGH_API_BASE}/waybills/${encodeURIComponent(rwWaybillNo)}`);
+        if (!res.ok) return; // page still works for handwriting even if this fails
+        const wb = await res.json();
+
+        if (wb.actual_weight)  document.getElementById('rwWeight').value  = wb.actual_weight;
+        if (wb.actual_length)  document.getElementById('rwLength').value  = wb.actual_length;
+        if (wb.actual_width)   document.getElementById('rwWidth').value   = wb.actual_width;
+        if (wb.actual_height)  document.getElementById('rwHeight').value  = wb.actual_height;
+        if (wb.reweighed_by)   document.getElementById('rwBy').value      = wb.reweighed_by;
+        recalcReweigh();
+
+        if (wb.has_discrepancy) {
+          document.getElementById('rwDiscrepancyBanner').classList.add('show');
+        }
+      } catch (err) {
+        console.error('Load re-weigh failed:', err);
+      }
+    }
+
+    async function saveReweigh() {
+      const status = document.getElementById('rwStatus');
+      if (!rwWaybillNo) {
+        status.textContent = '⚠ No waybill number in URL — cannot save.';
+        status.classList.add('show', 'reweigh-error');
+        return;
+      }
+
+      const payload = {
+        actual_weight: document.getElementById('rwWeight').value,
+        actual_length: document.getElementById('rwLength').value,
+        actual_width: document.getElementById('rwWidth').value,
+        actual_height: document.getElementById('rwHeight').value,
+        reweighed_by: document.getElementById('rwBy').value
+      };
+
+      try {
+        const res = await fetch(`${REWEIGH_API_BASE}/waybills/${encodeURIComponent(rwWaybillNo)}/reweigh`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body?.error || `Save failed (HTTP ${res.status})`);
+
+        document.getElementById('rwVolumetric').value = Number(body.actual_volumetric_weight || 0).toFixed(2);
+        document.getElementById('rwBillable').value = Number(body.actual_billable_weight || 0).toFixed(2);
+
+        const banner = document.getElementById('rwDiscrepancyBanner');
+        banner.classList.toggle('show', !!body.has_discrepancy);
+
+        status.textContent = 'Saved ✓';
+        status.classList.remove('reweigh-error');
+        status.classList.add('show');
+        setTimeout(() => status.classList.remove('show'), 3000);
+      } catch (err) {
+        console.error('Save re-weigh failed:', err);
+        status.textContent = '⚠ ' + err.message;
+        status.classList.add('show', 'reweigh-error');
+        setTimeout(() => status.classList.remove('show'), 8000);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReweigh);
+  </script>
 
 </body>
 
