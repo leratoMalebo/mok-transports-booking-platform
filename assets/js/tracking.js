@@ -150,9 +150,21 @@ async function loadPOD(trackingNo) {
     }
 
     const pod = data.pod;
-    const sigHtml = pod.signature_base64
-      ? `<img class="pod-signature" src="data:image/png;base64,${pod.signature_base64}" alt="Delivery signature">`
-      : `<div class="pod-empty">No signature image available.</div>`;
+    // Not every delivery captures an electronic signature (e.g.
+    // business deliveries left at reception) — that's normal, not an
+    // error. Fall back to the POD image link when a signature isn't
+    // available but a delivery photo is.
+    let sigHtml;
+    if (pod.signature_base64) {
+      sigHtml = `<img class="pod-signature" src="data:image/png;base64,${pod.signature_base64}" alt="Delivery signature">`;
+    } else if (pod.pod_image_url) {
+      sigHtml = `<a class="pod-image-link" href="${pod.pod_image_url}" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        View Delivery Photo
+      </a>`;
+    } else {
+      sigHtml = `<div class="pod-empty">No signature was captured for this delivery.</div>`;
+    }
 
     podBody.innerHTML = `
       <div class="pod-grid">
@@ -238,6 +250,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
 
 
 

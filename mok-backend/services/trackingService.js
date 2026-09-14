@@ -237,88 +237,13 @@ async function getProofOfDelivery(trackingNo) {
         const shipment = shipmentResult.rows[0];
         const waybillRef = shipment.jkj_reference || shipment.waybill_no;
 
-        // Resolve the real tracking number first, same as trackShipment —
-        // getPOD/getPODSignature take the same trackno parameter.
-        const tracksData = await makeTrackingCall('Waybill', 'getTracks', { waybillno: waybillRef });
-
-        if (Number(tracksData.errorcode) !== 0) {
-            throw new Error(tracksData.errormessage || 'Could not resolve a tracking number for this waybill.');
-        }
-
-        const trackNumbers = (tracksData.results || [])
-            .map(r => r.trackno || r.trackingno || r.tracking_no || r.waybillno)
-            .filter(Boolean);
-
-        if (!trackNumbers.length) {
-            return { success: false, message: 'No tracking number found for this waybill yet.' };
-        }
-
-        const primaryTrackNo = trackNumbers[0];
-
-        // ── NEW: getPODsByDate resolution step ─────────────────────
-        // getPOD/getPODSignature have consistently failed regardless of
-        // what identifier we send them. Re-reading the docs: getPODsByDate
-        // ("a list of waybills within a specified date range and their
-        // accompanying POD status") sits in the same relationship to
-        // getPOD/getPODSignature that getTracks sits in relation to
-        // getEvents — a resolving step before the specific-record call.
-        // This is untested — logging fully so we can see exactly what
-        // it returns and adjust field names/format from real evidence,
-        // same as every other method we've cracked so far.
-        const today = new Date();
-        const fmtDate = d => d.toISOString().split('T')[0]; // YYYY-MM-DD, matching getEvents' own eventdate format
-        const dateFrom = new Date(today); dateFrom.setDate(dateFrom.getDate() - 60);
-
-        let podsByDateEntry = null;
-        try {
-            const podsByDateData = await makeTrackingCall('Waybill', 'getPODsByDate', {
-                accnum: JKJ_ACCOUNT_NO,
-                datefrom: fmtDate(dateFrom),
-                dateto: fmtDate(today)
-            });
-            console.log('[TRACKING] getPODsByDate response:', JSON.stringify(podsByDateData, null, 2));
-
-            if (Number(podsByDateData.errorcode) === 0) {
-                podsByDateEntry = (podsByDateData.results || []).find(r =>
-                    (r.waybillno || r.waybill || '').toString() === waybillRef ||
-                    (r.trackno || '').toString() === primaryTrackNo
-                );
-                console.log('[TRACKING] Matched getPODsByDate entry for this waybill:', JSON.stringify(podsByDateEntry, null, 2));
-            }
-        } catch (podsByDateErr) {
-            console.log('[TRACKING] getPODsByDate call failed (non-fatal, continuing):', podsByDateErr.message);
-        }
-
-        // getPOD and getPODSignature are documented differently from
-        // getEvents — their descriptions specifically say "a single
-        // waybill" / "a waybill's POD signature", not "waybill/tracking
-        // number" like getEvents does. Try the actual waybill number
-        // first (matching that wording), falling back to the piece-level
-        // tracking number if the waybill number doesn't resolve either.
-        //
-        // Also now sending accnum explicitly — every call in the working
-        // submitWaybill integration (jkjService.js) sends accnum
-        // alongside everything else, but getEvents/getTracks apparently
-        // don't need it. POD records are more account-scoped data than
-        // general tracking events, so it's a reasonable bet getPOD /
-        // getPODSignature specifically require it even though the other
-        // two methods don't. Unconfirmed — check the logs below after a
-        // real test to see if this actually changes the result.
-        let podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: waybillRef, accnum: JKJ_ACCOUNT_NO });
-        console.log('[TRACKING] getPOD (waybill number + accnum) response:', JSON.stringify(podData, null, 2));
-
-        if (Number(podData.errorcode) !== 0) {
-            podData = await makeTrackingCall('Waybill', 'getPOD', { trackno: primaryTrackNo, accnum: JKJ_ACCOUNT_NO });
-            console.log('[TRACKING] getPOD (tracking number + accnum) response:', JSON.stringify(podData, null, 2));
-        }
-
-        let sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: waybillRef, accnum: JKJ_ACCOUNT_NO });
-        console.log('[TRACKING] getPODSignature (waybill number + accnum) response:', JSON.stringify(sigData, null, 2));
-
-        if (Number(sigData.errorcode) !== 0) {
-            sigData = await makeTrackingCall('Waybill', 'getPODSignature', { trackno: primaryTrackNo, accnum: JKJ_ACCOUNT_NO });
-            console.log('[TRACKING] getPODSignature (tracking number + accnum) response:', JSON.stringify(sigData, null, 2));
-        }
+        // Confirmed by Parcel Perfect support (Nicole Chivero) with a
+        // real worked example: getPOD and getPODSignature take the
+        // waybill number directly under the key "waybillno" — NOT
+        // "trackno" (that convention only applies to getEvents/getTracks),
+        // and no accnum is needed. No resolution step required either.
+        const podData = await makeTrackingCall('Waybill', 'getPOD', { waybillno: waybillRef });
+        console.log('[TRACKING] getPOD response:', JSON.stringify(podData, null, 2));
 
         if (Number(podData.errorcode) !== 0) {
             return {
@@ -328,28 +253,54 @@ async function getProofOfDelivery(trackingNo) {
         }
 
         const podResult = (podData.results || [])[0] || {};
-        // Field names not confirmed from docs alone (no sample response
-        // provided for getPOD) — check plausible variants defensively,
-        // same approach that worked for getTracks.
-        const recipientName = podResult.recipient || podResult.podname || podResult.signedby || podResult.receivedby || null;
-        const podDate = podResult.poddate || podResult.eventdate || null;
-        const podTime = podResult.podtime || podResult.eventtime || null;
+        const recipientName = podResult.recipient || null;
+        const podDate = podResult.poddate || null;
+        const podTime = podResult.podtime || null;
+        const podImageAvailable = Number(podResult.podImgAvail) === 1;
 
+        // Signature is optional — many deliveries (e.g. left at
+        // reception, business deliveries) never capture an electronic
+        // signature at all. Parcel Perfect confirmed "POD signature not
+        // found" in that case is normal, not an error — treat it as
+        // "no signature", not a failure.
         let signatureBase64 = null;
-        if (Number(sigData.errorcode) === 0) {
-            const sigResult = (sigData.results || [])[0] || sigData;
-            signatureBase64 = sigResult.signature || sigResult.image || sigResult.base64 || null;
+        try {
+            const sigData = await makeTrackingCall('Waybill', 'getPODSignature', { waybillno: waybillRef });
+            console.log('[TRACKING] getPODSignature response:', JSON.stringify(sigData, null, 2));
+            if (Number(sigData.errorcode) === 0) {
+                const sigResult = (sigData.results || [])[0] || {};
+                signatureBase64 = sigResult.signature || sigResult.image || sigResult.base64 || null;
+            }
+        } catch (sigErr) {
+            console.log('[TRACKING] getPODSignature failed (non-fatal):', sigErr.message);
+        }
+
+        // POD image (an actual delivery photo, not a signature) — only
+        // fetch it if getPOD's own podImgAvail flag says one exists,
+        // per Parcel Perfect's example (params key is "waybill" here,
+        // a third naming variant confirmed in their reply — not a typo).
+        let podImageUrl = null;
+        if (podImageAvailable) {
+            try {
+                const imgData = await makeTrackingCall('Waybill', 'getPODImage', { waybill: waybillRef, type: '1' });
+                console.log('[TRACKING] getPODImage response:', JSON.stringify(imgData, null, 2));
+                if (Number(imgData.errorcode) === 0) {
+                    podImageUrl = (imgData.results || [])[0]?.message || null;
+                }
+            } catch (imgErr) {
+                console.log('[TRACKING] getPODImage failed (non-fatal):', imgErr.message);
+            }
         }
 
         return {
             success: true,
             pod: {
                 waybill_no: shipment.waybill_no,
-                tracking_no: primaryTrackNo,
                 recipient_name: recipientName,
                 delivered_date: podDate,
                 delivered_time: podTime,
-                signature_base64: signatureBase64
+                signature_base64: signatureBase64,
+                pod_image_url: podImageUrl
             }
         };
 
@@ -360,4 +311,6 @@ async function getProofOfDelivery(trackingNo) {
 }
 
 module.exports = { trackShipment, getProofOfDelivery };
+
+
 
