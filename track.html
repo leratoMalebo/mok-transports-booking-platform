@@ -566,12 +566,24 @@
         }
       };
     };
+
+    // ── AUTO-TRACK FROM URL ─────────────────────────────────────
+    // Allows linking straight to a shipment's results from other pages,
+    // e.g. track.html?ref=MOK000281 — pre-fills the box and runs the
+    // lookup immediately instead of showing an empty search page.
+    document.addEventListener('DOMContentLoaded', function () {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref') || params.get('waybill') || params.get('tracking');
+      if (!ref) return;
+
+      const input = document.getElementById('trackingInput');
+      if (input) input.value = ref;
+      if (typeof trackShipment === 'function') trackShipment();
+    });
   </script>
 
 </body>
 </html>
-
-
 
 
 
