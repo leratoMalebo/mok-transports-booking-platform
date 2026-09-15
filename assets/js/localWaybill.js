@@ -10,9 +10,15 @@ function savePDF() {
     .set({
       margin: [8, 8, 8, 8],
       filename: `Waybill_${document.getElementById("waybillNumber").innerText}.pdf`,
-      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["avoid-all"] }
+      // 'avoid-all' treats every element as unsplittable, which is what
+      // was causing the blank-page-then-everything-crammed output once
+      // the waybill grew taller than one page. 'css' respects the
+      // page-break-inside:avoid rules on .waybill-section/.detail-grid
+      // instead, so the document paginates naturally and only avoids
+      // breaking a section awkwardly in half.
+      pagebreak: { mode: ["css"] }
     })
     .from(element)
     .save();
@@ -234,6 +240,5 @@ async function loadWaybillFromDatabase(waybillNo) {
     alert("Could not load saved waybill from database.");
   }
 }
-
 
 

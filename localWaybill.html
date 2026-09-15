@@ -306,6 +306,19 @@
       .reweigh-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
+    /* NOT inside @media print — html2canvas/html2pdf renders using
+       normal screen styles, so print-only rules never actually reached
+       the generated PDF. These need to apply unconditionally to matter. */
+    .detail-grid {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .waybill-section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
     @media print {
       .action-bar {
         display: none;
@@ -321,14 +334,6 @@
         box-shadow: none;
         margin: 0;
         max-width: 100%;
-      }
-
-      .detail-grid {
-        page-break-inside: avoid;
-      }
-
-      .waybill-section {
-        page-break-inside: avoid;
       }
     }
 
