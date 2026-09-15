@@ -557,6 +557,22 @@
         }
       };
     };
+
+    // ── AUTO-TRACK FROM URL ─────────────────────────────────────
+    // The dashboard/shipments pages link here as
+    // clientTracking.html?ref=MOK000281 — pre-fill the box and run the
+    // lookup immediately so clients land straight on their results
+    // instead of an empty search page. Also accepts ?waybill= as an
+    // alias in case other pages link using that name.
+    document.addEventListener('DOMContentLoaded', function () {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref') || params.get('waybill') || params.get('tracking');
+      if (!ref) return;
+
+      const input = document.getElementById('trackingInput');
+      if (input) input.value = ref;
+      if (typeof trackShipment === 'function') trackShipment();
+    });
   </script>
 
 </body>
