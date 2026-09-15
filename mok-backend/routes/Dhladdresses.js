@@ -6,9 +6,11 @@ const c = require('../controllers/Dhladdresscontroller');
 router.get('/companies', c.getCompanies);
 router.get('/',          c.getAddresses);
 router.post('/',         c.createAddress);
+router.put('/:id',       c.updateAddress);
 router.delete('/:id',    c.deleteAddress);
 
 module.exports = router;
+
 
 
 

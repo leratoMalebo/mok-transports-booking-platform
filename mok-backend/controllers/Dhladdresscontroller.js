@@ -33,13 +33,27 @@ exports.createAddress = async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
+exports.updateAddress = async (req, res) => {
+  try {
+    const { company_name, contact_name, email, phone, country, country_code, address_1, address_2, postal_code, city, suburb, province } = req.body;
+    const result = await db.query(
+      `UPDATE dhl_addresses SET
+        company_name=$1, contact_name=$2, email=$3, phone=$4, country=$5, country_code=$6,
+        address_1=$7, address_2=$8, postal_code=$9, city=$10, suburb=$11, province=$12
+       WHERE id=$13 RETURNING *`,
+      [company_name, contact_name || '', email || '', phone || '', country || '', country_code || '', address_1 || '', address_2 || '', postal_code || '', city || '', suburb || '', province || '', req.params.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Address not found' });
+    res.json(result.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+};
+
 exports.deleteAddress = async (req, res) => {
   try {
     await db.query('DELETE FROM dhl_addresses WHERE id=$1', [req.params.id]);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
-
 
 
 
