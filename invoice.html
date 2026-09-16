@@ -698,7 +698,9 @@
       .action-bar,
       .add-row-btn,
       .btn-del-row,
-      .modal-overlay {
+      .modal-overlay,
+      .dims-toggle-row,
+      .wb-search-dropdown {
         display: none !important;
       }
 
@@ -746,6 +748,39 @@
         padding: 5px 6px;
       }
     }
+    /* ── WAYBILL SEARCH PICKER ──────────────────────── */
+    .wb-searchable { position: relative; }
+    .wb-search-dropdown {
+      display: none; position: absolute; top: calc(100% + 2px); left: 0;
+      min-width: 280px; max-height: 260px; overflow-y: auto;
+      background: #fff; border: 1px solid #dce3ec; border-radius: 6px;
+      box-shadow: 0 10px 28px rgba(10,22,40,.18); z-index: 200;
+    }
+    .wb-search-item {
+      padding: 8px 12px; font-size: 12px; cursor: pointer;
+      border-bottom: 1px solid #eef1f5;
+    }
+    .wb-search-item:last-child { border-bottom: none }
+    .wb-search-item:hover { background: #f0f4ff }
+    .wb-search-item .wb-no { font-weight: 700; color: var(--blue); }
+    .wb-search-item .wb-meta { color: #90a4ae; font-size: 10.5px; margin-top: 1px }
+    .wb-search-item .wb-invoiced-tag {
+      display: inline-block; background: #ffebee; color: #c62828;
+      font-size: 8.5px; font-weight: 700; letter-spacing: .5px;
+      padding: 1px 5px; border-radius: 3px; margin-left: 5px;
+    }
+    .wb-search-empty { padding: 10px 12px; font-size: 11.5px; color: #90a4ae; }
+
+    /* ── PACKAGE DIMENSIONS (optional, toggleable) ──── */
+    .dims-toggle-row {
+      display: flex; align-items: center; gap: 8px; margin: 10px 0 4px;
+      font-size: 11.5px; color: var(--muted);
+    }
+    .dims-toggle-row input[type=checkbox] { cursor: pointer; }
+    .row-dims {
+      font-size: 9.5px; color: #90a4ae; margin-top: 2px; display: none;
+    }
+    .row-dims.show { display: block; }
   </style>
 </head>
 
@@ -863,6 +898,10 @@
       </div>
 
       <!-- INVOICE TABLE -->
+      <div class="dims-toggle-row">
+        <input type="checkbox" id="showDimsToggle" onchange="toggleDimensions()">
+        <label for="showDimsToggle">Show package dimensions on this invoice</label>
+      </div>
       <div class="inv-table-wrap">
         <table class="inv-table" id="invTable">
           <colgroup>
@@ -997,8 +1036,8 @@
     // ===================================================================
     const FREIGHT = 15.00;
     const OTHERS = 8.40;
-    const FUEL_PCT = 0.28;  // 28% of Basic
-    const VAT_PCT = 0.15;  // 15% of (Basic + Freight + Fuel + Others)
+    const FUEL_PCT = 0.375;  // 37.5% of Basic
+    const VAT_PCT = 0.15;  
 
     const SERVICES = [
       'SameDay Express Air',
@@ -1022,6 +1061,7 @@
     // ROW MANAGEMENT
     // ===================================================================
     let rowId = 0;
+    const rowData = {}; // rowId -> { length, width, height, client info } for dims toggle + Bill To autofill
 
     function addLine(prefill = {}) {
       rowId++;
@@ -1030,6 +1070,18 @@
       const tbody = document.getElementById('invoiceLines');
       const tr = document.createElement('tr');
       tr.id = `row-${id}`;
+
+      rowData[id] = {
+        length: prefill.length || null,
+        width: prefill.width || null,
+        height: prefill.height || null,
+        client_id: prefill.client_id || null,
+        client_name: prefill.client_name || null,
+        client_email: prefill.client_email || null,
+        client_company: prefill.client_company || null,
+        consignor_name: prefill.consignor_name || null,
+        consignor_address: prefill.consignor_address || null
+      };
 
       const opts = SERVICES.map(s =>
         `<option value="${s}" ${s === (prefill.service || '') ? 'selected' : ''}>${s}</option>`
@@ -1041,11 +1093,18 @@
         <option value="">Select…</option>${opts}
       </select>
     </td>
-    <td><input class="cell-input" value="${prefill.waybill || ''}" placeholder="MOK000001"></td>
     <td>
-      <div class="receiver-from"><input class="cell-input" value="${prefill.fromTown || ''}" placeholder="Collection" style="text-align:left;font-weight:600"></div>
+      <div class="wb-searchable">
+        <input class="cell-input" id="wb-${id}" value="${prefill.waybill || ''}" placeholder="Type or search…"
+          autocomplete="off" oninput="wbSearchFilter(${id})" onfocus="wbSearchFilter(${id})">
+        <div class="wb-search-dropdown" id="wb-dropdown-${id}"></div>
+      </div>
+    </td>
+    <td>
+      <div class="receiver-from"><input class="cell-input" id="from-${id}" value="${prefill.fromTown || ''}" placeholder="Collection" style="text-align:left;font-weight:600"></div>
       <div class="receiver-arrow">↓</div>
-      <div class="receiver-to"><input class="cell-input" value="${prefill.toTown || ''}" placeholder="Delivery" style="text-align:left;color:var(--muted)"></div>
+      <div class="receiver-to"><input class="cell-input" id="to-${id}" value="${prefill.toTown || ''}" placeholder="Delivery" style="text-align:left;color:var(--muted)"></div>
+      <div class="row-dims ${rowData[id].length ? '' : ''}" id="dims-${id}">${formatDims(rowData[id])}</div>
     </td>
     <td><input class="cell-input" type="text" id="dt-${id}" value="${prefill.date ? new Date(prefill.date).toLocaleDateString('en-ZA') : ''}" placeholder="DD/MM/YYYY" style="font-size:11px"></td>
     <td><input class="cell-input" id="basic-${id}" type="number" step="0.01" min="0" value="${basic}" placeholder="0.00" oninput="recalcRow(${id})" style="font-weight:600;color:var(--blue)"></td>
@@ -1061,11 +1120,119 @@
       tbody.appendChild(tr);
       if (basic) recalcRow(id);
       recalcTotals();
+      updateDimsVisibility(id);
     }
+
+    function formatDims(d) {
+      if (!d || !d.length || !d.width || !d.height) return '📦 No dimensions on file';
+      return `📦 ${d.length}×${d.width}×${d.height} cm`;
+    }
+
+    function updateDimsVisibility(id) {
+      const el = document.getElementById(`dims-${id}`);
+      if (!el) return;
+      const show = document.getElementById('showDimsToggle')?.checked;
+      el.classList.toggle('show', !!show);
+    }
+
+    function toggleDimensions() {
+      Object.keys(rowData).forEach(id => updateDimsVisibility(id));
+    }
+
+    // ── WAYBILL SEARCH (per row) ────────────────────────
+    let wbSearchTimer = null;
+    let wbSearchCache = {}; // rowId -> last results array
+
+    function wbSearchFilter(id) {
+      clearTimeout(wbSearchTimer);
+      const input = document.getElementById(`wb-${id}`);
+      const dropdown = document.getElementById(`wb-dropdown-${id}`);
+      if (!input || !dropdown) return;
+      const q = input.value.trim();
+
+      wbSearchTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`https://bookings.moktransports.com/api/invoices/waybills-search?q=${encodeURIComponent(q)}`);
+          const results = await res.json();
+          wbSearchCache[id] = results;
+
+          dropdown.innerHTML = results.length
+            ? results.map((w, i) => `
+              <div class="wb-search-item" onclick="wbSelectWaybill(${id}, ${i})">
+                <div class="wb-no">${w.waybill_no}${w.invoiced ? '<span class="wb-invoiced-tag">INVOICED</span>' : ''}</div>
+                <div class="wb-meta">${w.consignor_name || '—'} → ${w.consignee_name || '—'} · ${w.service || '—'}</div>
+              </div>`).join('')
+            : `<div class="wb-search-empty">No matching waybills — you can still type a reference manually.</div>`;
+          dropdown.style.display = 'block';
+        } catch (err) {
+          console.error('Waybill search error:', err);
+          dropdown.innerHTML = `<div class="wb-search-empty">Search failed — you can still type manually.</div>`;
+          dropdown.style.display = 'block';
+        }
+      }, 250);
+    }
+
+    function wbSelectWaybill(id, idx) {
+      const w = (wbSearchCache[id] || [])[idx];
+      if (!w) return;
+
+      document.getElementById(`wb-${id}`).value = w.waybill_no;
+      document.getElementById(`from-${id}`).value = w.consignor_name || w.consignor_town || '';
+      document.getElementById(`to-${id}`).value = w.consignee_name || w.consignee_town || '';
+      if (w.booking_date) {
+        document.getElementById(`dt-${id}`).value = new Date(w.booking_date).toLocaleDateString('en-ZA');
+      }
+      if (w.price) {
+        document.getElementById(`basic-${id}`).value = parseFloat(w.price);
+      }
+      const svc = document.querySelector(`#row-${id} .cell-select`);
+      if (svc && w.service) {
+        const match = Array.from(svc.options).find(o => o.value === w.service);
+        if (match) svc.value = w.service;
+      }
+
+      rowData[id] = {
+        length: w.length, width: w.width, height: w.height,
+        client_id: w.client_id, client_name: w.client_name,
+        client_email: w.client_email, client_company: w.client_company,
+        consignor_name: w.consignor_name, consignor_address: w.consignor_address
+      };
+      document.getElementById(`dims-${id}`).textContent = formatDims(rowData[id]);
+      updateDimsVisibility(id);
+
+      document.getElementById(`wb-dropdown-${id}`).style.display = 'none';
+      recalcRow(id);
+      maybeAutofillBillTo(w);
+    }
+
+    // Only fills Bill To if it's currently empty — never overwrites
+    // something staff already typed, so manual entry still "just works"
+    // for clients who aren't in the system.
+    function maybeAutofillBillTo(w) {
+      const billTo = document.getElementById('billTo');
+      if (!billTo || billTo.value.trim()) return;
+
+      const lines = w.client_id
+        ? [w.client_company || w.client_name, w.client_email].filter(Boolean)
+        : [w.consignor_name, w.consignor_address].filter(Boolean);
+
+      if (lines.length) {
+        billTo.value = lines.join('\n');
+        window._invoiceClientId = w.client_id || null;
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('.wb-search-dropdown').forEach(d => {
+        if (!d.closest('.wb-searchable')?.contains(e.target)) d.style.display = 'none';
+      });
+    });
 
     function removeRow(id) {
       const r = document.getElementById(`row-${id}`);
       if (r) r.remove();
+      delete rowData[id];
+      delete wbSearchCache[id];
       recalcTotals();
     }
 
@@ -1166,7 +1333,9 @@
             fromTown: w.consignor_name || '',
             toTown:   w.consignee_name || '',
             date:     w.created_at ? w.created_at.split('T')[0] : today.toISOString().split('T')[0],
-            basic:    parseFloat(w.price || 0)
+            basic:    parseFloat(w.price || 0),
+            length: w.length, width: w.width, height: w.height,
+            client_id: client.id, client_company: client.company, client_email: client.email
           });
         });
         return;
@@ -1275,9 +1444,16 @@
               fromTown: w.consignor_name || '',
               toTown:   w.consignee_name || '',
               date:     w.booking_date ? w.booking_date.split('T')[0] : (inv.invoice_date || '').split('T')[0],
-              basic:    parseFloat(w.price || 0)
+              basic:    parseFloat(w.price || 0),
+              length: w.length, width: w.width, height: w.height
             });
           });
+          // If any line has real dimension data, show it by default —
+          // this invoice was clearly using that feature when saved.
+          if (inv.waybills.some(w => w.length && w.width && w.height)) {
+            const toggle = document.getElementById('showDimsToggle');
+            if (toggle) { toggle.checked = true; toggleDimensions(); }
+          }
         } else {
           // Single waybill invoice
           addLine({
@@ -1479,5 +1655,17 @@
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
