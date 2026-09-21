@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mok Transports | DHL Invoice</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root{
+  --navy:#0d2137;--blue:#1565c0;--green:#2e7d32;--orange:#f57c00;--red:#c62828;
+  --bg:#f0f4f8;--card:#fff;--border:#dce3ec;--text:#1a2535;--muted:#607d8b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text)}
+
+.topbar{height:64px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;position:sticky;top:0;z-index:30}
+.topbar-left{display:flex;flex-direction:column}
+.topbar-title{color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px}
+.topbar-sub{color:#90a4ae;font-size:11px;letter-spacing:.6px;text-transform:uppercase}
+.topbar-actions{display:flex;gap:8px}
+.tbtn{height:34px;padding:0 14px;border-radius:5px;border:none;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:.18s}
+.tbtn-ghost{background:rgba(255,255,255,.08);color:#90a4ae;border:1px solid rgba(255,255,255,.1)}
+.tbtn-ghost:hover{background:rgba(255,255,255,.15);color:#fff}
+.tbtn-green{background:var(--green);color:#fff}
+.tbtn-orange{background:var(--orange);color:#fff}
+.tbtn-red{background:var(--red);color:#fff}
+
+.page{max-width:900px;margin:24px auto 60px;padding:0 18px}
+
+.inv-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;
+  box-shadow:0 4px 18px rgba(13,33,55,.06)}
+
+.inv-header{background:var(--navy);color:#fff;padding:22px 26px;display:flex;justify-content:space-between;
+  align-items:flex-start;border-bottom:4px solid var(--blue);position:relative}
+.inv-header-left{display:flex;gap:16px;align-items:center}
+.inv-logo{height:40px;background:#fff;padding:4px;border-radius:3px}
+.inv-company{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;letter-spacing:.5px}
+.inv-company-sub{font-size:11px;color:#b8c4d4;margin-top:3px;line-height:1.5}
+.inv-badge{background:var(--blue);border-radius:6px;padding:14px 18px;text-align:center;min-width:150px}
+.inv-badge-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.85}
+.inv-badge-no{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;margin:4px 0}
+.inv-badge-type{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;opacity:.85}
+
+.inv-meta{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)}
+.inv-meta-cell{padding:14px 20px;border-right:1px solid var(--border)}
+.inv-meta-cell:last-child{border-right:none}
+.imc-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+.imc-value{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--navy)}
+.status-badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.sb-unpaid{background:#fff3e0;color:#e65100}
+.sb-paid{background:#e8f5e9;color:var(--green)}
+
+.po-ref-band{padding:12px 20px;background:#fffdf5;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.po-ref-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.po-ref-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+.po-ref-input{width:220px;height:32px;border:1px dashed #c9b458;border-radius:6px;background:#fffef9;
+  padding:0 10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--navy);outline:none}
+.po-ref-input:focus{border-style:solid;border-color:var(--blue);background:#fff}
+.po-ref-status{font-size:11px;color:var(--green);font-weight:600;opacity:0;transition:opacity .3s}
+.po-ref-status.show{opacity:1}
+.po-ref-status.bt-save-error{color:#c62828}
+
+.inv-parties{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+.inv-party{padding:18px 20px;border-right:1px solid var(--border)}
+.inv-party:last-child{border-right:none}
+.party-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.party-name{font-size:17px;font-weight:700;color:var(--navy)}
+.party-sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.7}
+.bt-field{margin-bottom:8px}
+.bt-field:last-child{margin-bottom:0}
+.bt-field-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:2px}
+.bt-input{width:100%;height:30px;border:1px dashed #c9c2a8;border-radius:5px;background:#fffef9;
+  padding:0 8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--navy);outline:none}
+.bt-input.bt-name{font-size:15px;font-weight:700;height:32px}
+.bt-input:focus{border-style:solid;border-color:var(--blue);background:#fff}
+.bt-input::placeholder{font-weight:400;color:#9aa5b1}
+.bt-textarea{width:100%;min-height:44px;border:1px dashed #c9c2a8;border-radius:5px;background:#fffef9;
+  padding:6px 8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--navy);outline:none;resize:vertical}
+.bt-textarea:focus{border-style:solid;border-color:var(--blue);background:#fff}
+.bt-save-status{font-size:11px;color:var(--green);font-weight:600;opacity:0;transition:opacity .3s;display:block;margin-top:4px}
+.bt-save-status.show{opacity:1}
+.bt-save-status.bt-save-error{color:#c62828}
+
+.inv-table-wrap{padding:0 20px;margin-top:16px}
+table.li-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table.li-table thead th{background:#eceff1;color:var(--navy);font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;text-align:left;
+  padding:8px 10px;border-bottom:1px solid var(--border)}
+table.li-table thead th.text-right{text-align:right}
+table.li-table tbody td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+table.li-table tbody tr:last-child td{border-bottom:none}
+.li-track{font-weight:700;color:var(--navy)}
+.li-date{font-size:11px;color:var(--muted)}
+.li-party-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.li-party-name{font-weight:600;color:var(--navy);font-size:12px}
+.li-party-addr{font-size:11px;color:var(--muted);line-height:1.4}
+.text-right{text-align:right}
+.li-total{font-weight:700;color:var(--navy)}
+
+.inv-totals{padding:16px 20px;display:flex;justify-content:flex-end}
+.totals-table{min-width:260px}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;color:#455a64}
+.total-divider{border:none;border-top:1.5px solid var(--navy);margin:8px 0}
+.grand-total-row{display:flex;justify-content:space-between;align-items:center;background:var(--navy);
+  color:#fff;padding:10px 14px;border-radius:6px}
+.gtl{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.6px;text-transform:uppercase}
+.gtv{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px}
+
+.inv-footer-band{padding:16px 20px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.footer-block h5{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.footer-block p{font-size:12px;color:var(--muted);line-height:1.6}
+
+.mark-paid-bar{background:#fff3e0;color:#e65100;padding:10px 20px;font-size:12.5px;font-weight:600;
+  display:flex;justify-content:space-between;align-items:center}
+.mark-paid-bar button{height:28px;padding:0 12px;border:none;border-radius:5px;background:var(--green);
+  color:#fff;font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer}
+
+.save-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--navy);color:#fff;padding:12px 22px;border-radius:8px;font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(13,33,55,.28);opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;z-index:999}
+.save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.save-toast.save-toast-error{background:#c62828}
+
+.empty-note{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+
+@media print{
+  .topbar,.mark-paid-bar,.save-toast{display:none}
+  body{background:#fff}
+  .page{max-width:100%;margin:0;padding:0}
+  .inv-card{border:none;box-shadow:none;border-radius:0}
+  .bt-input,.bt-textarea,.po-ref-input{border:none;background:transparent;padding:0;height:auto}
+  .bt-save-status,.po-ref-status{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-title">Mok Transports Services (Pty) Ltd</div>
+    <div class="topbar-sub">DHL Invoice</div>
+  </div>
+  <div class="topbar-actions">
+    <a class="tbtn tbtn-ghost" href="dhlShipments.html">&larr; DHL Shipments</a>
+    <a class="tbtn tbtn-ghost" href="dashboard.html">Dashboard</a>
+    <button class="tbtn tbtn-green" onclick="saveInvoiceNow()" id="saveInvoiceBtn">Save Invoice</button>
+    <button class="tbtn tbtn-orange" onclick="window.print()">Print</button>
+    <button class="tbtn tbtn-red" onclick="downloadPDF()">Download PDF</button>
+  </div>
+</div>
+
+<div class="page">
+  <div id="invoiceContainer">
+    <div class="empty-note">Loading invoice…</div>
+  </div>
+</div>
+
+<script>
+const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+if (!session || !['staff','admin'].includes(session?.role)) {
+  window.location.href = 'login.html';
+}
+
+const API = 'https://bookings.moktransports.com/api';
+let invoiceData = null;
+
+function money(n) {
+  return 'R\u00a0' + Number(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+}
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function fmt(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return d;
+  return dt.toLocaleDateString('en-ZA', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+async function loadInvoice(invoiceNo) {
+  try {
+    const res = await fetch(`${API}/dhl-invoices/${invoiceNo}`);
+    if (!res.ok) throw new Error();
+    invoiceData = await res.json();
+    renderInvoice(invoiceData);
+  } catch (err) {
+    document.getElementById('invoiceContainer').innerHTML =
+      `<div class="empty-note">Could not load this invoice.</div>`;
+  }
+}
+
+function renderInvoice(inv) {
+  const isPaid = inv.status === 'paid';
+  const dueDate = fmt(inv.due_date);
+  const items = inv.items || [];
+
+  document.getElementById('invoiceContainer').innerHTML = `
+    <div class="inv-card" id="waybillPrintArea">
+
+      ${!isPaid ? `<div class="mark-paid-bar">
+        <span>Outstanding - ${money(inv.total)} due by ${dueDate}</span>
+        <button onclick="markPaid('${inv.invoice_no}')">Mark as Paid</button>
+      </div>` : ''}
+
+      <div class="inv-header">
+        <div class="inv-header-left">
+          <img class="inv-logo" src="assets/images/mok-logo.png" alt="Mok Transports">
+          <div>
+            <div class="inv-company">Mok Transports Services (Pty) Ltd</div>
+            <div class="inv-company-sub">
+              12 Jupiter Road, Crown Mines, Johannesburg<br>
+              011 839 6496 &nbsp;|&nbsp; accounts@moktransports.com &nbsp;|&nbsp; VAT No: 4400269363
+            </div>
+          </div>
+        </div>
+        <div class="inv-badge">
+          <div class="inv-badge-label">Tax Invoice</div>
+          <div class="inv-badge-no">${inv.invoice_no}</div>
+          <div class="inv-badge-type">DHL International</div>
+        </div>
+      </div>
+
+      <div class="inv-meta">
+        <div class="inv-meta-cell">
+          <div class="imc-label">Invoice Date</div>
+          <div class="imc-value" style="font-size:14px">${fmt(inv.invoice_date)}</div>
+        </div>
+        <div class="inv-meta-cell">
+          <div class="imc-label">Due Date</div>
+          <div class="imc-value" style="font-size:14px">${dueDate}</div>
+        </div>
+        <div class="inv-meta-cell">
+          <div class="imc-label">Status</div>
+          <div class="imc-value">
+            <span class="status-badge ${isPaid?'sb-paid':'sb-unpaid'}">${isPaid?'Paid':'Unpaid'}</span>
+          </div>
+        </div>
+        <div class="inv-meta-cell">
+          <div class="imc-label">VAT Treatment</div>
+          <div class="imc-value" style="font-size:13px">15% on Basic, 0% on Fuel</div>
+        </div>
+      </div>
+
+      <div class="po-ref-band">
+        <div class="po-ref-group">
+          <span class="po-ref-label">Client Reference</span>
+          <input type="text" class="po-ref-input" id="clientRefInput"
+            placeholder="PO number or client reference..." onblur="savePORef('${inv.invoice_no}')">
+        </div>
+        <span class="po-ref-status" id="poRefStatus">Saved</span>
+      </div>
+
+      <div class="inv-parties">
+        <div class="inv-party">
+          <div class="party-label">From</div>
+          <div class="party-name">Mok Transports Pty Ltd</div>
+          <div class="party-sub">Reg No: 2015/162275/07<br>VAT No: 4400269363</div>
+        </div>
+        <div class="inv-party">
+          <div class="party-label">Invoice To</div>
+          <div class="bt-field">
+            <input type="text" class="bt-input bt-name" id="btName" placeholder="Client name..." onblur="saveDetails('${inv.invoice_no}')">
+          </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Company</span>
+            <input type="text" class="bt-input" id="btCompany" placeholder="Company name..." onblur="saveDetails('${inv.invoice_no}')">
+          </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Address</span>
+            <textarea class="bt-textarea" id="btAddress" rows="2" placeholder="Full billing address..." onblur="saveDetails('${inv.invoice_no}')"></textarea>
+          </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Phone</span>
+            <input type="text" class="bt-input" id="btPhone" placeholder="Phone number..." onblur="saveDetails('${inv.invoice_no}')">
+          </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Email</span>
+            <input type="text" class="bt-input" id="btEmail" placeholder="Email address..." onblur="saveDetails('${inv.invoice_no}')">
+          </div>
+          <div class="bt-field">
+            <span class="bt-field-label">Client VAT No</span>
+            <input type="text" class="bt-input" id="btVatNo" placeholder="Client's VAT number..." onblur="saveDetails('${inv.invoice_no}')">
+          </div>
+          <span class="bt-save-status" id="btSaveStatus">Saved</span>
+        </div>
+      </div>
+
+      <div class="inv-table-wrap">
+        <table class="li-table">
+          <thead>
+            <tr>
+              <th>Shipment</th>
+              <th class="text-right">Weight</th>
+              <th class="text-right">Charge</th>
+              <th class="text-right">Fuel</th>
+              <th class="text-right">VAT</th>
+              <th class="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.length ? items.map(i => `
+              <tr>
+                <td>
+                  <div class="li-track">${escapeHtml(i.tracking_number)||'-'}</div>
+                  <div class="li-date">${fmt(i.shipment_date)}</div>
+                  <div style="margin-top:6px">
+                    <span class="li-party-label">Sender</span><br>
+                    <span class="li-party-name">${escapeHtml(i.sender_name)||'-'}</span><br>
+                    <span class="li-party-addr">${escapeHtml(i.sender_address)||''}</span>
+                  </div>
+                  <div style="margin-top:6px">
+                    <span class="li-party-label">Receiver</span><br>
+                    <span class="li-party-name">${escapeHtml(i.receiver_name)||'-'}</span><br>
+                    <span class="li-party-addr">${escapeHtml(i.receiver_address)||''}</span>
+                  </div>
+                </td>
+                <td class="text-right">${i.weight?Number(i.weight).toFixed(2)+' kg':'-'}</td>
+                <td class="text-right">${money(i.charge)}</td>
+                <td class="text-right">${money(i.fuel_surcharge)}</td>
+                <td class="text-right">${money(i.vat_amount)}</td>
+                <td class="text-right li-total">${money(i.line_total)}</td>
+              </tr>
+            `).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--muted)">No shipments on this invoice.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="inv-totals">
+        <div class="totals-table">
+          <div class="total-row"><span>Subtotal (Excl. VAT)</span><span>${money(inv.subtotal)}</span></div>
+          <div class="total-row"><span>VAT</span><span>${money(inv.vat_amount)}</span></div>
+          <hr class="total-divider">
+          <div class="grand-total-row"><span class="gtl">Total Incl. VAT</span><span class="gtv">${money(inv.total)}</span></div>
+        </div>
+      </div>
+
+      <div class="inv-footer-band">
+        <div class="footer-block">
+          <h5>Banking Details</h5>
+          <p>Bank: First National Bank (FNB)<br>
+          Account Name: Mok Transports Services (Pty) Ltd<br>
+          Account No: 62537955116 &nbsp;|&nbsp; Branch Code: 254205<br>
+          Reference: ${inv.invoice_no}</p>
+        </div>
+        <div class="footer-block">
+          <h5>Terms &amp; Conditions</h5>
+          <p>Payment due within 30 days of invoice date.<br>
+          Interest charged on overdue accounts.<br>
+          Use invoice number as payment reference.<br>
+          Queries within 7 days of receipt.</p>
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  const val = id => document.getElementById(id);
+  if (val('clientRefInput')) val('clientRefInput').value = inv.client_reference || '';
+  if (val('btName'))    val('btName').value    = inv.client_name || '';
+  if (val('btCompany')) val('btCompany').value = inv.client_company || '';
+  if (val('btAddress')) val('btAddress').value = inv.client_address || '';
+  if (val('btPhone'))   val('btPhone').value   = inv.client_phone || '';
+  if (val('btEmail'))   val('btEmail').value   = inv.client_email || '';
+  if (val('btVatNo'))   val('btVatNo').value   = inv.client_vat_no || '';
+}
+
+let poRefSaveTimer = null;
+async function savePORef(invoiceNo, silent) {
+  const input = document.getElementById('clientRefInput');
+  if (!input) return true;
+  const value = input.value.trim();
+  if (value === (invoiceData?.client_reference || '')) return true;
+  try {
+    const res = await fetch(`${API}/dhl-invoices/${invoiceNo}/reference`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ client_reference: value })
+    });
+    if (!res.ok) throw new Error();
+    const updated = await res.json();
+    if (invoiceData) invoiceData.client_reference = updated.client_reference;
+    if (!silent) {
+      const s = document.getElementById('poRefStatus');
+      if (s) { s.classList.remove('bt-save-error'); s.textContent='Saved'; s.classList.add('show');
+        clearTimeout(poRefSaveTimer); poRefSaveTimer=setTimeout(()=>s.classList.remove('show'),2000); }
+    }
+    return true;
+  } catch {
+    if (!silent) {
+      const s = document.getElementById('poRefStatus');
+      if (s) { s.textContent='Failed to save.'; s.classList.add('show','bt-save-error');
+        clearTimeout(poRefSaveTimer); poRefSaveTimer=setTimeout(()=>s.classList.remove('show'),8000); }
+    }
+    return false;
+  }
+}
+
+let detailsSaveTimer = null;
+async function saveDetails(invoiceNo) {
+  const val = id => document.getElementById(id)?.value.trim() || '';
+  const payload = {
+    client_name: val('btName'), client_company: val('btCompany'),
+    client_address: val('btAddress'), client_phone: val('btPhone'),
+    client_email: val('btEmail'), client_vat_no: val('btVatNo')
+  };
+  try {
+    const res = await fetch(`${API}/dhl-invoices/${invoiceNo}/details`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      let msg = `Save failed (HTTP ${res.status})`;
+      try { const b = await res.json(); if (b?.error) msg += ` - ${b.error}`; } catch(_){}
+      throw new Error(msg);
+    }
+    invoiceData = await res.json();
+    document.querySelectorAll('.bt-save-status').forEach(s => {
+      s.textContent='Saved'; s.classList.remove('bt-save-error'); s.classList.add('show');
+    });
+    clearTimeout(detailsSaveTimer);
+    detailsSaveTimer = setTimeout(()=>document.querySelectorAll('.bt-save-status').forEach(s=>s.classList.remove('show')),2000);
+    return true;
+  } catch (err) {
+    console.error('Save details failed:', err);
+    document.querySelectorAll('.bt-save-status').forEach(s => {
+      s.textContent = err.message||'Failed to save.'; s.classList.add('show','bt-save-error');
+    });
+    clearTimeout(detailsSaveTimer);
+    detailsSaveTimer = setTimeout(()=>document.querySelectorAll('.bt-save-status').forEach(s=>s.classList.remove('show')),8000);
+    return false;
+  }
+}
+
+async function markPaid(invoiceNo) {
+  if (!confirm(`Mark ${invoiceNo} as paid?`)) return;
+  try {
+    const res = await fetch(`${API}/dhl-invoices/${invoiceNo}/mark-paid`, {method:'PATCH'});
+    if (!res.ok) throw new Error();
+    invoiceData.status = 'paid';
+    renderInvoice(invoiceData);
+  } catch { alert('Failed to mark as paid.'); }
+}
+
+async function saveInvoiceNow() {
+  const btn = document.getElementById('saveInvoiceBtn');
+  if (!invoiceData || !btn) return;
+  const invoiceNo = invoiceData.invoice_no;
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const results = await Promise.all([saveDetails(invoiceNo), savePORef(invoiceNo, true)]);
+  const ok = results.every(Boolean);
+  showSaveToast(ok ? 'Invoice saved.' : 'Some changes failed to save - check the fields above.', !ok);
+  btn.disabled = false; btn.textContent = original;
+}
+
+function showSaveToast(message, isError) {
+  let toast = document.getElementById('saveToast');
+  if (!toast) {
+    toast = document.createElement('div'); toast.id = 'saveToast'; toast.className = 'save-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.toggle('save-toast-error', !!isError);
+  toast.classList.add('show');
+  clearTimeout(showSaveToast._t);
+  showSaveToast._t = setTimeout(()=>toast.classList.remove('show'), isError?6000:3000);
+}
+
+function downloadPDF() {
+  if (!invoiceData) { alert('Invoice not loaded yet.'); return; }
+  const inv = invoiceData;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const M = 14;
+  const bottomLimit = H - 22;
+
+  const pdfSafe = (str) => String(str ?? '')
+    .replace(/\u2192|\u2190|\u21d2/g, '-')
+    .replace(/[\u2190-\u21FF]/g, '-')
+    .replace(/[\u2600-\u27BF\u2B00-\u2BFF]/g, '')
+    .replace(/[\u{1F300}-\u{1FAFF}]/gu, '')
+    .trim();
+  const cleanAddress = (str) => pdfSafe(str).split(/\r?\n/).map(s=>s.trim()).filter(Boolean).join(', ');
+
+  const btName = document.getElementById('btName');
+  if (btName) {
+    inv.client_name = btName.value.trim();
+    inv.client_company = document.getElementById('btCompany')?.value.trim() || '';
+    inv.client_address = document.getElementById('btAddress')?.value.trim() || '';
+    inv.client_phone = document.getElementById('btPhone')?.value.trim() || '';
+    inv.client_email = document.getElementById('btEmail')?.value.trim() || '';
+    inv.client_vat_no = document.getElementById('btVatNo')?.value.trim() || '';
+    saveDetails(inv.invoice_no);
+  }
+  const refInput = document.getElementById('clientRefInput');
+  if (refInput) { inv.client_reference = refInput.value.trim(); savePORef(inv.invoice_no, true); }
+
+  function drawHeader() {
+    doc.setFillColor(13,33,55); doc.rect(0,0,W,34,'F');
+    try { doc.addImage(document.querySelector('.inv-logo').src,'PNG',M,7,32,20); } catch(_){}
+    doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(255,255,255);
+    doc.text('MOK TRANSPORT SERVICES', M+38, 15);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(200,210,222);
+    doc.text('12 Jupiter Road, Crown Mines, Johannesburg, 2091', M+38, 21);
+    doc.text('011 839 6496  |  accounts@moktransports.com  |  VAT No: 4400269363', M+38, 26);
+
+    const boxW=46, boxH=24, boxX=W-M-boxW, boxY=5;
+    doc.setFillColor(21,101,192); doc.roundedRect(boxX,boxY,boxW,boxH,1.5,1.5,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+    doc.text('TAX INVOICE', boxX+boxW/2, boxY+7, {align:'center'});
+    doc.setFontSize(11); doc.text(inv.invoice_no, boxX+boxW/2, boxY+15.5, {align:'center'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    doc.text('DHL INTERNATIONAL', boxX+boxW/2, boxY+21.5, {align:'center'});
+    return 40;
+  }
+
+  function ensureSpace(y, needed) {
+    if (y + needed > bottomLimit) {
+      doc.addPage();
+      return drawHeader();
+    }
+    return y;
+  }
+
+  let y = drawHeader();
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(70,70,70);
+  doc.text(`Invoice Date: ${inv.invoice_date||''}`, M, y);
+  doc.text(`Due Date: ${inv.due_date||''}`, M+65, y);
+  doc.text(`Status: ${(inv.status||'').toUpperCase()}`, M+125, y);
+  y += 6;
+  if (inv.client_reference) {
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+    doc.text(`Client Reference: ${pdfSafe(inv.client_reference)}`, M, y);
+    y += 7;
+  } else { y += 2; }
+
+  const bw=(W-2*M)/2-2;
+  const toName = pdfSafe(inv.client_name) || '-';
+  const toCompany = pdfSafe(inv.client_company);
+  const toAddress = cleanAddress(inv.client_address);
+  const toPhone = inv.client_phone || '';
+  const toEmail = inv.client_email || '';
+  const toVatNo = inv.client_vat_no || '';
+  doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  const toNameLines = doc.splitTextToSize(toName, bw-8);
+  let toLineCount = toNameLines.length + (toCompany?1:0) + (toPhone?1:0) + (toEmail?1:0) + (toVatNo?1:0);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8);
+  const addrLines = toAddress ? doc.splitTextToSize(toAddress, bw-8) : [];
+  toLineCount += addrLines.length;
+  const partyBoxH = Math.max(30, toLineCount*4.8 + 14);
+
+  doc.setFillColor(245,247,252); doc.roundedRect(M,y,bw,partyBoxH,2,2,'F');
+  doc.roundedRect(M+bw+4,y,bw,partyBoxH,2,2,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,42,67);
+  doc.text('FROM:',M+3,y+7); doc.text('INVOICE TO:',M+bw+7,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
+  doc.text('Mok Transports Pty Ltd',M+3,y+14);
+  doc.text('Reg No: 2015/162275/07',M+3,y+20);
+  doc.text('VAT No: 4400269363',M+3,y+26);
+
+  let ty = y+14;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(13,33,55);
+  doc.text(toNameLines, M+bw+7, ty); ty += toNameLines.length*5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8);
+  if (toCompany) { doc.text(toCompany, M+bw+7, ty); ty+=5; }
+  if (addrLines.length) { doc.text(addrLines, M+bw+7, ty); ty += addrLines.length*5; }
+  if (toPhone) { doc.text(`Tel: ${toPhone}`, M+bw+7, ty); ty+=5; }
+  if (toEmail) { doc.text(toEmail, M+bw+7, ty); ty+=5; }
+  if (toVatNo) { doc.text(`VAT No: ${toVatNo}`, M+bw+7, ty); ty+=5; }
+  y += partyBoxH + 8;
+
+  const items = inv.items || [];
+  const col = { track:M, weight:M+70, charge:M+95, fuel:M+120, vat:M+145, total:W-M };
+
+  doc.setFillColor(236,239,241); doc.rect(M,y,W-2*M,8,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(10,42,67);
+  doc.text('SHIPMENT', col.track+2, y+5.5);
+  doc.text('WEIGHT', col.weight, y+5.5, {align:'right'});
+  doc.text('CHARGE', col.charge, y+5.5, {align:'right'});
+  doc.text('FUEL', col.fuel, y+5.5, {align:'right'});
+  doc.text('VAT', col.vat, y+5.5, {align:'right'});
+  doc.text('TOTAL', col.total, y+5.5, {align:'right'});
+  y += 11;
+
+  items.forEach(i => {
+    const senderLines = doc.splitTextToSize(pdfSafe(i.sender_address), 62);
+    const recvLines = doc.splitTextToSize(pdfSafe(i.receiver_address), 62);
+    const rowLines = 2 + 2 + senderLines.length + recvLines.length;
+    const rowH = rowLines*4.2 + 6;
+
+    y = ensureSpace(y, rowH + 11);
+
+    doc.setDrawColor(220,226,234); doc.setLineWidth(0.2); doc.line(M,y+rowH,W-M,y+rowH);
+
+    let ly = y + 4;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(13,33,55);
+    doc.text(pdfSafe(i.tracking_number)||'-', col.track, ly);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(96,125,139);
+    doc.text(i.shipment_date||'', col.track, ly+4);
+    ly += 9;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(96,125,139);
+    doc.text('SENDER', col.track, ly);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(40,40,40);
+    doc.text(pdfSafe(i.sender_name)||'-', col.track, ly+4);
+    doc.text(senderLines, col.track, ly+8);
+    ly += 8 + senderLines.length*4;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(96,125,139);
+    doc.text('RECEIVER', col.track, ly);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(40,40,40);
+    doc.text(pdfSafe(i.receiver_name)||'-', col.track, ly+4);
+    doc.text(recvLines, col.track, ly+8);
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
+    doc.text(i.weight?`${Number(i.weight).toFixed(2)} kg`:'-', col.weight, y+4, {align:'right'});
+    doc.text(`R ${Number(i.charge||0).toFixed(2)}`, col.charge, y+4, {align:'right'});
+    doc.text(`R ${Number(i.fuel_surcharge||0).toFixed(2)}`, col.fuel, y+4, {align:'right'});
+    doc.text(`R ${Number(i.vat_amount||0).toFixed(2)}`, col.vat, y+4, {align:'right'});
+    doc.setFont('helvetica','bold');
+    doc.text(`R ${Number(i.line_total||0).toFixed(2)}`, col.total, y+4, {align:'right'});
+
+    y += rowH + 4;
+  });
+
+  y = ensureSpace(y, 40);
+  const totX = W - M - 70;
+  doc.setDrawColor(210,218,228); doc.setLineWidth(0.4); doc.line(totX-4,y,W-M,y); y+=7;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(70,70,70);
+  doc.text('Subtotal (Excl. VAT):', totX-4, y);
+  doc.text(`R ${Number(inv.subtotal||0).toFixed(2)}`, W-M, y, {align:'right'}); y+=7;
+  doc.text('VAT:', totX-4, y);
+  doc.text(`R ${Number(inv.vat_amount||0).toFixed(2)}`, W-M, y, {align:'right'}); y+=7;
+  doc.setDrawColor(10,42,67); doc.setLineWidth(0.6); doc.line(totX-4,y,W-M,y); y+=6;
+  doc.setFillColor(13,33,55); doc.roundedRect(totX-4,y,74,12,2,2,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(255,255,255);
+  doc.text('TOTAL INCL. VAT:', totX, y+8);
+  doc.text(`R ${Number(inv.total||0).toFixed(2)}`, W-M, y+8, {align:'right'});
+
+  doc.save(`DHL_Invoice_${inv.invoice_no}.pdf`);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const invoiceNo = params.get('invoice');
+  if (invoiceNo) loadInvoice(invoiceNo);
+  else document.getElementById('invoiceContainer').innerHTML = `<div class="empty-note">No invoice specified.</div>`;
+});
+</script>
+
+</body>
+</html>
+
+
+

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mok Transports | Create DHL Invoice</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --navy:#0d2137;--blue:#1565c0;--green:#2e7d32;--orange:#f57c00;--red:#c62828;
+  --bg:#f0f4f8;--card:#fff;--border:#dce3ec;--text:#1a2535;--muted:#607d8b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text)}
+
+.topbar{height:64px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+.topbar-title{color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px}
+.tbtn{height:34px;padding:0 14px;border-radius:5px;border:none;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.tbtn-ghost{background:rgba(255,255,255,.08);color:#90a4ae;border:1px solid rgba(255,255,255,.1)}
+.tbtn-ghost:hover{background:rgba(255,255,255,.15);color:#fff}
+
+.page{max-width:920px;margin:26px auto 60px;padding:0 18px}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--navy);margin-bottom:4px}
+.page-sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;
+  margin-bottom:18px;box-shadow:0 4px 16px rgba(13,33,55,.05)}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:var(--navy);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
+
+.field-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;
+  display:block;margin-bottom:5px}
+.field-input, .field-select{width:100%;height:42px;border:1px solid var(--border);border-radius:6px;
+  padding:0 12px;font-family:'Barlow',sans-serif;font-size:14px;outline:none}
+.field-input:focus, .field-select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+
+table.ship-table{width:100%;border-collapse:collapse;font-size:13px}
+table.ship-table thead th{background:#eceff1;color:var(--navy);font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;text-align:left;
+  padding:9px 10px;border-bottom:1px solid var(--border)}
+table.ship-table tbody td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.ship-check{width:16px;height:16px}
+.ship-track{font-weight:700;color:var(--navy)}
+.ship-sub{font-size:11px;color:var(--muted)}
+.charge-input{width:90px;height:32px;border:1px solid var(--border);border-radius:5px;padding:0 8px;
+  font-size:13px;text-align:right;outline:none}
+.charge-input:focus{border-color:var(--blue)}
+
+.empty-note{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+
+.summary-bar{display:flex;justify-content:space-between;align-items:center;background:var(--navy);
+  color:#fff;border-radius:8px;padding:16px 20px;margin-top:6px}
+.summary-total{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800}
+.summary-label{font-size:11px;color:#90a4ae;text-transform:uppercase;letter-spacing:.6px}
+.btn-create{height:42px;padding:0 22px;border:none;border-radius:6px;background:var(--green);color:#fff;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.6px;
+  text-transform:uppercase;cursor:pointer}
+.btn-create:disabled{opacity:.5;cursor:not-allowed}
+
+.status-msg{font-size:12px;font-weight:600;margin-top:10px}
+.status-msg.error{color:#c62828}
+.status-msg.success{color:#2e7d32}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">Mok Transports Services (Pty) Ltd</div>
+  <a class="tbtn tbtn-ghost" href="dashboard.html">&larr; Dashboard</a>
+</div>
+
+<div class="page">
+  <div class="page-title">Create DHL Invoice</div>
+  <div class="page-sub">Pick a client, select their un-invoiced DHL shipments, enter the charge and fuel surcharge for each, and generate one tax invoice.</div>
+
+  <div class="card">
+    <div class="card-title">1. Client</div>
+    <div class="field-row">
+      <div>
+        <span class="field-label">Client</span>
+        <select class="field-select" id="clientSelect" onchange="onClientChange()">
+          <option value="">— Select client —</option>
+        </select>
+      </div>
+      <div>
+        <span class="field-label">Client Reference (optional)</span>
+        <input type="text" class="field-input" id="clientReference" placeholder="PO number or reference…">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">2. Un-invoiced Shipments</div>
+    <div id="shipmentsWrap">
+      <div class="empty-note">Select a client above to see their un-invoiced DHL shipments.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="summary-bar">
+      <div>
+        <div class="summary-label">Selected Shipments</div>
+        <div class="summary-total" id="selectedCount">0</div>
+      </div>
+      <div>
+        <div class="summary-label">Estimated Total (Incl. VAT)</div>
+        <div class="summary-total" id="estimatedTotal">R 0.00</div>
+      </div>
+      <button class="btn-create" id="createBtn" onclick="createInvoice()" disabled>Create Invoice</button>
+    </div>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+</div>
+
+<script>
+const session = JSON.parse(localStorage.getItem('mokSession') || 'null');
+if (!session || !['staff','admin'].includes(session?.role)) {
+  window.location.href = 'login.html';
+}
+
+const API = 'https://bookings.moktransports.com/api';
+let allShipments = [];
+let clients = [];
+
+// Client list is derived from DHL shipments themselves (client_id/
+// client_name/client_company already on that table) rather than a
+// separate clients endpoint, since I don't have visibility into a
+// dedicated client-list API in this codebase. If one exists, point
+// this at it instead for a cleaner/faster picker.
+async function loadClients() {
+  try {
+    const res = await fetch(`${API}/dhl/shipments`);
+    const rows = await res.json();
+    const seen = new Map();
+    rows.forEach(r => {
+      if (r.client_id && !seen.has(r.client_id)) {
+        seen.set(r.client_id, { id: r.client_id, name: r.client_name, company: r.client_company });
+      }
+    });
+    clients = Array.from(seen.values());
+    const sel = document.getElementById('clientSelect');
+    clients.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.company || c.name || `Client #${c.id}`;
+      sel.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Failed to load clients:', err);
+  }
+}
+
+async function onClientChange() {
+  const clientId = document.getElementById('clientSelect').value;
+  const wrap = document.getElementById('shipmentsWrap');
+  if (!clientId) {
+    wrap.innerHTML = `<div class="empty-note">Select a client above to see their un-invoiced DHL shipments.</div>`;
+    allShipments = [];
+    updateSummary();
+    return;
+  }
+
+  wrap.innerHTML = `<div class="empty-note">Loading shipments…</div>`;
+  try {
+    const res = await fetch(`${API}/dhl-invoices/uninvoiced/${clientId}`);
+    if (!res.ok) throw new Error();
+    allShipments = await res.json();
+
+    if (!allShipments.length) {
+      wrap.innerHTML = `<div class="empty-note">This client has no un-invoiced DHL shipments.</div>`;
+      updateSummary();
+      return;
+    }
+
+    wrap.innerHTML = `
+      <table class="ship-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Shipment</th>
+            <th>Sender / Receiver</th>
+            <th>Weight</th>
+            <th>Charge (R)</th>
+            <th>Fuel Surcharge (R)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allShipments.map((s, i) => `
+            <tr>
+              <td><input type="checkbox" class="ship-check" id="chk_${i}" onchange="updateSummary()"></td>
+              <td>
+                <div class="ship-track">${s.tracking_number || '—'}</div>
+                <div class="ship-sub">${s.ship_date ? new Date(s.ship_date).toLocaleDateString('en-ZA') : ''}</div>
+              </td>
+              <td>
+                <div class="ship-sub">${s.shipper_name || '—'} → ${s.receiver_name || '—'}</div>
+                <div class="ship-sub">${s.shipper_country || ''} → ${s.receiver_country || ''}</div>
+              </td>
+              <td>${s.weight ? Number(s.weight).toFixed(2) + ' kg' : '—'}</td>
+              <td><input type="number" step="0.01" min="0" class="charge-input" id="charge_${i}" placeholder="0.00" oninput="updateSummary()"></td>
+              <td><input type="number" step="0.01" min="0" class="charge-input" id="fuel_${i}" placeholder="0.00" oninput="updateSummary()"></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    updateSummary();
+  } catch (err) {
+    wrap.innerHTML = `<div class="empty-note">Failed to load shipments for this client.</div>`;
+  }
+}
+
+function updateSummary() {
+  let count = 0, subtotal = 0, vat = 0;
+  allShipments.forEach((s, i) => {
+    const chk = document.getElementById(`chk_${i}`);
+    if (chk && chk.checked) {
+      count++;
+      const charge = parseFloat(document.getElementById(`charge_${i}`)?.value) || 0;
+      const fuel = parseFloat(document.getElementById(`fuel_${i}`)?.value) || 0;
+      subtotal += charge + fuel;
+      vat += charge * 0.15; // fuel surcharge is zero-rated
+    }
+  });
+  document.getElementById('selectedCount').textContent = count;
+  document.getElementById('estimatedTotal').textContent =
+    'R ' + (subtotal + vat).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  document.getElementById('createBtn').disabled = count === 0;
+}
+
+async function createInvoice() {
+  const clientId = document.getElementById('clientSelect').value;
+  const client = clients.find(c => String(c.id) === String(clientId));
+  const statusMsg = document.getElementById('statusMsg');
+  const btn = document.getElementById('createBtn');
+
+  const items = [];
+  allShipments.forEach((s, i) => {
+    const chk = document.getElementById(`chk_${i}`);
+    if (chk && chk.checked) {
+      items.push({
+        dhl_shipment_id: s.id,
+        tracking_number: s.tracking_number,
+        shipment_date: s.ship_date,
+        sender_name: s.shipper_name,
+        sender_address: s.shipper_country,
+        receiver_name: s.receiver_name,
+        receiver_address: s.receiver_country,
+        weight: s.weight,
+        charge: parseFloat(document.getElementById(`charge_${i}`)?.value) || 0,
+        fuel_surcharge: parseFloat(document.getElementById(`fuel_${i}`)?.value) || 0
+      });
+    }
+  });
+
+  if (!items.length) return;
+
+  const missingCharge = items.some(i => i.charge === 0 && i.fuel_surcharge === 0);
+  if (missingCharge && !confirm('One or more selected shipments have no charge entered — create the invoice anyway?')) {
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+  statusMsg.textContent = ''; statusMsg.className = 'status-msg';
+
+  try {
+    const res = await fetch(`${API}/dhl-invoices`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: clientId,
+        client_name: client?.name || '',
+        client_company: client?.company || '',
+        client_reference: document.getElementById('clientReference').value.trim(),
+        items
+      })
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body?.error || `Failed (HTTP ${res.status})`);
+
+    statusMsg.textContent = `Invoice ${body.invoice_no} created — redirecting…`;
+    statusMsg.classList.add('success');
+    setTimeout(() => { window.location.href = `dhl-invoice.html?invoice=${body.invoice_no}`; }, 900);
+  } catch (err) {
+    statusMsg.textContent = err.message || 'Failed to create invoice.';
+    statusMsg.classList.add('error');
+    btn.disabled = false; btn.textContent = 'Create Invoice';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadClients);
+</script>
+
+</body>
+</html>
+
+
