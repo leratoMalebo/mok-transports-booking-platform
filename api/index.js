@@ -37,7 +37,7 @@ app.use('/api/tracking', require('../mok-backend/routes/tracking'));
 app.use('/api/dhl', require('../mok-backend/routes/dhl'));
 app.use('/api/truck-bookings', require('../mok-backend/routes/truckBookings'));
 app.use('/api/truck-invoices', require('../mok-backend/routes/truckInvoices'));
-app.use('/api/dhl-invoices', require('./routes/dhlInvoices'));
+app.use('/api/dhl-invoices', require('../mok-backend/routes/dhlInvoices'));
 app.use('/api/addresses', require('../mok-backend/routes/addresses'));
 
 // ✅ Fix the casing (Dhladdresses) and change the endpoint route so it doesn't conflict with line 40
@@ -48,6 +48,10 @@ app.get('/api/health', (req, res) => {
 });
 
 module.exports = app;
+
+
+
+
 
 
 
