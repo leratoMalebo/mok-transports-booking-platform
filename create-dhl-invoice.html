@@ -171,8 +171,28 @@ let selectedCompany = '';
 // book already has the full company list plus proper billing addresses.
 async function loadCompanies() {
   try {
-    const res = await fetch(`${API}/dhl-addresses/companies`);
-    allCompanies = await res.json();
+    // 1. Fetch saved address book companies
+    const resAddresses = await fetch(`${API}/dhl-addresses/companies`);
+    const addressCompanies = resAddresses.ok ? await resAddresses.json() : [];
+
+    // 2. Fetch active shipments to ensure companies not yet in address book appear
+    const resShipments = await fetch(`${API}/dhl/shipments`);
+    const shipments = resShipments.ok ? await resShipments.json() : [];
+
+    const companySet = new Set();
+
+    // Add address book entries
+    (Array.isArray(addressCompanies) ? addressCompanies : []).forEach(c => {
+      if (c && typeof c === 'string' && c.trim()) companySet.add(c.trim());
+    });
+
+    // Add shippers/receivers from shipments
+    (Array.isArray(shipments) ? shipments : []).forEach(s => {
+      if (s.shipper_name && s.shipper_name.trim()) companySet.add(s.shipper_name.trim());
+      if (s.receiver_name && s.receiver_name.trim()) companySet.add(s.receiver_name.trim());
+    });
+
+    allCompanies = Array.from(companySet).sort((a, b) => a.localeCompare(b));
   } catch (err) {
     console.error('Failed to load companies:', err);
     allCompanies = [];
@@ -182,12 +202,18 @@ async function loadCompanies() {
 function filterClients(term) {
   const dd = document.getElementById('clientDropdown');
   const t = (term || '').toLowerCase().trim();
-  const matches = (t ? allCompanies.filter(c => c.toLowerCase().includes(t)) : allCompanies).slice(0, 50);
+
+  // Safe check ensuring item is a non-null string before calling toLowerCase
+  const matches = (t 
+    ? allCompanies.filter(c => c && typeof c === 'string' && c.toLowerCase().includes(t)) 
+    : allCompanies
+  ).slice(0, 50);
+
   if (!matches.length) {
     dd.innerHTML = `<div class="client-dropdown-empty">No matching companies</div>`;
   } else {
     dd.innerHTML = matches.map(c =>
-      `<div class="client-dropdown-item" onmousedown="selectClient('${c.replace(/'/g,"\\'")}')">${c}</div>`
+      `<div class="client-dropdown-item" onmousedown="selectClient('${c.replace(/'/g, "\\'")}')">${c}</div>`
     ).join('');
   }
   dd.style.display = 'block';
@@ -364,5 +390,11 @@ document.addEventListener('DOMContentLoaded', loadCompanies);
 
 </body>
 </html>
+
+
+
+
+
+
 
 

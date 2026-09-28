@@ -2,14 +2,16 @@ const db = require('../db');
 
 exports.getCompanies = async (req, res) => {
   try {
-    const result = await db.query(`SELECT DISTINCT
-company_name,
-city,
-country_code
-FROM dhl_addresses
-ORDER BY company_name;`);
+    const result = await db.query(`
+      SELECT DISTINCT TRIM(company_name) AS company_name
+      FROM dhl_addresses
+      WHERE company_name IS NOT NULL AND TRIM(company_name) != ''
+      ORDER BY company_name ASC;
+    `);
     res.json(result.rows.map(r => r.company_name));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.getAddresses = async (req, res) => {
@@ -54,6 +56,9 @@ exports.deleteAddress = async (req, res) => {
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
+
+
+
 
 
 
