@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mok Transports | Create DHL Invoice</title>
+<title>Mok Transports | Create International Invoice</title>
 <link rel="icon" type="image/png" href="assets/images/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
 
@@ -38,6 +38,13 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text)}
   padding:0 12px;font-family:'Barlow',sans-serif;font-size:14px;outline:none}
 .field-input:focus, .field-select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.1)}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.client-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:240px;
+  overflow-y:auto;background:#fff;border:1px solid var(--border);border-radius:6px;
+  box-shadow:0 6px 18px rgba(13,33,55,.14);z-index:50}
+.client-dropdown-item{padding:9px 14px;font-size:13px;color:var(--text);cursor:pointer;border-bottom:1px solid #f0f4f8}
+.client-dropdown-item:last-child{border-bottom:none}
+.client-dropdown-item:hover{background:#eaf2fd;color:var(--blue)}
+.client-dropdown-empty{padding:10px 14px;font-size:12px;color:var(--muted);font-style:italic}
 
 table.ship-table{width:100%;border-collapse:collapse;font-size:13px}
 table.ship-table thead th{background:#eceff1;color:var(--navy);font-family:'Barlow Condensed',sans-serif;
@@ -75,21 +82,49 @@ table.ship-table tbody td{padding:9px 10px;border-bottom:1px solid var(--border)
 </div>
 
 <div class="page">
-  <div class="page-title">Create DHL Invoice</div>
-  <div class="page-sub">Pick a client, select their un-invoiced DHL shipments, enter the charge and fuel surcharge for each, and generate one tax invoice.</div>
+  <div class="page-title">Create International Invoice</div>
+  <div class="page-sub">Search a client from the address book, select their un-invoiced shipments, enter the charge and fuel surcharge for each, and generate one tax invoice.</div>
 
   <div class="card">
     <div class="card-title">1. Client</div>
     <div class="field-row">
-      <div>
-        <span class="field-label">Client</span>
-        <select class="field-select" id="clientSelect" onchange="onClientChange()">
-          <option value="">— Select client —</option>
-        </select>
+      <div style="position:relative">
+        <span class="field-label">Search Client</span>
+        <input type="text" class="field-input" id="clientSearch" placeholder="Type a company name…"
+          autocomplete="off" oninput="filterClients(this.value)" onfocus="filterClients(this.value)">
+        <div id="clientDropdown" class="client-dropdown"></div>
       </div>
       <div>
         <span class="field-label">Client Reference (optional)</span>
         <input type="text" class="field-input" id="clientReference" placeholder="PO number or reference…">
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <span class="field-label">Client Name</span>
+        <input type="text" class="field-input" id="clientName" placeholder="Contact name…">
+      </div>
+      <div>
+        <span class="field-label">Company</span>
+        <input type="text" class="field-input" id="clientCompany" placeholder="Company name…">
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <span class="field-label">Billing Address</span>
+        <textarea class="field-input" id="clientAddress" rows="2" style="height:auto;padding:10px 12px;resize:vertical" placeholder="Full billing address…"></textarea>
+      </div>
+      <div>
+        <span class="field-label">Phone</span>
+        <input type="text" class="field-input" id="clientPhone" placeholder="Phone number…" style="margin-bottom:8px">
+        <span class="field-label">Email</span>
+        <input type="text" class="field-input" id="clientEmail" placeholder="Email address…">
+      </div>
+    </div>
+    <div class="field-row" style="grid-template-columns:1fr">
+      <div>
+        <span class="field-label">Client VAT No (optional — not in the DHL address book, add if the client provides one)</span>
+        <input type="text" class="field-input" id="clientVatNo" placeholder="Client's VAT number…">
       </div>
     </div>
   </div>
@@ -125,54 +160,84 @@ if (!session || !['staff','admin'].includes(session?.role)) {
 
 const API = 'https://bookings.moktransports.com/api';
 let allShipments = [];
-let clients = [];
+let allCompanies = [];
+let selectedCompany = '';
 
-// Client list is derived from DHL shipments themselves (client_id/
-// client_name/client_company already on that table) rather than a
-// separate clients endpoint, since I don't have visibility into a
-// dedicated client-list API in this codebase. If one exists, point
-// this at it instead for a cleaner/faster picker.
-async function loadClients() {
+// Client search is sourced from the DHL address book (/api/dhl-addresses)
+// rather than dhl_shipments — most DHL shipments are captured by staff,
+// not self-booked by a logged-in client, so client_id is blank on most
+// rows and a lot of real clients (Alicewear, Traclo, Customer Services,
+// etc.) never showed up when the picker was built that way. The address
+// book already has the full company list plus proper billing addresses.
+async function loadCompanies() {
   try {
-    const res = await fetch(`${API}/dhl/shipments`);
-    const rows = await res.json();
-    const seen = new Map();
-    rows.forEach(r => {
-      if (r.client_id && !seen.has(r.client_id)) {
-        seen.set(r.client_id, { id: r.client_id, name: r.client_name, company: r.client_company });
-      }
-    });
-    clients = Array.from(seen.values());
-    const sel = document.getElementById('clientSelect');
-    clients.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = c.company || c.name || `Client #${c.id}`;
-      sel.appendChild(opt);
-    });
+    const res = await fetch(`${API}/dhl-addresses/companies`);
+    allCompanies = await res.json();
   } catch (err) {
-    console.error('Failed to load clients:', err);
+    console.error('Failed to load companies:', err);
+    allCompanies = [];
   }
 }
 
-async function onClientChange() {
-  const clientId = document.getElementById('clientSelect').value;
-  const wrap = document.getElementById('shipmentsWrap');
-  if (!clientId) {
-    wrap.innerHTML = `<div class="empty-note">Select a client above to see their un-invoiced DHL shipments.</div>`;
-    allShipments = [];
-    updateSummary();
-    return;
+function filterClients(term) {
+  const dd = document.getElementById('clientDropdown');
+  const t = (term || '').toLowerCase().trim();
+  const matches = (t ? allCompanies.filter(c => c.toLowerCase().includes(t)) : allCompanies).slice(0, 50);
+  if (!matches.length) {
+    dd.innerHTML = `<div class="client-dropdown-empty">No matching companies</div>`;
+  } else {
+    dd.innerHTML = matches.map(c =>
+      `<div class="client-dropdown-item" onmousedown="selectClient('${c.replace(/'/g,"\\'")}')">${c}</div>`
+    ).join('');
+  }
+  dd.style.display = 'block';
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#clientSearch') && !e.target.closest('#clientDropdown')) {
+    document.getElementById('clientDropdown').style.display = 'none';
+  }
+});
+
+async function selectClient(company) {
+  document.getElementById('clientSearch').value = company;
+  document.getElementById('clientDropdown').style.display = 'none';
+  selectedCompany = company;
+
+  // Pull the full address record and pre-fill the billing fields
+  try {
+    const res = await fetch(`${API}/dhl-addresses?company=${encodeURIComponent(company)}`);
+    const records = await res.json();
+    const a = records[0];
+    if (a) {
+      document.getElementById('clientName').value = a.contact_name || '';
+      document.getElementById('clientCompany').value = a.company_name || company;
+      document.getElementById('clientAddress').value =
+        [a.address_1, a.address_2, a.suburb, a.city, a.province, a.postal_code, a.country]
+          .filter(Boolean).join(', ');
+      document.getElementById('clientPhone').value = a.phone || '';
+      document.getElementById('clientEmail').value = a.email || '';
+    } else {
+      document.getElementById('clientCompany').value = company;
+    }
+  } catch (err) {
+    console.error('Failed to load address for company:', err);
+    document.getElementById('clientCompany').value = company;
   }
 
+  loadShipmentsForCompany(company);
+}
+
+async function loadShipmentsForCompany(company) {
+  const wrap = document.getElementById('shipmentsWrap');
   wrap.innerHTML = `<div class="empty-note">Loading shipments…</div>`;
   try {
-    const res = await fetch(`${API}/dhl-invoices/uninvoiced/${clientId}`);
+    const res = await fetch(`${API}/dhl-invoices/uninvoiced/${encodeURIComponent(company)}`);
     if (!res.ok) throw new Error();
     allShipments = await res.json();
 
     if (!allShipments.length) {
-      wrap.innerHTML = `<div class="empty-note">This client has no un-invoiced DHL shipments.</div>`;
+      wrap.innerHTML = `<div class="empty-note">No un-invoiced DHL shipments found for this client.</div>`;
       updateSummary();
       return;
     }
@@ -182,7 +247,7 @@ async function onClientChange() {
         <thead>
           <tr>
             <th></th>
-            <th>Shipment</th>
+            <th>Waybill No</th>
             <th>Sender / Receiver</th>
             <th>Weight</th>
             <th>Charge (R)</th>
@@ -234,8 +299,6 @@ function updateSummary() {
 }
 
 async function createInvoice() {
-  const clientId = document.getElementById('clientSelect').value;
-  const client = clients.find(c => String(c.id) === String(clientId));
   const statusMsg = document.getElementById('statusMsg');
   const btn = document.getElementById('createBtn');
 
@@ -273,9 +336,12 @@ async function createInvoice() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        client_id: clientId,
-        client_name: client?.name || '',
-        client_company: client?.company || '',
+        client_name: document.getElementById('clientName').value.trim(),
+        client_company: document.getElementById('clientCompany').value.trim() || selectedCompany,
+        client_address: document.getElementById('clientAddress').value.trim(),
+        client_phone: document.getElementById('clientPhone').value.trim(),
+        client_email: document.getElementById('clientEmail').value.trim(),
+        client_vat_no: document.getElementById('clientVatNo').value.trim(),
         client_reference: document.getElementById('clientReference').value.trim(),
         items
       })
@@ -293,7 +359,7 @@ async function createInvoice() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadClients);
+document.addEventListener('DOMContentLoaded', loadCompanies);
 </script>
 
 </body>

@@ -1,19 +1,27 @@
 const db = require('../db');
 
 // ─────────────────────────────────────────────
-// GET UNINVOICED DHL SHIPMENTS FOR A CLIENT
-// GET /api/dhl-invoices/uninvoiced/:clientId
+// GET UNINVOICED DHL SHIPMENTS FOR A COMPANY
+// GET /api/dhl-invoices/uninvoiced/:companyName
 // Powers the "pick a client, see their shipments" step when building
 // a new group invoice.
+//
+// Matches by company name (against both shipper_name and receiver_name,
+// since either side could be the SA client depending on import/export
+// direction), not client_id — most DHL shipments are captured by staff
+// rather than self-booked by a logged-in client, so client_id is null
+// on the majority of rows. Company name — sourced from the DHL address
+// book — is the reliable link.
 // ─────────────────────────────────────────────
 exports.getUninvoicedShipments = async (req, res) => {
   try {
-    const { clientId } = req.params;
+    const { companyName } = req.params;
     const result = await db.query(
       `SELECT * FROM dhl_shipments
-       WHERE client_id = $1 AND invoiced = FALSE
+       WHERE invoiced = FALSE
+         AND (shipper_name ILIKE $1 OR receiver_name ILIKE $1)
        ORDER BY created_at DESC`,
-      [clientId]
+      [`%${companyName}%`]
     );
     res.json(result.rows);
   } catch (err) {
@@ -254,5 +262,6 @@ exports.markPaid = async (req, res) => {
     res.status(500).json({ error: 'Failed to update invoice' });
   }
 };
+
 
 

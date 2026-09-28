@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mok Transports | DHL Invoice</title>
+<title>Mok Transports | International Invoice</title>
 <link rel="icon" type="image/png" href="assets/images/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -146,7 +146,7 @@ table.li-table tbody tr:last-child td{border-bottom:none}
 <div class="topbar">
   <div class="topbar-left">
     <div class="topbar-title">Mok Transports Services (Pty) Ltd</div>
-    <div class="topbar-sub">DHL Invoice</div>
+    <div class="topbar-sub">International Invoice</div>
   </div>
   <div class="topbar-actions">
     <a class="tbtn tbtn-ghost" href="dhlShipments.html">&larr; DHL Shipments</a>
@@ -224,7 +224,6 @@ function renderInvoice(inv) {
         <div class="inv-badge">
           <div class="inv-badge-label">Tax Invoice</div>
           <div class="inv-badge-no">${inv.invoice_no}</div>
-          <div class="inv-badge-type">DHL International</div>
         </div>
       </div>
 
@@ -297,7 +296,7 @@ function renderInvoice(inv) {
         <table class="li-table">
           <thead>
             <tr>
-              <th>Shipment</th>
+              <th>Waybill No</th>
               <th class="text-right">Weight</th>
               <th class="text-right">Charge</th>
               <th class="text-right">Fuel</th>
@@ -512,13 +511,11 @@ function downloadPDF() {
     doc.text('12 Jupiter Road, Crown Mines, Johannesburg, 2091', M+38, 21);
     doc.text('011 839 6496  |  accounts@moktransports.com  |  VAT No: 4400269363', M+38, 26);
 
-    const boxW=46, boxH=24, boxX=W-M-boxW, boxY=5;
+    const boxW=46, boxH=18, boxX=W-M-boxW, boxY=8;
     doc.setFillColor(21,101,192); doc.roundedRect(boxX,boxY,boxW,boxH,1.5,1.5,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
     doc.text('TAX INVOICE', boxX+boxW/2, boxY+7, {align:'center'});
-    doc.setFontSize(11); doc.text(inv.invoice_no, boxX+boxW/2, boxY+15.5, {align:'center'});
-    doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
-    doc.text('DHL INTERNATIONAL', boxX+boxW/2, boxY+21.5, {align:'center'});
+    doc.setFontSize(12); doc.text(inv.invoice_no, boxX+boxW/2, boxY+15, {align:'center'});
     return 40;
   }
 
@@ -533,8 +530,8 @@ function downloadPDF() {
   let y = drawHeader();
 
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(70,70,70);
-  doc.text(`Invoice Date: ${inv.invoice_date||''}`, M, y);
-  doc.text(`Due Date: ${inv.due_date||''}`, M+65, y);
+  doc.text(`Invoice Date: ${fmt(inv.invoice_date)}`, M, y);
+  doc.text(`Due Date: ${fmt(inv.due_date)}`, M+65, y);
   doc.text(`Status: ${(inv.status||'').toUpperCase()}`, M+125, y);
   y += 6;
   if (inv.client_reference) {
@@ -583,7 +580,7 @@ function downloadPDF() {
 
   doc.setFillColor(236,239,241); doc.rect(M,y,W-2*M,8,'F');
   doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(10,42,67);
-  doc.text('SHIPMENT', col.track+2, y+5.5);
+  doc.text('WAYBILL NO', col.track+2, y+5.5);
   doc.text('WEIGHT', col.weight, y+5.5, {align:'right'});
   doc.text('CHARGE', col.charge, y+5.5, {align:'right'});
   doc.text('FUEL', col.fuel, y+5.5, {align:'right'});
@@ -605,7 +602,7 @@ function downloadPDF() {
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(13,33,55);
     doc.text(pdfSafe(i.tracking_number)||'-', col.track, ly);
     doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(96,125,139);
-    doc.text(i.shipment_date||'', col.track, ly+4);
+    doc.text(fmt(i.shipment_date), col.track, ly+4);
     ly += 9;
 
     doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(96,125,139);
@@ -659,6 +656,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
 
 
