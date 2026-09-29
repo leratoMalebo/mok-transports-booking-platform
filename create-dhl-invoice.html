@@ -163,30 +163,20 @@ let allShipments = [];
 let allCompanies = [];
 let selectedCompany = '';
 
-// Client search is sourced from the DHL address book (/api/dhl-addresses)
-// rather than dhl_shipments — most DHL shipments are captured by staff,
-// not self-booked by a logged-in client, so client_id is blank on most
-// rows and a lot of real clients (Alicewear, Traclo, Customer Services,
-// etc.) never showed up when the picker was built that way. The address
-// book already has the full company list plus proper billing addresses.
 async function loadCompanies() {
   try {
-    // 1. Fetch saved address book companies
     const resAddresses = await fetch(`${API}/dhl-addresses/companies`);
     const addressCompanies = resAddresses.ok ? await resAddresses.json() : [];
 
-    // 2. Fetch active shipments to ensure companies not yet in address book appear
     const resShipments = await fetch(`${API}/dhl/shipments`);
     const shipments = resShipments.ok ? await resShipments.json() : [];
 
     const companySet = new Set();
 
-    // Add address book entries
     (Array.isArray(addressCompanies) ? addressCompanies : []).forEach(c => {
       if (c && typeof c === 'string' && c.trim()) companySet.add(c.trim());
     });
 
-    // Add shippers/receivers from shipments
     (Array.isArray(shipments) ? shipments : []).forEach(s => {
       if (s.shipper_name && s.shipper_name.trim()) companySet.add(s.shipper_name.trim());
       if (s.receiver_name && s.receiver_name.trim()) companySet.add(s.receiver_name.trim());
@@ -203,7 +193,6 @@ function filterClients(term) {
   const dd = document.getElementById('clientDropdown');
   const t = (term || '').toLowerCase().trim();
 
-  // Safe check ensuring item is a non-null string before calling toLowerCase
   const matches = (t 
     ? allCompanies.filter(c => c && typeof c === 'string' && c.toLowerCase().includes(t)) 
     : allCompanies
@@ -230,7 +219,6 @@ async function selectClient(company) {
   document.getElementById('clientDropdown').style.display = 'none';
   selectedCompany = company;
 
-  // Pull the full address record and pre-fill the billing fields
   try {
     const res = await fetch(`${API}/dhl-addresses?company=${encodeURIComponent(company)}`);
     const records = await res.json();
@@ -275,24 +263,31 @@ async function loadShipmentsForCompany(company) {
             <th></th>
             <th>Waybill No</th>
             <th>Sender / Receiver</th>
-            <th>Weight</th>
+            <th>Declared Wt</th>
+            <th>Reweighed Wt (kg)</th>
             <th>Charge (R)</th>
             <th>Fuel Surcharge (R)</th>
           </tr>
         </thead>
         <tbody>
           ${allShipments.map((s, i) => `
-            <tr>
+      <tr>
               <td><input type="checkbox" class="ship-check" id="chk_${i}" onchange="updateSummary()"></td>
               <td>
                 <div class="ship-track">${s.tracking_number || '—'}</div>
                 <div class="ship-sub">${s.ship_date ? new Date(s.ship_date).toLocaleDateString('en-ZA') : ''}</div>
               </td>
               <td>
-                <div class="ship-sub">${s.shipper_name || '—'} → ${s.receiver_name || '—'}</div>
-                <div class="ship-sub">${s.shipper_country || ''} → ${s.receiver_country || ''}</div>
+                <div class="ship-sub">${s.shipper_name || '—'} &rarr; ${s.receiver_name || '—'}</div>
+                <div class="ship-sub">${s.shipper_country || ''} &rarr; ${s.receiver_country || ''}</div>
               </td>
               <td>${s.weight ? Number(s.weight).toFixed(2) + ' kg' : '—'}</td>
+              <td>
+                <input type="number" step="0.01" min="0" class="charge-input" 
+                       id="reweighed_${i}" 
+                       value="${s.reweighed_weight || s.weight || ''}" 
+                       placeholder="0.00">
+              </td>
               <td><input type="number" step="0.01" min="0" class="charge-input" id="charge_${i}" placeholder="0.00" oninput="updateSummary()"></td>
               <td><input type="number" step="0.01" min="0" class="charge-input" id="fuel_${i}" placeholder="0.00" oninput="updateSummary()"></td>
             </tr>
@@ -315,7 +310,7 @@ function updateSummary() {
       const charge = parseFloat(document.getElementById(`charge_${i}`)?.value) || 0;
       const fuel = parseFloat(document.getElementById(`fuel_${i}`)?.value) || 0;
       subtotal += charge + fuel;
-      vat += charge * 0.15; // fuel surcharge is zero-rated
+      vat += charge * 0.15;
     }
   });
   document.getElementById('selectedCount').textContent = count;
@@ -341,6 +336,7 @@ async function createInvoice() {
         receiver_name: s.receiver_name,
         receiver_address: s.receiver_country,
         weight: s.weight,
+        reweighed_weight: parseFloat(document.getElementById(`reweighed_${i}`)?.value) || s.weight,
         charge: parseFloat(document.getElementById(`charge_${i}`)?.value) || 0,
         fuel_surcharge: parseFloat(document.getElementById(`fuel_${i}`)?.value) || 0
       });
@@ -390,6 +386,15 @@ document.addEventListener('DOMContentLoaded', loadCompanies);
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
 

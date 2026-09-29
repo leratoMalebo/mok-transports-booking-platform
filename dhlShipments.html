@@ -158,7 +158,8 @@
 
             <div id="headerActions">
                 <a href="dashboard.html" class="btn btn-outline">Back to Dashboard</a>
-                <a href="create-dhl-invoice.html" class="btn btn-primary" style="background:#2e7d32;color:#fff">Create Invoice</a>
+                <a href="create-dhl-invoice.html" class="btn btn-primary" style="background:#2e7d32;color:#fff">Create
+                    Invoice</a>
                 <a href="imports.html" class="btn btn-dhl">Create DHL Shipment</a>
             </div>
         </div>
@@ -186,6 +187,7 @@
                             <th>Receiver</th>
                             <th>To</th>
                             <th>Weight</th>
+                            <th>Reweighed Wt</th>
                             <th>Declared Value</th>
                             <th>Date</th>
                             <th>Actions</th>
@@ -263,91 +265,60 @@
         }
 
         function renderShipments(rows) {
-
-            const body =
-                document.getElementById(
-                    "dhlShipmentsBody"
-                );
+            const body = document.getElementById("dhlShipmentsBody");
 
             if (!rows.length) {
-
                 body.innerHTML = `
-      <tr>
-        <td colspan="12">
-          ${isStaff ? 'No DHL shipments found' : "You don't have any DHL shipments yet"}
-        </td>
-      </tr>
-    `;
-
+          <tr>
+            <td colspan="13" class="empty">
+              ${isStaff ? 'No DHL shipments found' : "You don't have any DHL shipments yet"}
+            </td>
+          </tr>
+        `;
                 return;
             }
 
-            body.innerHTML =
-                rows.map(row => `
-
-<tr>
-
-<td>${row.tracking_number || ""}</td>
-
-<td>
-<span class="badge ${row.mode === 'IMPORT' ? 'import' : 'export'}">
-${row.mode || ""}
-</span>
-</td>
-
-<td>${row.product_code || ""}</td>
-
-<td>
-  <div style="font-weight:700;color:#0f2742">${row.client_company || row.client_name || '—'}</div>
-  ${row.client_name && row.client_company && row.client_name !== row.client_company
-    ? `<div style="font-size:12px;color:#64748b">${row.client_name}</div>`
-    : ''}
-</td>
-
-<td>${row.shipper_name || ""}</td>
-
-<td>${row.shipper_country || ""}</td>
-
-<td>${row.receiver_name || ""}</td>
-
-<td>${row.receiver_country || ""}</td>
-
-<td>${row.weight || 0} kg</td>
-
-<td>
-${row.declared_value || 0}
-${row.declared_currency || ""}
-</td>
-
-<td>
-${row.created_at
-                        ? new Date(row.created_at).toLocaleDateString()
-                        : ""}
-</td>
-
-<td>
-
-<div class="actions">
-
-<button
-class="btn btn-outline"
-onclick="downloadLabel('${row.tracking_number}')">
-Label
-</button>
-
-<button
-class="btn btn-primary"
-onclick="trackShipment('${row.tracking_number}')">
-Track
-</button>
-
-</div>
-
-</td>
-
-</tr>
-
-`).join("");
+            body.innerHTML = rows.map(row => `
+        <tr>
+            <td>${row.tracking_number || ""}</td>
+            <td>
+                <span class="badge ${row.mode === 'IMPORT' ? 'import' : 'export'}">
+                    ${row.mode || ""}
+                </span>
+            </td>
+            <td>${row.product_code || ""}</td>
+            <td>
+                <div style="font-weight:700;color:#0f2742">${row.client_company || row.client_name || '—'}</div>
+                ${row.client_name && row.client_company && row.client_name !== row.client_company
+                    ? `<div style="font-size:12px;color:#64748b">${row.client_name}</div>`
+                    : ''}
+            </td>
+            <td>${row.shipper_name || ""}</td>
+            <td>${row.shipper_country || ""}</td>
+            <td>${row.receiver_name || ""}</td>
+            <td>${row.receiver_country || ""}</td>
+            <td>${row.weight ? Number(row.weight).toFixed(2) + ' kg' : '0.00 kg'}</td>
+            <td>
+                ${row.reweighed_weight
+                    ? `<span style="font-weight:700; color:${Number(row.reweighed_weight) > Number(row.weight) ? '#c62828' : '#2e7d32'}">
+                         ${Number(row.reweighed_weight).toFixed(2)} kg
+                       </span>`
+                    : '<span style="color:#90a4ae; font-style:italic">Pending</span>'}
+            </td>
+            <td>
+                ${row.declared_value || 0} ${row.declared_currency || ""}
+            </td>
+            <td>
+                ${row.created_at ? new Date(row.created_at).toLocaleDateString() : ""}
+            </td>
+            <td>
+                <div class="actions">
+                    <button class="btn btn-outline" onclick="downloadLabel('${row.tracking_number}')">Label</button>
+                    <button class="btn btn-primary" onclick="trackShipment('${row.tracking_number}')">Track</button>
+                </div>
+            </td>
+        </tr>
+    `).join("");
         }
 
         function filterShipments() {
@@ -413,6 +384,10 @@ Track
 </body>
 
 </html>
+
+
+
+
 
 
 
