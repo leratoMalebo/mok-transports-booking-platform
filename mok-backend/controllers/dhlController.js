@@ -83,6 +83,7 @@ exports.createShipment = async (req, res) => {
 
   } catch (err) {
     console.error('DHL CREATE SHIPMENT ERROR:', err.message);
+    console.log('DHL ERROR DETAILS:', JSON.stringify(error.additionalDetails || error.response?.data || error, null, 2));
     res.status(500).json({ error: err.message || 'Failed to create DHL shipment.' });
   }
 };
@@ -239,6 +240,7 @@ exports.downloadLabel = async (req, res) => {
     console.error('DOWNLOAD LABEL ERROR:', err.message);
     res.status(500).json({ error: err.message });
   }
+  
 };
 
 
