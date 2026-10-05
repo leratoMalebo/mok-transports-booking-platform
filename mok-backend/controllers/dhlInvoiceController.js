@@ -204,9 +204,14 @@ exports.createInvoice = async (req, res) => {
       );
 
       if (i.dhl_shipment_id) {
+        // Mirror the reweighed figure back onto the shipment itself (not
+        // just the invoice line item) so dhlShipments.html's "Reweighed
+        // Wt" column has something to show without re-querying DHL.
         await db.query(
-          `UPDATE dhl_shipments SET invoiced = TRUE, invoice_no = $1 WHERE id = $2`,
-          [invoice_no, i.dhl_shipment_id]
+          `UPDATE dhl_shipments
+           SET invoiced = TRUE, invoice_no = $1, reweighed_weight = $2
+           WHERE id = $3`,
+          [invoice_no, i.reweighed_weight, i.dhl_shipment_id]
         );
       }
     }

@@ -3,7 +3,7 @@
 // MERGED — client_id support + import/export account fix
 // =============================================================
 
-const db = require('../db');
+const db         = require('../db');
 const dhlService = require('../services/dhlService');
 
 // ── POST /api/dhl/shipments ───────────────────────────────────
@@ -21,7 +21,7 @@ exports.createShipment = async (req, res) => {
     // 1. Use explicit mode from frontend (auto-detected by country)
     // 2. Fall back to payload.shipmentDirection if set
     // 3. Default to 'export'
-    const shipperCountry = payload.customerDetails?.shipperDetails?.postalAddress?.countryCode || '';
+    const shipperCountry  = payload.customerDetails?.shipperDetails?.postalAddress?.countryCode || '';
     const receiverCountry = payload.customerDetails?.receiverDetails?.postalAddress?.countryCode || '';
 
     let shipmentMode = mode || payload.shipmentDirection || 'export';
@@ -37,12 +37,12 @@ exports.createShipment = async (req, res) => {
     console.log(`[DHL] Shipper: ${shipperCountry}, Receiver: ${receiverCountry}, Mode: ${shipmentMode}`);
 
     // Pass mode so dhlService selects the correct account
-    const dhlResult = await dhlService.createShipment(payload, shipmentMode);
+    const dhlResult  = await dhlService.createShipment(payload, shipmentMode);
     const trackingNo = dhlResult.shipmentTrackingNumber;
     console.log('✅ DHL Tracking Number:', trackingNo);
 
     const documents = dhlResult.documents || [];
-    const labelB64 = documents.find(d => d.typeCode === 'label')?.content || null;
+    const labelB64  = documents.find(d => d.typeCode === 'label')?.content || null;
 
     const saved = await db.query(`
       INSERT INTO dhl_shipments (
@@ -59,31 +59,30 @@ exports.createShipment = async (req, res) => {
       trackingNo,
       shipmentMode,
       payload.productCode,
-      payload.customerDetails?.shipperDetails?.contactInformation?.companyName || '',
+      payload.customerDetails?.shipperDetails?.contactInformation?.companyName  || '',
       shipperCountry,
       payload.customerDetails?.receiverDetails?.contactInformation?.companyName || '',
       receiverCountry,
       payload.content?.packages?.[0]?.weight || 0,
-      payload.content?.declaredValue || null,
+      payload.content?.declaredValue         || null,
       payload.content?.declaredValueCurrency || null,
       payload.plannedShippingDateAndTime?.split('T')[0] || new Date().toISOString().split('T')[0],
       JSON.stringify(dhlResult),
       labelB64,
-      client_id || null,
-      client_name || null,
+      client_id      || null,
+      client_name    || null,
       client_company || null
     ]);
 
     res.status(201).json({
-      message: 'DHL shipment created successfully.',
+      message:                'DHL shipment created successfully.',
       shipmentTrackingNumber: trackingNo,
       documents,
-      dbRecord: saved.rows[0]
+      dbRecord:               saved.rows[0]
     });
 
   } catch (err) {
     console.error('DHL CREATE SHIPMENT ERROR:', err.message);
-    console.log('DHL ERROR DETAILS:', JSON.stringify(error.additionalDetails || error.response?.data || error, null, 2));
     res.status(500).json({ error: err.message || 'Failed to create DHL shipment.' });
   }
 };
@@ -112,6 +111,7 @@ exports.getShipments = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch DHL shipments.' });
   }
 };
+
 // ── GET /api/dhl/shipments/:trackingNo ───────────────────────
 exports.getShipmentByTracking = async (req, res) => {
   try {
@@ -134,7 +134,6 @@ exports.getShipmentByTracking = async (req, res) => {
 // client before proxying to DHL's live tracking API. Without this check,
 // anyone who knows/guesses any tracking number could look up any
 // shipment through our portal, staff-only or not.
-// ── GET /api/dhl/track/:trackingNo ───────────────────────────
 exports.trackShipment = async (req, res) => {
   try {
     const { trackingNo } = req.params;
@@ -150,23 +149,7 @@ exports.trackShipment = async (req, res) => {
       }
     }
 
-    // 1. Fetch live tracking data from DHL API
     const result = await dhlService.trackShipment(trackingNo);
-
-    // 2. Extract measured scale weight returned by DHL hub belt scale
-    const shipmentData = result?.shipments?.[0];
-    const liveWeight = shipmentData?.weight || shipmentData?.pieces?.[0]?.weight || null;
-
-    // 3. Save to database if DHL returned a valid weight
-    if (liveWeight && !isNaN(parseFloat(liveWeight))) {
-      await db.query(
-        `UPDATE dhl_shipments 
-         SET reweighed_weight = $1 
-         WHERE tracking_number = $2 AND (reweighed_weight IS NULL OR reweighed_weight != $1)`,
-        [parseFloat(liveWeight), trackingNo]
-      );
-    }
-
     res.json(result);
   } catch (err) {
     console.error('DHL TRACK ERROR:', err.message);
@@ -240,8 +223,15 @@ exports.downloadLabel = async (req, res) => {
     console.error('DOWNLOAD LABEL ERROR:', err.message);
     res.status(500).json({ error: err.message });
   }
-  
 };
+
+
+
+
+
+
+
+
 
 
 
