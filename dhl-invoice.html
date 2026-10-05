@@ -321,7 +321,10 @@ function renderInvoice(inv) {
                     <span class="li-party-addr">${escapeHtml(i.receiver_address)||''}</span>
                   </div>
                 </td>
-                <td class="text-right">${i.weight?Number(i.weight).toFixed(2)+' kg':'-'}</td>
+                <td class="text-right">
+                  ${i.weight?Number(i.weight).toFixed(2)+' kg':'-'}
+                  ${i.reweighed_weight!=null?`<div class="li-date" style="margin-top:2px">Reweighed: ${Number(i.reweighed_weight).toFixed(2)} kg</div>`:''}
+                </td>
                 <td class="text-right">${money(i.charge)}</td>
                 <td class="text-right">${money(i.fuel_surcharge)}</td>
                 <td class="text-right">${money(i.vat_amount)}</td>
@@ -591,8 +594,8 @@ function downloadPDF() {
   items.forEach(i => {
     const senderLines = doc.splitTextToSize(pdfSafe(i.sender_address), 62);
     const recvLines = doc.splitTextToSize(pdfSafe(i.receiver_address), 62);
-    const rowLines = 2 + 2 + senderLines.length + recvLines.length;
-    const rowH = rowLines*4.2 + 6;
+    // waybill + date, then SENDER label/name/address, RECEIVER label/name/address
+    const rowH = 32 + (senderLines.length + recvLines.length) * 4.2;
 
     y = ensureSpace(y, rowH + 11);
 
@@ -620,6 +623,11 @@ function downloadPDF() {
 
     doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
     doc.text(i.weight?`${Number(i.weight).toFixed(2)} kg`:'-', col.weight, y+4, {align:'right'});
+    if (i.reweighed_weight != null) {
+      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(96,125,139);
+      doc.text(`Reweighed: ${Number(i.reweighed_weight).toFixed(2)} kg`, col.weight, y+8, {align:'right'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
+    }
     doc.text(`R ${Number(i.charge||0).toFixed(2)}`, col.charge, y+4, {align:'right'});
     doc.text(`R ${Number(i.fuel_surcharge||0).toFixed(2)}`, col.fuel, y+4, {align:'right'});
     doc.text(`R ${Number(i.vat_amount||0).toFixed(2)}`, col.vat, y+4, {align:'right'});
@@ -643,7 +651,7 @@ function downloadPDF() {
   doc.text('TOTAL INCL. VAT:', totX, y+8);
   doc.text(`R ${Number(inv.total||0).toFixed(2)}`, W-M, y+8, {align:'right'});
 
-  doc.save(`DHL_Invoice_${inv.invoice_no}.pdf`);
+  doc.save(`Mok_International_Invoice_${inv.invoice_no}.pdf`);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -656,6 +664,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
+
 
 
 

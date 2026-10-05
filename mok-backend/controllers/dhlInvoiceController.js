@@ -1,31 +1,83 @@
 const db = require('../db');
+const dhlService = require('../services/dhlService');
 
 // ─────────────────────────────────────────────
-// GET UNINVOICED DHL SHIPMENTS FOR A COMPANY
-// GET /api/dhl-invoices/uninvoiced/:companyName
-// Powers the "pick a client, see their shipments" step when building
-// a new group invoice.
+// UN-INVOICED SHIPMENT LOOKUP
 //
-// Matches by company name (against both shipper_name and receiver_name,
-// since either side could be the SA client depending on import/export
-// direction), not client_id — most DHL shipments are captured by staff
-// rather than self-booked by a logged-in client, so client_id is null
-// on the majority of rows. Company name — sourced from the DHL address
-// book — is the reliable link.
+// The client picker is fed from the address book, but the shipment rows
+// carry whatever name was typed/returned when the shipment was created
+// ("TRACLO PTY LTD", "Busi Zakwe TRACLO INTERNATIONAL", "Alicewear
+// (Pty) Ltd" ...), so an exact/substring match on the full address-book
+// name misses real shipments. Instead we match on the *core* words of the
+// name — legal suffixes and punctuation are ignored — against both the
+// shipper and receiver (either side can be the SA client depending on
+// import/export direction).
 // ─────────────────────────────────────────────
+const NAME_STOPWORDS = new Set([
+  'pty', 'ltd', 'limited', 'proprietary', 'cc', 'inc', 'llc',
+  'co', 'company', 'international', 'intl', 'the', 'and'
+]);
+
+function coreNameTokens(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .split(' ')
+    .filter(t => t && !NAME_STOPWORDS.has(t));
+}
+
+// Only the columns the picker needs — SELECT * would drag the base64
+// label PDF and full DHL response for every row across the wire.
+const UNINVOICED_COLUMNS = `
+  id, tracking_number, mode, product_code,
+  shipper_name, shipper_country, receiver_name, receiver_country,
+  weight, declared_value, declared_currency, ship_date, created_at,
+  client_id, client_name, client_company`;
+
+// GET /api/dhl-invoices/uninvoiced/:companyName
 exports.getUninvoicedShipments = async (req, res) => {
   try {
     const { companyName } = req.params;
+    const tokens = coreNameTokens(companyName);
+
+    let where, params;
+    if (!tokens.length) {
+      where = `(shipper_name ILIKE $1 OR receiver_name ILIKE $1)`;
+      params = [`%${companyName}%`];
+    } else {
+      const norm = col => `regexp_replace(lower(COALESCE(${col}, '')), '[^a-z0-9]+', ' ', 'g')`;
+      const allTokensIn = col => tokens.map((_, i) => `${norm(col)} LIKE $${i + 1}`).join(' AND ');
+      where = `((${allTokensIn('shipper_name')}) OR (${allTokensIn('receiver_name')}))`;
+      params = tokens.map(t => `%${t}%`);
+    }
+
     const result = await db.query(
-      `SELECT * FROM dhl_shipments
-       WHERE invoiced = FALSE
-         AND (shipper_name ILIKE $1 OR receiver_name ILIKE $1)
+      `SELECT ${UNINVOICED_COLUMNS} FROM dhl_shipments
+       WHERE invoiced = FALSE AND ${where}
        ORDER BY created_at DESC`,
-      [`%${companyName}%`]
+      params
     );
     res.json(result.rows);
   } catch (err) {
     console.error('GET UNINVOICED DHL SHIPMENTS ERROR:', err.message);
+    res.status(500).json({ error: 'Failed to fetch uninvoiced shipments' });
+  }
+};
+
+// GET /api/dhl-invoices/uninvoiced
+// Every shipment that hasn't been invoiced yet — the fallback when the
+// name-based lookup doesn't find what the accountant is looking for.
+exports.getAllUninvoicedShipments = async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT ${UNINVOICED_COLUMNS} FROM dhl_shipments
+       WHERE invoiced = FALSE
+       ORDER BY created_at DESC
+       LIMIT 500`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET ALL UNINVOICED DHL SHIPMENTS ERROR:', err.message);
     res.status(500).json({ error: 'Failed to fetch uninvoiced shipments' });
   }
 };
@@ -46,6 +98,26 @@ exports.getUninvoicedShipments = async (req, res) => {
 // ─────────────────────────────────────────────
 const VAT_RATE = 0.15;
 
+// Pulls DHL's own measured weight for a shipment via the same tracking
+// call dhlTracking.html already uses (dhlService.trackShipment), so the
+// invoice carries what DHL actually weighed it at, not just what was
+// declared at booking. Never throws — a lookup failure (bad tracking
+// number, DHL API down/slow, no weight in that particular response)
+// just means this shipment's reweighed figure stays blank; it must
+// never block the invoice from being created.
+async function fetchReweighedWeight(trackingNumber) {
+  if (!trackingNumber) return null;
+  try {
+    const result = await dhlService.trackShipment(trackingNumber);
+    const shipment = result?.shipments?.[0];
+    const w = shipment?.totalWeight;
+    return (w !== undefined && w !== null && w !== '') ? Number(w) : null;
+  } catch (err) {
+    console.error(`DHL reweigh lookup failed for ${trackingNumber}:`, err.message);
+    return null;
+  }
+}
+
 exports.createInvoice = async (req, res) => {
   try {
     const {
@@ -63,11 +135,19 @@ exports.createInvoice = async (req, res) => {
     const n = seqResult.rows[0].n;
     const invoice_no = `DINV${String(n).padStart(6, '0')}`;
 
-    const cleanItems = items.map(i => {
+    // One DHL tracking call per shipment, run in parallel rather than
+    // one-by-one — with 5+ line items this is the difference between a
+    // couple of seconds and half a minute for "Create Invoice" to respond.
+    const reweighResults = await Promise.allSettled(
+      items.map(i => fetchReweighedWeight(i.tracking_number))
+    );
+
+    const cleanItems = items.map((i, idx) => {
       const charge = Math.round(Number(i.charge || 0) * 100) / 100;
       const fuel   = Math.round(Number(i.fuel_surcharge || 0) * 100) / 100;
       const vat    = Math.round(charge * VAT_RATE * 100) / 100;
       const lineTotal = Math.round((charge + fuel + vat) * 100) / 100;
+      const reweighed = reweighResults[idx].status === 'fulfilled' ? reweighResults[idx].value : null;
       return {
         dhl_shipment_id: i.dhl_shipment_id || null,
         tracking_number: i.tracking_number || '',
@@ -77,6 +157,7 @@ exports.createInvoice = async (req, res) => {
         receiver_name: i.receiver_name || '',
         receiver_address: i.receiver_address || '',
         weight: i.weight || null,
+        reweighed_weight: reweighed,
         charge, fuel, vat, lineTotal
       };
     });
@@ -113,12 +194,12 @@ exports.createInvoice = async (req, res) => {
         INSERT INTO dhl_invoice_items
           (dhl_invoice_id, dhl_shipment_id, tracking_number, shipment_date,
            sender_name, sender_address, receiver_name, receiver_address,
-           weight, charge, fuel_surcharge, vat_amount, line_total)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+           weight, reweighed_weight, charge, fuel_surcharge, vat_amount, line_total)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
         [
           invoice.id, i.dhl_shipment_id, i.tracking_number, i.shipment_date,
           i.sender_name, i.sender_address, i.receiver_name, i.receiver_address,
-          i.weight, i.charge, i.fuel, i.vat, i.lineTotal
+          i.weight, i.reweighed_weight, i.charge, i.fuel, i.vat, i.lineTotal
         ]
       );
 
@@ -262,6 +343,8 @@ exports.markPaid = async (req, res) => {
     res.status(500).json({ error: 'Failed to update invoice' });
   }
 };
+
+
 
 
 

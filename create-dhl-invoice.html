@@ -59,6 +59,14 @@ table.ship-table tbody td{padding:9px 10px;border-bottom:1px solid var(--border)
 .charge-input:focus{border-color:var(--blue)}
 
 .empty-note{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+.ship-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.ship-toolbar .field-input{max-width:340px;height:38px}
+.show-all-toggle{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:600}
+.show-all-toggle input{width:16px;height:16px}
+.link-btn{margin-top:10px;height:34px;padding:0 14px;border:1px solid var(--border);border-radius:6px;background:#fff;
+  color:var(--blue);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.5px;
+  text-transform:uppercase;cursor:pointer}
+.link-btn:hover{border-color:var(--blue)}
 
 .summary-bar{display:flex;justify-content:space-between;align-items:center;background:var(--navy);
   color:#fff;border-radius:8px;padding:16px 20px;margin-top:6px}
@@ -123,7 +131,7 @@ table.ship-table tbody td{padding:9px 10px;border-bottom:1px solid var(--border)
     </div>
     <div class="field-row" style="grid-template-columns:1fr">
       <div>
-        <span class="field-label">Client VAT No (optional — not in the DHL address book, add if the client provides one)</span>
+        <span class="field-label">Client VAT No (optional — add if the client provides one)</span>
         <input type="text" class="field-input" id="clientVatNo" placeholder="Client's VAT number…">
       </div>
     </div>
@@ -131,8 +139,16 @@ table.ship-table tbody td{padding:9px 10px;border-bottom:1px solid var(--border)
 
   <div class="card">
     <div class="card-title">2. Un-invoiced Shipments</div>
+    <div class="ship-toolbar">
+      <input type="text" class="field-input" id="shipFilter"
+        placeholder="Filter by waybill no, sender or receiver…" oninput="renderShipments()">
+      <label class="show-all-toggle">
+        <input type="checkbox" id="showAllToggle" onchange="onShowAllToggle()">
+        Show all un-invoiced shipments (every client)
+      </label>
+    </div>
     <div id="shipmentsWrap">
-      <div class="empty-note">Select a client above to see their un-invoiced DHL shipments.</div>
+      <div class="empty-note">Search and select a client above, or tick “Show all un-invoiced shipments” to pick from everything that hasn’t been invoiced yet.</div>
     </div>
   </div>
 
@@ -159,30 +175,28 @@ if (!session || !['staff','admin'].includes(session?.role)) {
 }
 
 const API = 'https://bookings.moktransports.com/api';
-let allShipments = [];
+let allShipments = [];      // shipments currently on screen (before the text filter)
 let allCompanies = [];
 let selectedCompany = '';
+let selState = {};          // shipment id -> { checked, charge, fuel } — survives filtering/re-rendering
 
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return isNaN(dt.getTime()) ? '' : dt.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// Client search is sourced from the address book (/api/dhl-addresses) —
+// most shipments are captured by staff rather than self-booked by a
+// logged-in client, so client_id is blank on most rows and the address
+// book is the only complete client list. It also carries the billing address.
 async function loadCompanies() {
   try {
-    const resAddresses = await fetch(`${API}/dhl-addresses/companies`);
-    const addressCompanies = resAddresses.ok ? await resAddresses.json() : [];
-
-    const resShipments = await fetch(`${API}/dhl/shipments`);
-    const shipments = resShipments.ok ? await resShipments.json() : [];
-
-    const companySet = new Set();
-
-    (Array.isArray(addressCompanies) ? addressCompanies : []).forEach(c => {
-      if (c && typeof c === 'string' && c.trim()) companySet.add(c.trim());
-    });
-
-    (Array.isArray(shipments) ? shipments : []).forEach(s => {
-      if (s.shipper_name && s.shipper_name.trim()) companySet.add(s.shipper_name.trim());
-      if (s.receiver_name && s.receiver_name.trim()) companySet.add(s.receiver_name.trim());
-    });
-
-    allCompanies = Array.from(companySet).sort((a, b) => a.localeCompare(b));
+    const res = await fetch(`${API}/dhl-addresses/companies`);
+    allCompanies = await res.json();
   } catch (err) {
     console.error('Failed to load companies:', err);
     allCompanies = [];
@@ -192,21 +206,33 @@ async function loadCompanies() {
 function filterClients(term) {
   const dd = document.getElementById('clientDropdown');
   const t = (term || '').toLowerCase().trim();
-
-  const matches = (t 
-    ? allCompanies.filter(c => c && typeof c === 'string' && c.toLowerCase().includes(t)) 
-    : allCompanies
-  ).slice(0, 50);
-
+  const matches = (t ? allCompanies.filter(c => c.toLowerCase().includes(t)) : allCompanies).slice(0, 50);
   if (!matches.length) {
-    dd.innerHTML = `<div class="client-dropdown-empty">No matching companies</div>`;
+    dd.innerHTML = `<div class="client-dropdown-empty">No matching companies — press Enter to use “${esc(term)}” as typed</div>`;
   } else {
-    dd.innerHTML = matches.map(c =>
-      `<div class="client-dropdown-item" onmousedown="selectClient('${c.replace(/'/g, "\\'")}')">${c}</div>`
+    dd.innerHTML = matches.map((c, i) =>
+      `<div class="client-dropdown-item" data-i="${i}">${esc(c)}</div>`
     ).join('');
+    dd.querySelectorAll('.client-dropdown-item').forEach((el, i) => {
+      el.addEventListener('mousedown', () => selectClient(matches[i]));
+    });
   }
   dd.style.display = 'block';
 }
+
+// Enter picks the first match, or uses whatever was typed if the company
+// isn't in the address book yet — so a missing client never blocks invoicing.
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('clientSearch').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const typed = e.target.value.trim();
+    if (!typed) return;
+    const t = typed.toLowerCase();
+    const first = allCompanies.find(c => c.toLowerCase().includes(t));
+    selectClient(first || typed);
+  });
+});
 
 document.addEventListener('click', (e) => {
   if (!e.target.closest('#clientSearch') && !e.target.closest('#clientDropdown')) {
@@ -218,22 +244,20 @@ async function selectClient(company) {
   document.getElementById('clientSearch').value = company;
   document.getElementById('clientDropdown').style.display = 'none';
   selectedCompany = company;
+  selState = {};                      // new client → start with a clean selection
+  document.getElementById('showAllToggle').checked = false;
 
   try {
     const res = await fetch(`${API}/dhl-addresses?company=${encodeURIComponent(company)}`);
     const records = await res.json();
     const a = records[0];
-    if (a) {
-      document.getElementById('clientName').value = a.contact_name || '';
-      document.getElementById('clientCompany').value = a.company_name || company;
-      document.getElementById('clientAddress').value =
-        [a.address_1, a.address_2, a.suburb, a.city, a.province, a.postal_code, a.country]
-          .filter(Boolean).join(', ');
-      document.getElementById('clientPhone').value = a.phone || '';
-      document.getElementById('clientEmail').value = a.email || '';
-    } else {
-      document.getElementById('clientCompany').value = company;
-    }
+    document.getElementById('clientName').value = a?.contact_name || '';
+    document.getElementById('clientCompany').value = a?.company_name || company;
+    document.getElementById('clientAddress').value = a
+      ? [a.address_1, a.address_2, a.suburb, a.city, a.province, a.postal_code, a.country].filter(Boolean).join(', ')
+      : '';
+    document.getElementById('clientPhone').value = a?.phone || '';
+    document.getElementById('clientEmail').value = a?.email || '';
   } catch (err) {
     console.error('Failed to load address for company:', err);
     document.getElementById('clientCompany').value = company;
@@ -249,99 +273,155 @@ async function loadShipmentsForCompany(company) {
     const res = await fetch(`${API}/dhl-invoices/uninvoiced/${encodeURIComponent(company)}`);
     if (!res.ok) throw new Error();
     allShipments = await res.json();
-
-    if (!allShipments.length) {
-      wrap.innerHTML = `<div class="empty-note">No un-invoiced DHL shipments found for this client.</div>`;
-      updateSummary();
-      return;
-    }
-
-    wrap.innerHTML = `
-      <table class="ship-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Waybill No</th>
-            <th>Sender / Receiver</th>
-            <th>Declared Wt</th>
-            <th>Reweighed Wt (kg)</th>
-            <th>Charge (R)</th>
-            <th>Fuel Surcharge (R)</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${allShipments.map((s, i) => `
-      <tr>
-              <td><input type="checkbox" class="ship-check" id="chk_${i}" onchange="updateSummary()"></td>
-              <td>
-                <div class="ship-track">${s.tracking_number || '—'}</div>
-                <div class="ship-sub">${s.ship_date ? new Date(s.ship_date).toLocaleDateString('en-ZA') : ''}</div>
-              </td>
-              <td>
-                <div class="ship-sub">${s.shipper_name || '—'} &rarr; ${s.receiver_name || '—'}</div>
-                <div class="ship-sub">${s.shipper_country || ''} &rarr; ${s.receiver_country || ''}</div>
-              </td>
-              <td>${s.weight ? Number(s.weight).toFixed(2) + ' kg' : '—'}</td>
-              <td>
-                <input type="number" step="0.01" min="0" class="charge-input" 
-                       id="reweighed_${i}" 
-                       value="${s.reweighed_weight || s.weight || ''}" 
-                       placeholder="0.00">
-              </td>
-              <td><input type="number" step="0.01" min="0" class="charge-input" id="charge_${i}" placeholder="0.00" oninput="updateSummary()"></td>
-              <td><input type="number" step="0.01" min="0" class="charge-input" id="fuel_${i}" placeholder="0.00" oninput="updateSummary()"></td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-    updateSummary();
+    renderShipments();
   } catch (err) {
+    allShipments = [];
     wrap.innerHTML = `<div class="empty-note">Failed to load shipments for this client.</div>`;
+    updateSummary();
   }
 }
 
-function updateSummary() {
-  let count = 0, subtotal = 0, vat = 0;
-  allShipments.forEach((s, i) => {
-    const chk = document.getElementById(`chk_${i}`);
-    if (chk && chk.checked) {
-      count++;
-      const charge = parseFloat(document.getElementById(`charge_${i}`)?.value) || 0;
-      const fuel = parseFloat(document.getElementById(`fuel_${i}`)?.value) || 0;
-      subtotal += charge + fuel;
-      vat += charge * 0.15;
+async function loadAllUninvoiced() {
+  const wrap = document.getElementById('shipmentsWrap');
+  wrap.innerHTML = `<div class="empty-note">Loading all un-invoiced shipments…</div>`;
+  try {
+    const res = await fetch(`${API}/dhl-invoices/uninvoiced`);
+    if (!res.ok) throw new Error();
+    allShipments = await res.json();
+    renderShipments();
+  } catch (err) {
+    allShipments = [];
+    wrap.innerHTML = `<div class="empty-note">Failed to load shipments.</div>`;
+    updateSummary();
+  }
+}
+
+function onShowAllToggle() {
+  if (document.getElementById('showAllToggle').checked) {
+    loadAllUninvoiced();
+  } else if (selectedCompany) {
+    loadShipmentsForCompany(selectedCompany);
+  } else {
+    allShipments = [];
+    renderShipments();
+  }
+}
+
+function showAllNow() {
+  document.getElementById('showAllToggle').checked = true;
+  loadAllUninvoiced();
+}
+
+function getSel(id) {
+  return selState[id] || (selState[id] = { checked: false, charge: '', fuel: '' });
+}
+function onCheck(id, el)  { getSel(id).checked = el.checked; updateSummary(); }
+function onCharge(id, el) { getSel(id).charge = el.value;    updateSummary(); }
+function onFuel(id, el)   { getSel(id).fuel = el.value;      updateSummary(); }
+
+function renderShipments() {
+  const wrap = document.getElementById('shipmentsWrap');
+  const showAll = document.getElementById('showAllToggle').checked;
+
+  if (!allShipments.length) {
+    if (showAll) {
+      wrap.innerHTML = `<div class="empty-note">There are no un-invoiced shipments at the moment.</div>`;
+    } else if (selectedCompany) {
+      wrap.innerHTML = `<div class="empty-note">No un-invoiced shipments matched “${esc(selectedCompany)}”.<br>
+        The shipment may be recorded under a slightly different name.<br>
+        <button class="link-btn" type="button" onclick="showAllNow()">Show all un-invoiced shipments</button></div>`;
+    } else {
+      wrap.innerHTML = `<div class="empty-note">Search and select a client above, or tick “Show all un-invoiced shipments” to pick from everything that hasn’t been invoiced yet.</div>`;
     }
+    updateSummary();
+    return;
+  }
+
+  const q = document.getElementById('shipFilter').value.toLowerCase().trim();
+  const list = allShipments.filter(s => !q ||
+    [s.tracking_number, s.shipper_name, s.receiver_name, s.shipper_country, s.receiver_country]
+      .join(' ').toLowerCase().includes(q));
+
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-note">No shipments match that filter.</div>`;
+    updateSummary();
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table class="ship-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Waybill No</th>
+          <th>Sender / Receiver</th>
+          <th>Weight</th>
+          <th>Charge (R)</th>
+          <th>Fuel Surcharge (R)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map(s => {
+          const st = getSel(s.id);
+          return `
+          <tr>
+            <td><input type="checkbox" class="ship-check" ${st.checked ? 'checked' : ''} onchange="onCheck(${s.id}, this)"></td>
+            <td>
+              <div class="ship-track">${esc(s.tracking_number) || '—'}</div>
+              <div class="ship-sub">${fmtDate(s.ship_date)}</div>
+            </td>
+            <td>
+              <div class="ship-sub">${esc(s.shipper_name) || '—'} → ${esc(s.receiver_name) || '—'}</div>
+              <div class="ship-sub">${esc(s.shipper_country)} → ${esc(s.receiver_country)}</div>
+            </td>
+            <td>${s.weight ? Number(s.weight).toFixed(2) + ' kg' : '—'}</td>
+            <td><input type="number" step="0.01" min="0" class="charge-input" placeholder="0.00" value="${esc(st.charge)}" oninput="onCharge(${s.id}, this)"></td>
+            <td><input type="number" step="0.01" min="0" class="charge-input" placeholder="0.00" value="${esc(st.fuel)}" oninput="onFuel(${s.id}, this)"></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+  updateSummary();
+}
+
+// Only shipments currently loaded (before the text filter) count — what's
+// ticked but no longer in the loaded list never ends up on an invoice.
+function selectedShipments() {
+  return allShipments.filter(s => selState[s.id]?.checked);
+}
+
+function updateSummary() {
+  let subtotal = 0, vat = 0;
+  const chosen = selectedShipments();
+  chosen.forEach(s => {
+    const charge = parseFloat(selState[s.id].charge) || 0;
+    const fuel = parseFloat(selState[s.id].fuel) || 0;
+    subtotal += charge + fuel;
+    vat += charge * 0.15; // fuel surcharge is zero-rated
   });
-  document.getElementById('selectedCount').textContent = count;
+  document.getElementById('selectedCount').textContent = chosen.length;
   document.getElementById('estimatedTotal').textContent =
     'R ' + (subtotal + vat).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  document.getElementById('createBtn').disabled = count === 0;
+  document.getElementById('createBtn').disabled = chosen.length === 0;
 }
 
 async function createInvoice() {
   const statusMsg = document.getElementById('statusMsg');
   const btn = document.getElementById('createBtn');
 
-  const items = [];
-  allShipments.forEach((s, i) => {
-    const chk = document.getElementById(`chk_${i}`);
-    if (chk && chk.checked) {
-      items.push({
-        dhl_shipment_id: s.id,
-        tracking_number: s.tracking_number,
-        shipment_date: s.ship_date,
-        sender_name: s.shipper_name,
-        sender_address: s.shipper_country,
-        receiver_name: s.receiver_name,
-        receiver_address: s.receiver_country,
-        weight: s.weight,
-        reweighed_weight: parseFloat(document.getElementById(`reweighed_${i}`)?.value) || s.weight,
-        charge: parseFloat(document.getElementById(`charge_${i}`)?.value) || 0,
-        fuel_surcharge: parseFloat(document.getElementById(`fuel_${i}`)?.value) || 0
-      });
-    }
-  });
+  const items = selectedShipments().map(s => ({
+    dhl_shipment_id: s.id,
+    tracking_number: s.tracking_number,
+    shipment_date: s.ship_date,
+    sender_name: s.shipper_name,
+    sender_address: s.shipper_country,
+    receiver_name: s.receiver_name,
+    receiver_address: s.receiver_country,
+    weight: s.weight,
+    charge: parseFloat(selState[s.id].charge) || 0,
+    fuel_surcharge: parseFloat(selState[s.id].fuel) || 0
+  }));
 
   if (!items.length) return;
 
@@ -351,7 +431,8 @@ async function createInvoice() {
   }
 
   btn.disabled = true; btn.textContent = 'Creating…';
-  statusMsg.textContent = ''; statusMsg.className = 'status-msg';
+  statusMsg.textContent = 'Pulling confirmed weights from DHL for each shipment — this can take a few seconds…';
+  statusMsg.className = 'status-msg';
 
   try {
     const res = await fetch(`${API}/dhl-invoices`, {
@@ -386,6 +467,8 @@ document.addEventListener('DOMContentLoaded', loadCompanies);
 
 </body>
 </html>
+
+
 
 
 
