@@ -52,8 +52,71 @@
 
     body {
       font-family: 'Barlow', sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(900px 500px at 100% -8%, rgba(0, 73, 173, .05), transparent 60%),
+        radial-gradient(700px 400px at -5% 0%, rgba(4, 27, 51, .04), transparent 55%),
+        var(--bg);
       color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    ::selection {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    /* Slim, brand-coloured scrollbars for a more finished feel */
+    ::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(4, 27, 51, .22);
+      border-radius: 20px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(4, 27, 51, .4);
+      background-clip: padding-box;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, .18);
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, .3);
+    }
+
+    a,
+    button {
+      transition: background .18s ease, color .18s ease, border-color .18s ease,
+        box-shadow .18s ease, transform .12s ease, opacity .18s ease;
+    }
+
+    @keyframes mokFadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .page-body {
+      animation: mokFadeUp .35s ease both;
     }
 
     .sidebar {
@@ -79,7 +142,8 @@
       height: 42px;
       background: #fff;
       padding: 4px;
-      border-radius: 6px;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .25);
     }
 
     .sidebar-logo-text {
@@ -152,12 +216,14 @@
       color: #fff;
       background: rgba(255, 255, 255, .05);
       border-left-color: rgba(21, 101, 192, .6);
+      padding-left: 23px;
     }
 
     .nav-item.active {
       color: #fff;
-      background: rgba(21, 101, 192, .18);
+      background: linear-gradient(90deg, rgba(0, 73, 173, .22), rgba(0, 73, 173, .03));
       border-left-color: var(--blue);
+      font-weight: 700;
     }
 
     .sidebar-footer {
@@ -206,6 +272,7 @@
       position: sticky;
       top: 0;
       z-index: 50;
+      box-shadow: 0 2px 16px rgba(4, 27, 51, .05);
     }
 
     .topbar-title {
@@ -245,14 +312,27 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      box-shadow: 0 2px 10px rgba(0, 73, 173, .25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 73, 173, .32);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(0, 73, 173, .25);
     }
 
     .btn-primary.dark {
       background: var(--navy);
+      box-shadow: 0 2px 10px rgba(4, 27, 51, .3);
     }
 
     .btn-primary.green {
       background: var(--green);
+      box-shadow: 0 2px 10px rgba(22, 25, 29, .3);
     }
 
     .page-body {
@@ -445,6 +525,12 @@
       overflow: hidden;
       box-shadow: 0 5px 18px rgba(13, 33, 55, .045);
       border-top: 4px solid var(--blue);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px rgba(13, 33, 55, .11);
     }
 
     .stat-card.orange {
@@ -498,6 +584,12 @@
       display: flex;
       flex-direction: column;
       scroll-margin-top: 90px;
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+    .hub-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 38px rgba(4, 27, 51, .14);
     }
 
     .hub-head {
@@ -655,6 +747,19 @@
       background: var(--navy);
       color: #fff;
       border-color: var(--navy);
+    }
+
+    .hub-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(4, 27, 51, .18);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .hub-btn.solid:hover {
+      color: #fff;
+      filter: brightness(1.12);
+      border-color: transparent;
     }
 
     @media (max-width: 1100px) {
