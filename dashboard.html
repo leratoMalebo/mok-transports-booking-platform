@@ -588,7 +588,7 @@
     /* ── STATS ─────────────────────── */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -1014,9 +1014,9 @@
       font-size: 13px;
     }
 
-    @media (max-width: 1100px) {
+    @media (max-width: 900px) {
       .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1377,6 +1377,70 @@
       background: #fdecea;
       color: #c62828;
     }
+
+    /* ── Dark mode: headings/values that used the navy brand colour as TEXT ── */
+    [data-theme="dark"] {
+      --orange: #6f7f8f;
+      /* Local — lighter slate so bars/buttons show on dark */
+      --green: #4a5562;
+      /* Truck — mid graphite so bars/buttons show on dark */
+    }
+
+    [data-theme="dark"] .topbar-title,
+    [data-theme="dark"] .stat-value,
+    [data-theme="dark"] .hub-kpi-val,
+    [data-theme="dark"] .panel-title,
+    [data-theme="dark"] .service-card,
+    [data-theme="dark"] .waybill-list-header,
+    [data-theme="dark"] .waybill-no-label,
+    [data-theme="dark"] .modal-selected-count strong,
+    [data-theme="dark"] .staff-total-val,
+    [data-theme="dark"] .modal-title,
+    [data-theme="dark"] .modal-section-label {
+      color: var(--text);
+    }
+
+    [data-theme="dark"] .hub-btn:not(.solid) {
+      color: var(--text);
+      border-color: var(--border);
+      background: var(--card);
+    }
+
+    [data-theme="dark"] .hub-btn:not(.solid):hover {
+      color: #fff;
+      border-color: var(--sky);
+    }
+
+    [data-theme="dark"] .hub-kpi {
+      background: rgba(255, 255, 255, .03);
+    }
+
+    [data-theme="dark"] .panel-header,
+    [data-theme="dark"] .modal-footer,
+    [data-theme="dark"] .select-all-row,
+    [data-theme="dark"] .waybill-list-header,
+    [data-theme="dark"] .perf-week-select,
+    [data-theme="dark"] .btn-modal-cancel {
+      background: rgba(255, 255, 255, .04);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    [data-theme="dark"] .data-table tbody tr:hover,
+    [data-theme="dark"] .waybill-row:hover {
+      background: rgba(47, 111, 201, .14);
+    }
+
+    [data-theme="dark"] .modal,
+    [data-theme="dark"] .service-card {
+      background: var(--card);
+      border-color: var(--border);
+    }
+
+    [data-theme="dark"] .small-muted,
+    [data-theme="dark"] .service-desc {
+      color: var(--muted);
+    }
   </style>
 </head>
 
@@ -1651,7 +1715,7 @@
         <div class="stat-card orange">
           <div class="stat-label">Pending Dispatch</div>
           <div class="stat-value" id="statPending">0</div>
-          <div class="stat-sub">Not yet sent to JKJ</div>
+          <div class="stat-sub" id="statPendingSub">Today's waybills not yet sent to JKJ</div>
         </div>
 
         <div class="stat-card green">
@@ -2011,8 +2075,7 @@
 
     function updateStats() {
       const total = Array.isArray(waybills) ? waybills.length : 0;
-      const sent = waybills.filter(w => w.sent_to_jkj === true || w.sent_to_jkj === "true").length;
-      const pending = total - sent;
+      const wasSent = w => w.sent_to_jkj === true || w.sent_to_jkj === "true";
 
       const totalAll = total + (dhlShipments?.length || 0) + (truckBookings?.length || 0);
       const isToday = (d) => {
@@ -2026,7 +2089,16 @@
         truckBookings.filter(t => isToday(t.created_at)).length;
 
       document.getElementById("statShipments").textContent = totalAll;
-      document.getElementById("statPending").textContent = pending < 0 ? 0 : pending;
+
+      // Pending Dispatch restarts from zero each day: only today's waybills
+      // that have not yet been sent to JKJ. Older unsent waybills are shown
+      // as a small note so a backlog can't be missed.
+      const pendingToday = waybills.filter(w => isToday(w.created_at) && !wasSent(w)).length;
+      const pendingOlder = waybills.filter(w => !isToday(w.created_at) && !wasSent(w)).length;
+      document.getElementById("statPending").textContent = pendingToday;
+      document.getElementById("statPendingSub").textContent =
+        "Today's waybills not yet sent to JKJ" + (pendingOlder > 0 ? " \u00b7 " + pendingOlder + " older unsent" : "");
+
       document.getElementById("statToday").textContent = activeToday;
     }
 
@@ -2692,6 +2764,8 @@
 </body>
 
 </html>
+
+
 
 
 
