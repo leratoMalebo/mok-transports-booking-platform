@@ -2,6 +2,14 @@
 <html lang="en">
 
 <head>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('mokTheme');
+        if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) { }
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mok Transports | Office Dashboard</title>
@@ -42,6 +50,75 @@
       --border: #dde2e7;
       --text: #16191d;
       --muted: #5c6773;
+    }
+
+    /* Dark mode — same brand blue/navy accents, inverted neutrals only */
+    [data-theme="dark"] {
+      --bg: #0b1420;
+      --card: #111c2b;
+      --border: #22324a;
+      --text: #e7edf5;
+      --muted: #8ea0b8;
+      --blue-tint: #122440;
+      --orange-tint: #1a212b;
+      --green-tint: #171b22;
+      --purple-tint: #1a212c;
+      --teal-tint: #122440;
+    }
+
+    [data-theme="dark"] body {
+      background:
+        radial-gradient(900px 500px at 100% -8%, rgba(47, 111, 201, .08), transparent 60%),
+        radial-gradient(700px 400px at -5% 0%, rgba(47, 111, 201, .05), transparent 55%),
+        var(--bg);
+    }
+
+    [data-theme="dark"] .sidebar-logo img {
+      background: #fff;
+    }
+
+    [data-theme="dark"] ::-webkit-scrollbar-thumb {
+      background: rgba(231, 237, 245, .18);
+    }
+
+    [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+      background: rgba(231, 237, 245, .3);
+    }
+
+    .theme-toggle {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .theme-toggle:hover {
+      color: var(--blue);
+      border-color: var(--blue);
+      transform: translateY(-1px);
+    }
+
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .theme-toggle .sun-icon {
+      display: none;
+    }
+
+    [data-theme="dark"] .theme-toggle .moon-icon {
+      display: none;
+    }
+
+    [data-theme="dark"] .theme-toggle .sun-icon {
+      display: block;
     }
 
     * {
@@ -565,6 +642,15 @@
       font-size: 12px;
       color: var(--muted);
       margin-top: 2px;
+    }
+
+    .spark {
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      width: 72px;
+      height: 24px;
+      opacity: .85;
     }
 
     /* ── EQUAL SERVICE HUB (Local / DHL / Trucking) ─────────────────────── */
@@ -1365,6 +1451,15 @@
         DHL Address Book
       </a>
 
+      <a class="nav-item" href="dhl-invoice.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <path d="M9 13h6M9 17h6M9 9h1" />
+        </svg>
+        International Invoice
+      </a>
+
       <a class="nav-item" href="track.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10" />
@@ -1462,15 +1557,6 @@
         </svg>
         Create International Invoice
       </a>
-
-      <a class="nav-item" href="dhl-invoice.html">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <path d="M9 13h6M9 17h6M9 9h1" />
-        </svg>
-        International Invoice
-      </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -1493,6 +1579,15 @@
       </div>
 
       <div class="topbar-actions">
+        <button class="theme-toggle" type="button" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" />
+          </svg>
+          <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4.5" />
+            <path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8L6 18M18 6l1.8-1.8" />
+          </svg>
+        </button>
         <a class="btn-primary dark" href="waybills.html">Waybills</a>
         <button class="btn-primary green" onclick="openInvoiceModal()" type="button">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -1550,6 +1645,7 @@
           <div class="stat-label">Total Shipments</div>
           <div class="stat-value" id="statShipments">0</div>
           <div class="stat-sub">Across all three services</div>
+          <svg id="statShipmentsSpark" class="spark" viewBox="0 0 100 28" preserveAspectRatio="none"></svg>
         </div>
 
         <div class="stat-card orange">
@@ -1562,12 +1658,6 @@
           <div class="stat-label">Active Today</div>
           <div class="stat-value" id="statToday">0</div>
           <div class="stat-sub">Local + DHL + Trucking, today</div>
-        </div>
-
-        <div class="stat-card purple">
-          <div class="stat-label">Invoices</div>
-          <div class="stat-value" id="statInvoices">0</div>
-          <div class="stat-sub">Saved invoice records</div>
         </div>
       </section>
 
@@ -1603,8 +1693,7 @@
               <div class="mini-chart" id="localChart"></div>
             </div>
             <div class="hub-actions">
-              <a class="hub-btn solid" href="booking.html"
-                style="background:var(--orange);border-color:var(--orange);">+
+              <a class="hub-btn solid" href="booking.html" style="background:var(--orange);border-color:var(--orange);">+
                 New</a>
               <a class="hub-btn" href="waybills.html">Waybills</a>
               <a class="hub-btn" href="track.html">Track</a>
@@ -1683,8 +1772,8 @@
               <div class="mini-chart" id="truckChart"></div>
             </div>
             <div class="hub-actions">
-              <a class="hub-btn solid" href="trucking.html" style="background:var(--green);border-color:var(--green);">+
-                New</a>
+              <a class="hub-btn solid" href="trucking.html"
+                style="background:var(--green);border-color:var(--green);">+ New</a>
               <a class="hub-btn" href="truck-bookings.html">Bookings</a>
               <a class="hub-btn" href="truck-invoices.html">Invoices</a>
             </div>
@@ -1939,7 +2028,6 @@
       document.getElementById("statShipments").textContent = totalAll;
       document.getElementById("statPending").textContent = pending < 0 ? 0 : pending;
       document.getElementById("statToday").textContent = activeToday;
-      document.getElementById("statInvoices").textContent = Array.isArray(invoices) ? invoices.length : 0;
     }
 
     // ── PER-SERVICE ANALYTICS (daily / weekly) ───────────────────
@@ -2027,6 +2115,43 @@
       const truckCounts = bucketLastDays(truckBookings, "created_at", 7);
       renderMiniChart("truckChart", truckCounts, "--green");
       document.getElementById("truckTrend").textContent = trendLabel(truckCounts);
+
+      // Total Shipments sparkline — the real combined daily total across all
+      // three services over the last 7 days (same source data as the charts
+      // above, just summed), not a simulated trend.
+      const combinedCounts = localCounts.map((v, i) => v + dhlCounts[i] + truckCounts[i]);
+      renderSparkline("statShipmentsSpark", combinedCounts);
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        root.removeAttribute('data-theme');
+        localStorage.setItem('mokTheme', 'light');
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        localStorage.setItem('mokTheme', 'dark');
+      }
+    }
+
+    function renderSparkline(svgId, counts) {
+      const svg = document.getElementById(svgId);
+      if (!svg) return;
+      const max = Math.max(1, ...counts);
+      const min = Math.min(...counts);
+      const range = Math.max(1, max - min);
+      const w = 100, h = 28, pad = 2;
+      const pts = counts.map((v, i) => {
+        const x = (i / (counts.length - 1)) * (w - pad * 2) + pad;
+        const y = h - pad - ((v - min) / range) * (h - pad * 2);
+        return [x, y];
+      });
+      const path = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+      const last = pts[pts.length - 1];
+      svg.innerHTML = `
+        <path d="${path}" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="${last[0]}" cy="${last[1]}" r="2.4" fill="var(--blue)" />`;
     }
 
     // ── STAFF PERFORMANCE (WEEKLY) ─────────────────────────────────
@@ -2567,8 +2692,6 @@
 </body>
 
 </html>
-
-
 
 
 
