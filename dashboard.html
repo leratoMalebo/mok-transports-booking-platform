@@ -1441,6 +1441,132 @@
     [data-theme="dark"] .service-desc {
       color: var(--muted);
     }
+
+    /* ===== NEEDS ATTENTION QUEUE ===== */
+    .na-summary {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: var(--blue-tint);
+      color: var(--blue);
+      white-space: nowrap;
+    }
+
+    .na-summary.clear {
+      background: var(--green-tint);
+      color: var(--muted);
+    }
+
+    .na-list {
+      padding: 6px 18px 14px;
+    }
+
+    .na-group {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 14px 0 6px;
+    }
+
+    .na-row {
+      display: grid;
+      grid-template-columns: 5px 1fr auto auto;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 14px 12px 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      background: var(--card);
+      overflow: hidden;
+      transition: box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .na-row:hover {
+      border-color: var(--blue);
+      box-shadow: 0 6px 18px rgba(4, 27, 51, .08);
+    }
+
+    .na-stripe {
+      align-self: stretch;
+      background: var(--orange);
+    }
+
+    .na-row.truck .na-stripe {
+      background: var(--green);
+    }
+
+    .na-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .na-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .na-count {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      line-height: 1;
+      min-width: 54px;
+      text-align: right;
+      color: var(--text);
+    }
+
+    .na-row.clear {
+      opacity: .62;
+    }
+
+    .na-row.clear .na-count {
+      font-size: 13px;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .na-btn {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--blue);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .na-btn:hover {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    @media (max-width: 700px) {
+      .na-row {
+        grid-template-columns: 5px 1fr auto;
+      }
+
+      .na-btn {
+        grid-column: 2 / 4;
+        text-align: center;
+      }
+    }
   </style>
 </head>
 
@@ -1557,11 +1683,12 @@
 
       <div class="nav-section">Team</div>
 
-      <a class="nav-item" href="#staff-performance">
+      <a class="nav-item" href="#needs-attention">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 20V10M12 20V4M6 20v-6" />
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
         </svg>
-        Staff Reports
+        Needs Attention
       </a>
 
       <div class="nav-section">Finance</div>
@@ -1846,40 +1973,16 @@
 
       </section>
 
-      <section class="panel-card" id="staff-performance" style="margin-bottom:22px;">
+      <section class="panel-card" id="needs-attention" style="margin-bottom:22px;">
         <div class="panel-header">
-          <div class="panel-title">Staff Performance — Weekly</div>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <select id="perfWeekSelect" class="perf-week-select" onchange="renderStaffPerformance()"></select>
-            <button class="btn-primary dark" type="button" onclick="downloadStaffPerformanceCSV()">⬇ Download
-              CSV</button>
+          <div>
+            <div class="panel-title">Needs Attention</div>
+            <div class="small-muted" style="margin-top:2px;">Jobs waiting on the team right now &mdash; updates automatically</div>
           </div>
+          <div class="na-summary" id="naSummary">Checking&hellip;</div>
         </div>
-        <div class="panel-body" style="padding:18px;">
-          <div class="small-muted" style="margin-bottom:14px;">
-            Counts shipments booked by office staff only (Local courier, DHL and Trucking). Shipments a client created
-            themselves after logging in are excluded from these totals.
-          </div>
-          <table class="data-table" style="min-width:760px;">
-            <thead>
-              <tr>
-                <th>Staff Member</th>
-                <th>Local (JKJ)</th>
-                <th>DHL</th>
-                <th>Trucking</th>
-                <th>Total Shipments</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="staffPerfBody">
-              <tr>
-                <td colspan="6">
-                  <div class="empty-state">Loading…</div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="small-muted" id="clientSelfServiceNote" style="margin-top:12px;"></div>
+        <div class="panel-body na-list" id="naList">
+          <div class="empty-state">Loading&hellip;</div>
         </div>
       </section>
 
@@ -2010,13 +2113,14 @@
         loadWaybills(),
         loadInvoices(),
         loadDhlForAnalytics(),
-        loadTrucking()
+        loadTrucking(),
+        loadInvoiceQueue()
       ]);
 
       updateStats();
       renderRecentShipments();
       renderServiceHubs();
-      renderStaffPerformance();
+      renderNeedsAttention();
 
       const activeStaff = recentActiveStaff(
         [...waybills, ...dhlShipments, ...truckBookings],
@@ -2226,178 +2330,97 @@
         <circle cx="${last[0]}" cy="${last[1]}" r="2.4" fill="var(--blue)" />`;
     }
 
-    // ── STAFF PERFORMANCE (WEEKLY) ─────────────────────────────────
-    // Reports how many shipments each office staff member personally
-    // booked, per week, excluding anything a client created themselves
-    // by logging in. Add/remove names here as the ops team changes.
-    const STAFF_ROSTER = ["Mavis Seloma", "Neo Lumkwana"];
+    // ── NEEDS ATTENTION QUEUE ──────────────────────────────────────
+    // A live to-do list for the office team. Every count below comes from
+    // data already loaded for this dashboard (waybills, truck bookings) plus
+    // the existing "clients with uninvoiced waybills" invoicing endpoint.
+    let invoiceClients = [];
+    let invoiceClientsLoaded = false;
 
-    // Same fallback field order used for the "on duty" strip above —
-    // whichever of these a record has populated is treated as its creator.
-    const CREATOR_FIELDS = ["staff_name", "created_by", "agent_name", "user_name", "processed_by"];
-
-    function getCreatorName(record) {
-      for (const f of CREATOR_FIELDS) {
-        if (record[f]) return String(record[f]).trim();
-      }
-      return "";
-    }
-
-    // A record counts for a roster member only if its creator name matches
-    // them — this is what excludes client self-service bookings, since a
-    // client-created record's creator field holds the client's own
-    // name/company rather than a staff member's name.
-    function matchesStaff(creatorName, staffName) {
-      if (!creatorName) return false;
-      const a = creatorName.toLowerCase();
-      const b = staffName.toLowerCase();
-      return a === b || a.includes(b) || b.includes(a);
-    }
-
-    // Monday-start week bounds. offset 0 = current week, 1 = last week, etc.
-    function getWeekBounds(offset) {
-      const now = new Date();
-      const day = (now.getDay() + 6) % 7; // Mon = 0
-      const monday = new Date(now);
-      monday.setHours(0, 0, 0, 0);
-      monday.setDate(now.getDate() - day - (offset * 7));
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 7);
-      return { start: monday, end: sunday };
-    }
-
-    function weekLabel(offset, bounds) {
-      const fmt = (d) => d.toLocaleDateString("en-ZA", { day: "2-digit", month: "short" });
-      const base = offset === 0 ? "This week" : offset === 1 ? "Last week" : `${offset} weeks ago`;
-      return `${base} (${fmt(bounds.start)} – ${fmt(new Date(bounds.end - 86400000))})`;
-    }
-
-    function populateWeekSelect() {
-      const sel = document.getElementById("perfWeekSelect");
-      if (!sel || sel.options.length) return; // build once
-      for (let i = 0; i < 8; i++) {
-        const bounds = getWeekBounds(i);
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = weekLabel(i, bounds);
-        sel.appendChild(opt);
+    async function loadInvoiceQueue() {
+      try {
+        const res = await fetch(`${API_BASE}/invoices/clients-with-waybills`);
+        if (!res.ok) throw new Error("Failed to load invoice queue");
+        const data = await res.json();
+        invoiceClients = Array.isArray(data) ? data : [];
+        invoiceClientsLoaded = true;
+      } catch (err) {
+        console.error("Invoice queue load error:", err);
+        invoiceClients = [];
+        invoiceClientsLoaded = false;
       }
     }
 
-    function inWeek(dateStr, bounds) {
-      if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return d >= bounds.start && d < bounds.end;
-    }
+    function renderNeedsAttention() {
+      const list = document.getElementById("naList");
+      if (!list) return;
 
-    function computeStaffPerformance(offset) {
-      const bounds = getWeekBounds(offset);
-      const sources = [
-        { key: "local", records: waybills },
-        { key: "dhl", records: dhlShipments },
-        { key: "trucking", records: truckBookings }
+      const isTodayDate = (d) => {
+        if (!d) return false;
+        const x = new Date(d), n = new Date();
+        return x.getFullYear() === n.getFullYear() && x.getMonth() === n.getMonth() && x.getDate() === n.getDate();
+      };
+      const wasSent = w => w.sent_to_jkj === true || w.sent_to_jkj === "true";
+
+      const unsent = (waybills || []).filter(w => !wasSent(w));
+      const unsentToday = unsent.filter(w => isTodayDate(w.created_at)).length;
+      const unsentOlder = unsent.length - unsentToday;
+
+      const trucks = Array.isArray(truckBookings) ? truckBookings : [];
+      const quotes = trucks.filter(t => t.status === "quote").length;
+      const inTransit = trucks.filter(t => t.status === "in_transit").length;
+      const noSignedForm = trucks.filter(t => t.status === "delivered" && !t.signed_form_url).length;
+      const toInvoice = trucks.filter(t => t.status === "delivered" && !t.invoiced).length;
+
+      const uninvoicedWaybills = invoiceClients.reduce((t, c) => t + Number(c.uninvoiced_count || 0), 0);
+
+      const items = [
+        { group: "Local courier (JKJ)", cls: "local", title: "Waybills to dispatch to JKJ",
+          meta: `${unsentToday} from today \u00b7 ${unsentOlder} older`, count: unsent.length,
+          btn: "Open Waybills", href: "waybills.html" },
+        { cls: "local", title: "Clients ready to invoice",
+          meta: invoiceClientsLoaded ? `${invoiceClients.length} client${invoiceClients.length === 1 ? "" : "s"} with uninvoiced waybills` : "Could not load invoicing data right now",
+          count: invoiceClientsLoaded ? uninvoicedWaybills : null, btn: "Create Invoice", onclick: "openInvoiceModal()" },
+
+        { group: "Truck freight", cls: "truck", title: "Quotes awaiting a decision",
+          meta: "Quoted but not yet confirmed as a booking", count: quotes,
+          btn: "Open Bookings", href: "truck-bookings.html" },
+        { cls: "truck", title: "In transit \u2014 awaiting delivery sign-off",
+          meta: "Collected, delivery not yet signed for", count: inTransit,
+          btn: "Open Bookings", href: "truck-bookings.html" },
+        { cls: "truck", title: "Delivered \u2014 signed form not uploaded",
+          meta: "Proof of delivery still missing", count: noSignedForm,
+          btn: "Open Bookings", href: "truck-bookings.html" },
+        { cls: "truck", title: "Delivered \u2014 ready to invoice",
+          meta: "Completed jobs not yet invoiced", count: toInvoice,
+          btn: "Truck Invoices", href: "truck-invoices.html" },
       ];
 
-      const rows = STAFF_ROSTER.map(name => ({ name, local: 0, dhl: 0, trucking: 0 }));
-      let excludedCount = 0;
-      let totalInWeek = 0;
+      let needing = 0;
+      list.innerHTML = items.map(it => {
+        const known = it.count !== null;
+        const clear = known && it.count === 0;
+        if (known && it.count > 0) needing++;
+        const action = it.onclick
+          ? `<button class="na-btn" type="button" onclick="${it.onclick}">${it.btn}</button>`
+          : `<a class="na-btn" href="${it.href}">${it.btn}</a>`;
+        return (it.group ? `<div class="na-group">${it.group}</div>` : "") + `
+          <div class="na-row ${it.cls === "truck" ? "truck" : ""} ${clear ? "clear" : ""}">
+            <div class="na-stripe"></div>
+            <div>
+              <div class="na-title">${it.title}</div>
+              <div class="na-meta">${it.meta}</div>
+            </div>
+            <div class="na-count">${!known ? "\u2014" : clear ? "\u2713 All clear" : it.count}</div>
+            ${action}
+          </div>`;
+      }).join("");
 
-      sources.forEach(({ key, records }) => {
-        (records || []).forEach(r => {
-          if (!inWeek(r.created_at, bounds)) return;
-          totalInWeek++;
-          const creator = getCreatorName(r);
-          const row = rows.find(row => matchesStaff(creator, row.name));
-          if (row) {
-            row[key]++;
-          } else {
-            excludedCount++;
-          }
-        });
-      });
-
-      return { bounds, rows, excludedCount, totalInWeek };
-    }
-
-    function statusFor(total) {
-      if (total === 0) return { cls: "status-critical", label: "Needs review" };
-      if (total < 5) return { cls: "status-warn", label: "Below target" };
-      return { cls: "status-ok", label: "On track" };
-    }
-
-    let _lastPerf = null;
-
-    function renderStaffPerformance() {
-      populateWeekSelect();
-      const sel = document.getElementById("perfWeekSelect");
-      const offset = parseInt(sel?.value || "0", 10);
-      const perf = computeStaffPerformance(offset);
-      _lastPerf = perf;
-
-      const body = document.getElementById("staffPerfBody");
-      if (!body) return;
-
-      if (!perf.rows.length) {
-        body.innerHTML = `<tr><td colspan="6"><div class="empty-state">No staff configured in STAFF_ROSTER.</div></td></tr>`;
-      } else {
-        body.innerHTML = perf.rows.map(r => {
-          const total = r.local + r.dhl + r.trucking;
-          const status = statusFor(total);
-          return `<tr>
-            <td>
-              <div class="staff-name-cell">
-                <div class="staff-name-avatar">${initials(r.name)}</div>
-                <span>${r.name}</span>
-              </div>
-            </td>
-            <td>${r.local}</td>
-            <td>${r.dhl}</td>
-            <td>${r.trucking}</td>
-            <td><span class="staff-total-val">${total}</span></td>
-            <td><span class="status-badge ${status.cls}">${status.label}</span></td>
-          </tr>`;
-        }).join("");
+      const sum = document.getElementById("naSummary");
+      if (sum) {
+        sum.textContent = needing === 0 ? "All clear" : `${needing} item${needing === 1 ? "" : "s"} need attention`;
+        sum.classList.toggle("clear", needing === 0);
       }
-
-      const note = document.getElementById("clientSelfServiceNote");
-      if (note) {
-        note.textContent = perf.totalInWeek
-          ? `${perf.excludedCount} of ${perf.totalInWeek} shipments this week were excluded from these totals because they were booked directly by clients (not office staff).`
-          : "No shipments recorded for this week yet.";
-      }
-    }
-
-    function downloadStaffPerformanceCSV() {
-      if (!_lastPerf) renderStaffPerformance();
-      const perf = _lastPerf;
-      const sel = document.getElementById("perfWeekSelect");
-      const label = sel?.options[sel.selectedIndex]?.textContent || "This week";
-
-      const lines = [
-        `Mok Transports — Staff Performance Report`,
-        `Week,${label}`,
-        `Generated,${new Date().toLocaleString("en-ZA")}`,
-        ``,
-        `Staff Member,Local (JKJ),DHL,Trucking,Total Shipments,Status`
-      ];
-      perf.rows.forEach(r => {
-        const total = r.local + r.dhl + r.trucking;
-        const status = statusFor(total).label;
-        lines.push(`"${r.name}",${r.local},${r.dhl},${r.trucking},${total},${status}`);
-      });
-      lines.push(``);
-      lines.push(`Note,"${perf.excludedCount} of ${perf.totalInWeek} shipments this week were booked directly by clients and excluded from staff totals."`);
-
-      const csv = lines.join("\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `staff-performance-${label.split(" (")[0].replace(/\s+/g, "-").toLowerCase()}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     }
 
     // Real-time refresh: re-pull data every 60s so counts/charts stay current
@@ -2764,6 +2787,9 @@
 </body>
 
 </html>
+
+
+
 
 
 
