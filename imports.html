@@ -1743,20 +1743,45 @@
 
     function calcDHLCost() {
       try {
-        const countryCode = (document.getElementById('receiverCountry') || {}).value || '';
+        const direction = currentMode;
+
+        // On EXPORT, rate depends on Receiver Country. On IMPORT, rate depends on Shipper Country.
+        const countryCode = direction === 'export'
+          ? (document.getElementById('receiverCountry')?.value || '')
+          : (document.getElementById('shipperCountry')?.value || '');
+
         const actualWt = parseFloat(document.getElementById('actualWeight')?.value || 0) || 0;
         const volWt = parseFloat(document.getElementById('chargeWeight')?.value || 0) || 0;
         const chargeWt = Math.max(actualWt, volWt) || actualWt;
-        if (!countryCode || !chargeWt) { hideDHLCost(); return; }
 
-        const direction = currentMode;
+        if (!countryCode || countryCode === 'ZA' || !chargeWt) { 
+          hideDHLCost(); 
+          return; 
+        }
+
         const isDocument = document.querySelector('input[name="contentType"]:checked')?.value === 'documents';
 
         const result = dhlDisplayPrice(direction, isDocument, chargeWt, countryCode);
-        if (!result) { hideDHLCost(); return; }
+        if (!result) { 
+          hideDHLCost(); 
+          return; 
+        }
+
+        // Auto-fill rate per kg, fuel, other charges, and calculate total cost
+        const baseRatePerKg = result.baseRate;
+        document.getElementById('ratePerKg').value = baseRatePerKg.toFixed(2);
+
+        const fuel = parseFloat(document.getElementById('fuelSurcharge')?.value || 0) || 0;
+        const other = parseFloat(document.getElementById('otherCharges')?.value || 0) || 0;
+        const total = (chargeWt * baseRatePerKg) + fuel + other;
+
+        document.getElementById('sumTotal').textContent = total.toFixed(2);
+        document.getElementById('sumProduct').textContent = document.getElementById('productCode').value;
 
         showDHLCost(result, chargeWt, countryCode);
-      } catch (e) { console.error('DHL calc error:', e); }
+      } catch (e) { 
+        console.error('DHL calc error:', e); 
+      }
     }
 
     function hideDHLCost() {
@@ -1819,6 +1844,15 @@
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
 
 
 
