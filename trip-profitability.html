@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mok Transports | Trip Profitability</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem('mokTheme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(e){}</script>
+<style>
+:root{--navy:#041b33;--blue:#0049ad;--bg:#f2f4f6;--card:#fff;--bd:#dde2e7;--tx:#16191d;--mu:#5c6773;--tint:#e8f0fb;--slate:#55636f;--loss:#8a221c}
+[data-theme=dark]{--bg:#0b1420;--card:#111c2b;--bd:#22324a;--tx:#e7edf5;--mu:#8ea0b8;--tint:#122440;--loss:#e07a72;--blue:#2f6fc9}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+body{font-family:Barlow,Arial,sans-serif;background:var(--bg);color:var(--tx)}
+header{background:linear-gradient(120deg,var(--navy),#0a2f57);color:#fff;padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header img{height:42px;background:#fff;border-radius:8px;padding:4px}
+header div{flex:1}
+h1{font:800 24px/1.1 "Barlow Condensed",sans-serif;letter-spacing:.4px}
+header p{font-size:12.5px;color:#a9c0d9}
+header a{color:#fff;text-decoration:none;font:800 12px "Barlow Condensed",sans-serif;letter-spacing:.8px;text-transform:uppercase;border:1px solid rgba(255,255,255,.3);padding:8px 14px;border-radius:7px}
+main{max-width:1200px;margin:0 auto;padding:22px}
+.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tabs button{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:.8px;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+.tabs button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:20px;align-items:start}
+@media(max-width:900px){.g2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px;margin-bottom:20px;box-shadow:0 5px 18px rgba(4,27,51,.05)}
+.g2 .card:last-child{margin-bottom:0}
+h3{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin:16px 0 8px}
+h3:first-child{margin-top:0}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.f4{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 12px;align-items:end}
+label{font-size:12px;color:var(--mu);font-weight:600;display:block}
+.full{grid-column:1/-1}
+.chk{display:flex;gap:8px;align-items:center;color:var(--tx);font-size:13px}
+input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--bd);border-radius:7px;font:500 14px Barlow,sans-serif;background:var(--bg);color:var(--tx)}
+.chk input{width:auto;margin:0}
+.note{font-size:12px;color:var(--mu);margin-top:12px;line-height:1.5}
+.btn{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:.8px;text-transform:uppercase;padding:11px 18px;border:0;border-radius:8px;background:var(--navy);color:#fff;cursor:pointer;margin-top:14px}
+[data-theme=dark] .btn{background:var(--blue)}
+.x{border:0;background:none;color:var(--mu);font-size:18px;cursor:pointer}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.badge{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:.8px;text-transform:uppercase;padding:6px 14px;border-radius:20px;color:#fff}
+.ok{background:var(--blue)}.mid{background:var(--slate)}.bad{background:var(--loss)}
+.big{font:800 34px/1 "Barlow Condensed",sans-serif}
+.big small{font:500 13px Barlow,sans-serif;color:var(--mu);margin-left:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:6px}
+.kpi{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px 12px}
+.kpi small{display:block;font-size:10.5px;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.kpi b{font:800 20px "Barlow Condensed",sans-serif}
+.row{display:grid;grid-template-columns:150px 1fr 90px;gap:10px;align-items:center;font-size:13px;padding:4px 0}
+.row b{text-align:right}
+.bar{height:9px;background:var(--bg);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue);border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--navy);color:#fff;font:800 11.5px "Barlow Condensed",sans-serif;letter-spacing:.7px;text-transform:uppercase;padding:9px 8px;text-align:left}
+td{padding:8px;border-bottom:1px solid var(--bd)}
+.tw{overflow-x:auto}
+.pill{font:800 11px "Barlow Condensed",sans-serif;letter-spacing:.6px;text-transform:uppercase;padding:3px 10px;border-radius:12px;color:#fff;background:var(--slate)}
+</style>
+</head>
+<body>
+<header>
+  <img src="assets/images/mok-logo.png" alt="Mok Transports">
+  <div><h1>Trip Profitability &amp; Fleet Planner</h1><p>Cost every trip before you quote it, forecast demand, keep trucks on the road</p></div>
+  <a href="dashboard.html">&larr; Dashboard</a>
+</header>
+<main>
+  <div class="tabs">
+    <button class="on" data-t="calc">Trip Profitability</button>
+    <button data-t="fc">Delivery Forecast</button>
+    <button data-t="mt">Fleet Maintenance</button>
+  </div>
+
+  <section id="calc" class="tab">
+    <div class="g2">
+      <div class="card"><div id="form"></div><p class="note">The rates pre-filled here are placeholders &mdash; replace them with Mok Transports&rsquo; actual fuel, driver and running costs. Costs are calculated on total distance driven.</p></div>
+      <div>
+        <div class="card" id="res"></div>
+        <div class="card"><h3>Saved trips &mdash; compare</h3><div id="saved"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="fc" class="tab" hidden>
+    <div class="card">
+      <div id="fcKpi" class="kpis"></div>
+      <p class="note" id="fcMsg"></p>
+      <h3>Bookings per month</h3><div id="fcC1"></div>
+      <h3>Booked revenue per month</h3><div id="fcC2"></div>
+      <div class="tw" id="fcTbl"></div>
+      <p class="note">Based on confirmed truck bookings (quotes excluded). The forecast blends a straight-line trend with the latest 3-month average, so treat it as a planning guide, not a promise. It improves as more months of history build up.</p>
+    </div>
+  </section>
+
+  <section id="mt" class="tab" hidden>
+    <div class="card">
+      <h3>Log maintenance</h3>
+      <form id="mf" class="f4">
+        <label>Truck reg<input id="mtruck" list="trucks" required placeholder="e.g. JK12 GP"><datalist id="trucks"></datalist></label>
+        <label>Date<input id="mdate" type="date"></label>
+        <label>Type<select id="mtype"><option>Service</option><option>Tyres</option><option>Repair</option><option>Licence / roadworthy</option><option>Insurance</option></select></label>
+        <label>Odometer (km)<input id="modo" type="number" step="any"></label>
+        <label>Cost (R)<input id="mcost" type="number" step="any"></label>
+        <label>Next service due at (km)<input id="mnext" type="number" step="any"></label>
+        <label>Notes<input id="mnote"></label>
+        <button class="btn" style="margin:0">Add entry</button>
+      </form>
+      <p class="note">Records are saved in this browser. Log each truck at least twice with odometer readings to get its cost per km.</p>
+    </div>
+    <div class="card"><h3>Fleet status</h3><div class="tw" id="mSum"></div></div>
+    <div class="card"><h3>History</h3><div class="tw" id="mHist"></div></div>
+  </section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const API='https://bookings.moktransports.com/api';
+const R=n=>(n<0?'-':'')+'R '+Math.abs(Math.round(n)).toLocaleString('en-ZA');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ld=k=>{try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let trips=ld('mokTrips'),maint=ld('mokMaint'),cur={},fcLoaded=0;
+
+/* ---------- Trip profitability ---------- */
+const G=[['Route & revenue',[['name','Route / job','JHB \u2192 Maputo','text'],['km','Distance one-way (km)',800],['rev','Quote price (R)',28000],['ret','Return load revenue (R)',0],['rt','Round trip \u2014 truck drives back to base',1,'chk']]],
+['Fuel',[['cons','Consumption (L/100 km)',38],['diesel','Diesel price (R/litre)',23.5]]],
+['Driver',[['days','Trip days (blank = auto)',''],['delay','Border / waiting days',0],['wage','Driver wage per day (R)',450],['meals','Driver meals per day (R)',180],['accom','Accommodation per night (R)',450]]],
+['Tolls, border & customs',[['toll','Tolls (R)',0],['border','Border & permit fees (R)',0],['customs','Customs clearance (R)',0]]],
+['Truck running costs',[['maint','Maintenance & tyres (R/km)',2.1],['over','Insurance, finance & overheads per day (R)',600],['buf','Risk buffer (%)',5],['tgt','Target margin (%)',15]]]];
+$('form').innerHTML=G.map(([h,fs])=>`<h3>${h}</h3><div class="f">${fs.map(([id,l,v,t])=>t==='chk'?`<label class="chk full"><input id="${id}" type="checkbox" ${v?'checked':''}> ${l}</label>`:`<label${id==='name'?' class="full"':''}>${l}<input id="${id}" type="${t==='text'?'text':'number'}" step="any" value="${v}"></label>`).join('')}</div>`).join('');
+$('form').addEventListener('input',calc);
+
+function calc(){
+  const g=id=>parseFloat($(id).value)||0,rt=$('rt').checked,km=g('km')*(rt?2:1);
+  const auto=Math.max(1,Math.ceil(km/600)),days=($('days').value===''?auto:g('days'))+g('delay');
+  const c=[['Fuel',km*g('cons')/100*g('diesel')],['Driver wages',days*g('wage')],['Driver meals',days*g('meals')],['Accommodation',Math.max(days-1,0)*g('accom')],['Tolls',g('toll')],['Border & permit fees',g('border')],['Customs clearance',g('customs')],['Maintenance & tyres',km*g('maint')],['Insurance & overheads',days*g('over')]];
+  const sub=c.reduce((a,x)=>a+x[1],0);c.push(['Risk buffer',sub*g('buf')/100]);
+  const cost=c.reduce((a,x)=>a+x[1],0),rev=g('rev')+g('ret'),profit=rev-cost,m=rev?profit/rev:0,t=Math.min(g('tgt'),95)/100;
+  const need=cost/(1-t)-g('ret'),cls=m>=t?'ok':m>=0?'mid':'bad',word=m>=t?'Profitable':m>=0?'Marginal':'Loss-making';
+  cur={name:$('name').value||'Untitled trip',km:g('km'),rev,cost,profit,m};
+  const K=[['Total cost',R(cost)],['Distance driven',Math.round(km)+' km'],['Cost per km','R '+(km?cost/km:0).toFixed(2)],['Revenue per km','R '+(km?rev/km:0).toFixed(2)],['Break-even price',R(cost-g('ret'))],['Price for '+g('tgt')+'% margin',R(need)],['Trip days',days],['Profit if diesel +10%',R(profit-c[0][1]*.1)]];
+  $('res').innerHTML=`<div class="top"><span class="badge ${cls}">${word}</span><div class="big">${R(profit)}<small>profit &middot; ${(m*100).toFixed(1)}% margin</small></div></div>
+  <div class="kpis">${K.map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b></div>`).join('')}</div>
+  <h3>Where the money goes</h3>${c.filter(x=>x[1]>0).map(x=>`<div class="row"><span>${x[0]}</span><div class="bar"><i style="width:${(x[1]/(cost||1)*100).toFixed(1)}%"></i></div><b>${R(x[1])}</b></div>`).join('')}
+  <button class="btn" onclick="saveTrip()">Save to comparison</button>`;
+}
+function saveTrip(){trips.push({...cur});sv('mokTrips',trips);drawSaved()}
+function delTrip(i){trips.splice(i,1);sv('mokTrips',trips);drawSaved()}
+function drawSaved(){
+  $('saved').innerHTML=trips.length?`<div class="tw"><table><tr><th>Route</th><th>km</th><th>Revenue</th><th>Cost</th><th>Profit</th><th>Margin</th><th></th></tr>${trips.map((t,i)=>[t,i]).sort((a,b)=>b[0].m-a[0].m).map(([t,i])=>`<tr><td><b>${esc(t.name)}</b></td><td>${Math.round(t.km)}</td><td>${R(t.rev)}</td><td>${R(t.cost)}</td><td>${R(t.profit)}</td><td>${(t.m*100).toFixed(1)}%</td><td><button class="x" onclick="delTrip(${i})">&times;</button></td></tr>`).join('')}</table></div>`:'<p class="note" style="margin:0">Save trips here to compare routes side by side &mdash; best margin first.</p>';
+}
+
+/* ---------- Delivery forecast ---------- */
+function reg(y){const n=y.length,mx=(n-1)/2,my=y.reduce((a,b)=>a+b,0)/n;let sxy=0,sxx=0;y.forEach((v,i)=>{sxy+=(i-mx)*(v-my);sxx+=(i-mx)**2});const b=sxx?sxy/sxx:0;return i=>my+b*(i-mx)}
+function fcast(y,h){const n=y.length;if(n<3){const a=n?y.reduce((p,q)=>p+q,0)/n:0;return Array(h).fill(a)}const f=reg(y),ma=y.slice(-3).reduce((a,b)=>a+b,0)/3;return Array.from({length:h},(_,k)=>Math.max(0,(f(n+k)+ma)/2))}
+function chart(lbl,hist,fc,fmt){
+  const all=[...hist,...fc],mx=Math.max(1,...all),W=640,H=170,bw=W/all.length;
+  return `<svg viewBox="0 0 ${W} ${H+34}" style="width:100%;max-width:760px">${all.map((v,i)=>{const h=v/mx*H,f=i>=hist.length,x=i*bw;return `<rect x="${x+8}" y="${H-h}" width="${bw-16}" height="${h}" rx="3" fill="${f?'none':'var(--blue)'}" stroke="var(--blue)" stroke-width="${f?1.5:0}" stroke-dasharray="${f?'4 3':'0'}"/><text x="${x+bw/2}" y="${H-h-5}" text-anchor="middle" font-size="11" fill="currentColor">${fmt(v)}</text><text x="${x+bw/2}" y="${H+16}" text-anchor="middle" font-size="10" fill="var(--mu)">${lbl[i]}</text>`}).join('')}</svg><p class="note" style="margin:0">Solid = actual &middot; dashed = forecast</p>`;
+}
+async function loadFC(){
+  $('fcMsg').textContent='Loading truck bookings\u2026';
+  try{const r=await fetch(API+'/truck-bookings');if(!r.ok)throw Error('HTTP '+r.status);drawFC(await r.json());$('fcMsg').textContent=''}
+  catch(e){$('fcMsg').textContent='Could not load truck bookings ('+e.message+'). Check you are signed in and the page is served from the portal.'}
+}
+function drawFC(d){
+  const now=new Date(),cur=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'),M={},isB=b=>b.status!=='quote',ml=k=>new Date(k+'-01T00:00:00').toLocaleDateString('en-ZA',{month:'short',year:'2-digit'});
+  d.forEach(b=>{const k=String(b.created_at||'').slice(0,7);if(!/^\d{4}-\d\d$/.test(k))return;const o=M[k]||(M[k]={b:0,rev:0});if(isB(b)){o.b++;o.rev+=+b.price||0}});
+  const keys=Object.keys(M).filter(k=>k<cur).sort().slice(-6),hb=keys.map(k=>M[k].b),hr=keys.map(k=>M[k].rev);
+  const fk=[0,1,2].map(i=>{const x=new Date(now.getFullYear(),now.getMonth()+i,1);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')});
+  const fb=fcast(hb,3).map(Math.round),fr=fcast(hr,3).map(Math.round),mtd=M[cur]||{b:0,rev:0};
+  const rate=d.length?d.filter(isB).length/d.length:0,oq=d.filter(b=>!isB(b)),qv=oq.reduce((a,b)=>a+(+b.price||0),0);
+  const K=[['This month so far',mtd.b+' bookings'],['Revenue this month',R(mtd.rev)],['Forecast: '+ml(fk[0]),fb[0]+' bookings'],['Booking rate (quotes won)',(rate*100).toFixed(0)+'%'],['Open quotes',oq.length+' ('+R(qv)+')'],['Expected from open quotes',R(qv*rate)]];
+  $('fcKpi').innerHTML=K.map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b></div>`).join('');
+  const lb=[...keys.map(ml),...fk.map(ml)];
+  $('fcC1').innerHTML=chart(lb,hb,fb,v=>v);
+  $('fcC2').innerHTML=chart(lb,hr,fr,v=>'R'+Math.round(v/1000)+'k');
+  if(keys.length<3)$('fcMsg').textContent='Only '+keys.length+' complete month(s) of history so far \u2014 the forecast is a simple average until at least 3 months are available.';
+  $('fcTbl').innerHTML=`<table style="margin-top:14px"><tr><th>Month</th><th>Type</th><th>Bookings</th><th>Revenue</th></tr>${keys.map((k,i)=>`<tr><td>${ml(k)}</td><td>Actual</td><td>${hb[i]}</td><td>${R(hr[i])}</td></tr>`).join('')}${fk.map((k,i)=>`<tr><td><b>${ml(k)}</b></td><td><span class="pill">Forecast</span></td><td>${fb[i]}</td><td>${R(fr[i])}</td></tr>`).join('')}</table>`;
+}
+
+/* ---------- Fleet maintenance ---------- */
+$('mf').onsubmit=e=>{e.preventDefault();const g=id=>$(id).value;maint.push({truck:g('mtruck').trim().toUpperCase(),date:g('mdate')||new Date().toISOString().slice(0,10),type:g('mtype'),odo:+g('modo')||0,cost:+g('mcost')||0,next:+g('mnext')||0,note:g('mnote')});sv('mokMaint',maint);e.target.reset();drawM()};
+function delM(i){maint.splice(i,1);sv('mokMaint',maint);drawM()}
+function useFleet(v){$('maint').value=v.toFixed(2);calc();document.querySelector('[data-t=calc]').click()}
+function drawM(){
+  const T={};maint.forEach(m=>(T[m.truck]=T[m.truck]||[]).push(m));
+  $('trucks').innerHTML=Object.keys(T).map(t=>`<option value="${esc(t)}">`).join('');
+  let spendAll=0,spanAll=0;
+  const rows=Object.entries(T).map(([t,a])=>{
+    const od=a.map(x=>x.odo).filter(Boolean),mx=od.length?Math.max(...od):0,span=od.length?mx-Math.min(...od):0,spend=a.reduce((s,x)=>s+x.cost,0);
+    if(span>0){spendAll+=spend;spanAll+=span}
+    const nx=a.filter(x=>x.next).sort((p,q)=>q.date.localeCompare(p.date))[0],left=nx?nx.next-mx:null;
+    const st=left===null?['No schedule','mid']:left<0?['Overdue','bad']:left<2000?['Due soon','mid']:['OK','ok'];
+    return `<tr><td><b>${esc(t)}</b></td><td>${mx?mx.toLocaleString('en-ZA')+' km':'\u2014'}</td><td>${R(spend)}</td><td>${span>0?'R '+(spend/span).toFixed(2):'\u2014'}</td><td>${nx?nx.next.toLocaleString('en-ZA')+' km':'\u2014'}</td><td><span class="badge ${st[1]}" style="font-size:11px;padding:3px 10px">${st[0]}${left!==null&&left>=0?' \u00b7 '+left.toLocaleString('en-ZA')+' km left':''}</span></td></tr>`}).join('');
+  $('mSum').innerHTML=rows?`<table><tr><th>Truck</th><th>Odometer</th><th>Total spend</th><th>Cost per km</th><th>Next service</th><th>Status</th></tr>${rows}</table>${spanAll>0?`<p class="note">Fleet average maintenance cost: <b>R ${(spendAll/spanAll).toFixed(2)} per km</b> <button class="btn" style="margin:0 0 0 8px;padding:6px 12px" onclick="useFleet(${spendAll/spanAll})">Use in trip calculator</button></p>`:''}`:'<p class="note" style="margin:0">No maintenance logged yet.</p>';
+  $('mHist').innerHTML=maint.length?`<table><tr><th>Date</th><th>Truck</th><th>Type</th><th>Odometer</th><th>Cost</th><th>Notes</th><th></th></tr>${maint.map((m,i)=>[m,i]).sort((a,b)=>b[0].date.localeCompare(a[0].date)).map(([m,i])=>`<tr><td>${esc(m.date)}</td><td>${esc(m.truck)}</td><td>${esc(m.type)}</td><td>${m.odo?m.odo.toLocaleString('en-ZA'):'\u2014'}</td><td>${R(m.cost)}</td><td>${esc(m.note||'')}</td><td><button class="x" onclick="delM(${i})">&times;</button></td></tr>`).join('')}</table>`:'<p class="note" style="margin:0">Entries will appear here.</p>';
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.tab').forEach(s=>s.hidden=s.id!==b.dataset.t);
+  if(b.dataset.t==='fc'&&!fcLoaded){fcLoaded=1;loadFC()}
+});
+calc();drawSaved();drawM();
+</script>
+</body>
+</html>
+
+
