@@ -1266,7 +1266,7 @@
       document.getElementById('sumCharge').textContent = `${charge.toFixed(2)} kg`;
       document.getElementById('grossWeight').placeholder = `${(actual || vol || 1).toFixed(2)}`;
 
-      calcCost();
+      calcDHLCost();
     }
 
     function calcCost() {
@@ -1275,7 +1275,7 @@
       const charge = Math.max(actual, vol);
 
       const countryCode = document.getElementById('receiverCountry').value;
-      const direction = currentMode; 
+      const direction = currentMode;
       const isDoc = document.querySelector('input[name="contentType"]:checked')?.value === 'documents';
 
       const rateResult = dhlCalcRate(direction, isDoc, charge, countryCode);
@@ -1797,6 +1797,21 @@
           <div>Bracket: ${result.kg}kg</div>
         </div>`;
     }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const triggers = ['actualWeight', 'chargeWeight', 'dimL', 'dimW', 'dimH', 'receiverCountry', 'shipperCountry'];
+      triggers.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('change', calcDHLCost);
+          el.addEventListener('input', calcDHLCost);
+        }
+      });
+      document.querySelectorAll('input[name="contentType"]').forEach(el => {
+        el.addEventListener('change', calcDHLCost);
+      });
+    });
 
 
   </script>
