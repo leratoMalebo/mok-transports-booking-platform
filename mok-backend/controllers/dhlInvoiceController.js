@@ -32,7 +32,10 @@ const UNINVOICED_COLUMNS = `
   id, tracking_number, mode, product_code,
   shipper_name, shipper_country, receiver_name, receiver_country,
   weight, declared_value, declared_currency, ship_date, created_at,
-  client_id, client_name, client_company`;
+  client_id, client_name, client_company,
+  (to_jsonb(dhl_shipments)->>'basic_charge')::numeric AS basic_charge,
+  (to_jsonb(dhl_shipments)->>'quoted_fuel')::numeric  AS quoted_fuel,
+  (to_jsonb(dhl_shipments)->>'rate_zone')::int        AS rate_zone`;
 
 // GET /api/dhl-invoices/uninvoiced/:companyName
 exports.getUninvoicedShipments = async (req, res) => {
@@ -348,6 +351,8 @@ exports.markPaid = async (req, res) => {
     res.status(500).json({ error: 'Failed to update invoice' });
   }
 };
+
+
 
 
 

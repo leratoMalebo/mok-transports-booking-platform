@@ -313,7 +313,17 @@ function showAllNow() {
 }
 
 function getSel(id) {
-  return selState[id] || (selState[id] = { checked: false, charge: '', fuel: '' });
+  if (!selState[id]) {
+    // Pre-fill Basic (and fuel, if quoted) from the rate card used at booking.
+    // Staff can still overwrite either figure.
+    const sh = allShipments.find(x => x.id === id);
+    selState[id] = {
+      checked: false,
+      charge: sh && sh.basic_charge != null ? String(Number(sh.basic_charge).toFixed(2)) : '',
+      fuel:   sh && sh.quoted_fuel  != null ? String(Number(sh.quoted_fuel).toFixed(2))  : ''
+    };
+  }
+  return selState[id];
 }
 function onCheck(id, el)  { getSel(id).checked = el.checked; updateSummary(); }
 function onCharge(id, el) { getSel(id).charge = el.value;    updateSummary(); }
@@ -369,6 +379,7 @@ function renderShipments() {
             <td>
               <div class="ship-track">${esc(s.tracking_number) || '—'}</div>
               <div class="ship-sub">${fmtDate(s.ship_date)}</div>
+              ${s.rate_zone ? `<div class="ship-sub">Rate card: Zone ${esc(s.rate_zone)}</div>` : ''}
             </td>
             <td>
               <div class="ship-sub">${esc(s.shipper_name) || '—'} → ${esc(s.receiver_name) || '—'}</div>
@@ -467,17 +478,6 @@ document.addEventListener('DOMContentLoaded', loadCompanies);
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
 
 

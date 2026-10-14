@@ -9,7 +9,8 @@ const dhlService = require('../services/dhlService');
 // ── POST /api/dhl/shipments ───────────────────────────────────
 exports.createShipment = async (req, res) => {
   try {
-    const { payload, mode, client_id, client_name, client_company } = req.body;
+    const { payload, mode, client_id, client_name, client_company,
+            basic_charge, quoted_fuel, rate_zone, rate_source } = req.body;
 
     if (!payload) {
       return res.status(400).json({ error: 'DHL payload is required.' });
@@ -73,6 +74,24 @@ exports.createShipment = async (req, res) => {
       client_name    || null,
       client_company || null
     ]);
+
+    // Store the rate-card Basic charge so it pre-fills on the International
+    // invoice. Best-effort and separate from the insert: if the migration
+    // hasn't been run yet, the booking must still succeed.
+    if (basic_charge != null && Number(basic_charge) > 0) {
+      try {
+        const upd = await db.query(
+          `UPDATE dhl_shipments
+              SET basic_charge = $1, quoted_fuel = $2, rate_zone = $3, rate_source = $4
+            WHERE id = $5 RETURNING *`,
+          [Number(basic_charge), quoted_fuel != null ? Number(quoted_fuel) : null,
+           rate_zone || null, rate_source || null, saved.rows[0].id]
+        );
+        if (upd.rows[0]) saved.rows[0] = upd.rows[0];
+      } catch (e) {
+        console.error('[DHL] Could not store basic charge (run migration_dhl_shipments_basic_charge.sql):', e.message);
+      }
+    }
 
     res.status(201).json({
       message:                'DHL shipment created successfully.',
@@ -224,15 +243,6 @@ exports.downloadLabel = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-
-
-
-
-
-
-
-
 
 
 
