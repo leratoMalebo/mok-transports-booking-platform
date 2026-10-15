@@ -41,6 +41,96 @@ async function makeTrackingCall(className, method, params) {
     return data;
 }
 
+// ── WAYBILL REFERENCE RESOLUTION ──────────────────────────────
+// Since the JKJ account started applying its own "MOK" prefix, a waybill
+// we submit as MOK000405 is stored at JKJ as MOKMOK000405, while the scans
+// (collection, depot, delivery, POD) are captured against MOK000405 — the
+// number printed on the waybill. Confirmed by Parcel Perfect support.
+// So the events can live under EITHER number. We try every plausible
+// reference and merge what comes back, instead of trusting only the
+// jkj_reference saved at submission.
+function candidateWaybillRefs(shipment) {
+    const refs = [];
+    const add = v => {
+        const t = String(v || '').trim();
+        if (t && !refs.includes(t)) refs.push(t);
+    };
+    add(shipment.waybill_no);        // e.g. MOK000405 — number the scans use
+    add(shipment.jkj_reference);     // e.g. MOKMOK000405 — as returned on submit
+    const doubled = String(shipment.jkj_reference || '').match(/^(MOK)MOK(.+)$/i);
+    if (doubled) add(doubled[1] + doubled[2]);   // de-duplicated form
+    return refs;
+}
+
+// Resolves one waybill reference to its tracking number(s) and fetches the
+// events for each. Never throws — failures are returned so one bad
+// reference cannot hide good data from another.
+async function eventsForRef(ref) {
+    const events = [];
+    const errors = [];
+    let trackNos = [];
+
+    try {
+        const tracksData = await makeTrackingCall('Waybill', 'getTracks', { waybillno: ref });
+        console.log(`[TRACKING] getTracks(${ref}) response:`, JSON.stringify(tracksData));
+        if (Number(tracksData.errorcode) === 0) {
+            trackNos = (tracksData.results || [])
+                .map(r => r.trackno || r.trackingno || r.tracking_no || r.waybillno)
+                .filter(Boolean);
+        } else {
+            errors.push(`${ref}: ${tracksData.errormessage || 'getTracks failed'}`);
+        }
+    } catch (err) {
+        errors.push(`${ref}: ${err.message}`);
+    }
+
+    // Fallback: per Parcel Perfect, a waybill number sent as "trackno"
+    // returns header-level events.
+    const lookups = trackNos.length ? trackNos : [ref];
+
+    await Promise.all(lookups.map(async trackno => {
+        try {
+            const data = await makeTrackingCall('Waybill', 'getEvents', { trackno });
+            console.log(`[TRACKING] getEvents(${trackno}) returned`, (data.results || []).length, 'event(s), errorcode', data.errorcode);
+            if (Number(data.errorcode) === 0) {
+                events.push(...(data.results || []));
+            } else {
+                errors.push(`${trackno}: ${data.errormessage || 'getEvents failed'}`);
+            }
+        } catch (err) {
+            errors.push(`${trackno}: ${err.message}`);
+        }
+    }));
+
+    return { events, errors };
+}
+
+// Tries all candidate references in parallel, de-duplicates identical
+// scans and returns them oldest-first.
+async function collectEvents(refs) {
+    const results = await Promise.all(refs.map(eventsForRef));
+    const seen = new Set();
+    const events = [];
+    const errors = [];
+
+    results.forEach(r => {
+        errors.push(...r.errors);
+        r.events.forEach(ev => {
+            const key = [ev.eventdate, ev.eventtime, (ev.eventtype || '').trim(), (ev.scanrule || '').trim(), (ev.hub || '').trim()].join('|');
+            if (!seen.has(key)) {
+                seen.add(key);
+                events.push(ev);
+            }
+        });
+    });
+
+    events.sort((a, b) =>
+        `${a.eventdate || ''} ${a.eventtime || '00:00:00'}`.localeCompare(`${b.eventdate || ''} ${b.eventtime || '00:00:00'}`)
+    );
+
+    return { rawEvents: events, errors };
+}
+
 // ── TRACK SHIPMENT ────────────────────────────────────────────
 // Maps the mapped event list to one of the exact status keys the
 // frontend's badge understands: booked / sent_to_jkj / in_transit /
@@ -84,65 +174,25 @@ async function trackShipment(trackingNo) {
         }
 
         const shipment = shipmentResult.rows[0];
-        const waybillRef = shipment.jkj_reference || shipment.waybill_no;
+        const refs = candidateWaybillRefs(shipment);
 
         console.log("====================================");
         console.log("[TRACKING] Mok Waybill:", shipment.waybill_no);
         console.log("[TRACKING] JKJ Reference:", shipment.jkj_reference);
-        console.log("[TRACKING] Resolving tracking number(s) for waybill:", waybillRef);
+        console.log("[TRACKING] Trying waybill references:", refs.join(', '));
         console.log("====================================");
 
-        // Step 1: a waybill number is NOT the same thing as a tracking
-        // number in Parcel Perfect's system — confirmed live ("Invalid
-        // trackno" when a plain waybill number was submitted directly to
-        // getEvents). getTracks resolves the real tracking number(s)
-        // associated with this waybill first.
-        const tracksData = await makeTrackingCall(
-            'Waybill',
-            'getTracks',
-            { waybillno: waybillRef }
-        );
+        const { rawEvents, errors } = await collectEvents(refs);
 
-        console.log('[TRACKING] getTracks response:', JSON.stringify(tracksData, null, 2));
-
-        if (Number(tracksData.errorcode) !== 0) {
-            throw new Error(tracksData.errormessage || 'Could not resolve a tracking number for this waybill.');
-        }
-
-        // Field name for the tracking number isn't confirmed from the
-        // docs alone (no sample response provided) — check the plausible
-        // variants defensively rather than guess a single one.
-        const trackNumbers = (tracksData.results || [])
-            .map(r => r.trackno || r.trackingno || r.tracking_no || r.waybillno)
-            .filter(Boolean);
-
-        if (!trackNumbers.length) {
+        if (!rawEvents.length) {
+            console.error('[TRACKING] No events found for any reference. Details:', errors);
             return {
                 success: false,
-                message: 'No tracking number has been generated for this waybill yet. Please check back shortly.'
+                message: 'Tracking details are not available for this waybill yet. Please check back shortly or contact Mok Transports.'
             };
         }
 
-        const primaryTrackNo = trackNumbers[0];
-        console.log('[TRACKING] Resolved tracking number:', primaryTrackNo, '(of', trackNumbers.length, 'found)');
-
-        // Step 2: fetch events against the tracking number. Confirmed
-        // with Parcel Perfect support (Warwick Parris) — the parameter
-        // MUST be named "trackno" (not "waybillno"). Either a waybill
-        // number or a tracking number can be submitted under this same
-        // key; a waybill number returns header-level events, a tracking
-        // number returns events for that specific piece.
-        const trackingData = await makeTrackingCall(
-            'Waybill',
-            'getEvents',
-            { trackno: primaryTrackNo }
-        );
-
-        console.log('[TRACKING] getEvents response:', JSON.stringify(trackingData, null, 2));
-
-        if (Number(trackingData.errorcode) !== 0) {
-            throw new Error(trackingData.errormessage || 'Tracking lookup failed');
-        }
+        const trackingData = { results: rawEvents };
 
         // 3. Map events to clean format. Real field names confirmed by
         // Parcel Perfect support: eventdate, eventtime, eventtype,
@@ -235,20 +285,41 @@ async function getProofOfDelivery(trackingNo) {
         }
 
         const shipment = shipmentResult.rows[0];
-        const waybillRef = shipment.jkj_reference || shipment.waybill_no;
-
+        // Same reference problem as tracking: the POD is captured against the
+        // number printed on the waybill (MOK000405), not necessarily the
+        // JKJ reference saved at submission (MOKMOK000405) — try them all.
+        //
         // Confirmed by Parcel Perfect support (Nicole Chivero) with a
         // real worked example: getPOD and getPODSignature take the
         // waybill number directly under the key "waybillno" — NOT
         // "trackno" (that convention only applies to getEvents/getTracks),
-        // and no accnum is needed. No resolution step required either.
-        const podData = await makeTrackingCall('Waybill', 'getPOD', { waybillno: waybillRef });
-        console.log('[TRACKING] getPOD response:', JSON.stringify(podData, null, 2));
+        // and no accnum is needed.
+        let podData = null;
+        let firstOk = null;
+        let waybillRef = null;
+        let lastMessage = null;
 
-        if (Number(podData.errorcode) !== 0) {
+        for (const ref of candidateWaybillRefs(shipment)) {
+            try {
+                const d = await makeTrackingCall('Waybill', 'getPOD', { waybillno: ref });
+                console.log(`[TRACKING] getPOD(${ref}) response:`, JSON.stringify(d, null, 2));
+                if (Number(d.errorcode) === 0) {
+                    if ((d.results || []).length) { podData = d; waybillRef = ref; break; }
+                    if (!firstOk) firstOk = { data: d, ref };
+                } else {
+                    lastMessage = d.errormessage || lastMessage;
+                }
+            } catch (e) {
+                lastMessage = e.message;
+            }
+        }
+
+        if (!podData && firstOk) { podData = firstOk.data; waybillRef = firstOk.ref; }
+
+        if (!podData) {
             return {
                 success: false,
-                message: podData.errormessage || 'Proof of delivery is not available for this shipment yet.'
+                message: lastMessage || 'Proof of delivery is not available for this shipment yet.'
             };
         }
 
@@ -311,6 +382,8 @@ async function getProofOfDelivery(trackingNo) {
 }
 
 module.exports = { trackShipment, getProofOfDelivery };
+
+
 
 
 

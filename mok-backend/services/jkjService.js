@@ -30,6 +30,29 @@ const JKJ_SUBMIT_TOKEN = process.env.JKJ_SUBMIT_TOKEN || '000710815ba31c469a9571
 const JKJ_ACCOUNT_NO = process.env.JKJ_ACCOUNT_NO || 'MOK007';
 const JKJ_PPCUST_ID = process.env.JKJ_PPCUST_ID || '2601.3364.2809';
 
+// ── ACCOUNT PREFIX HANDLING ───────────────────────────────────
+// Parcel Perfect confirmed the JKJ account (MOK007) applies its own "MOK"
+// prefix to every submitted waybill, so submitting "MOK000405" produced
+// "MOKMOK000405" while JKJ's scans use "MOK000405" — splitting the
+// shipment in two and breaking tracking.
+//
+// Two ways to fix it (use ONE, never both):
+//   Option 1 — Parcel Perfect removes the prefix from the account.
+//              Leave JKJ_STRIP_WAYBILL_PREFIX unset.
+//   Option 2 — Mok submits the number without the prefix. Set the env var
+//              JKJ_STRIP_WAYBILL_PREFIX=MOK in Vercel: "MOK000405" is then
+//              sent as "000405" and JKJ stores it as "MOK000405".
+// Default is OFF, so behaviour is unchanged until you deliberately switch it on.
+const JKJ_STRIP_WAYBILL_PREFIX = (process.env.JKJ_STRIP_WAYBILL_PREFIX || '').trim().toUpperCase();
+
+function jkjWaybillNumber(waybillNo) {
+  const w = String(waybillNo || '');
+  if (JKJ_STRIP_WAYBILL_PREFIX && w.toUpperCase().startsWith(JKJ_STRIP_WAYBILL_PREFIX)) {
+    return w.slice(JKJ_STRIP_WAYBILL_PREFIX.length);
+  }
+  return w;
+}
+
 // ── SERVICE CODE MAP ──────────────────────────────────────────
 function mapServiceToJKJ(service) {
   const s = String(service || '').toUpperCase().trim();
@@ -149,7 +172,7 @@ exports.submitWaybillToJKJ = async (waybill) => {
 
   const params = {
     details: {
-      waybill: waybill.waybill_no,
+      waybill: jkjWaybillNumber(waybill.waybill_no),
       accnum: JKJ_ACCOUNT_NO,
       service: mapServiceToJKJ(waybill.service),
       waydate: todayDDMMYYYY(),
@@ -233,11 +256,15 @@ exports.submitWaybillToJKJ = async (waybill) => {
     throw new Error(result.errormessage || 'JKJ rejected the waybill');
   }
 
+  // Early-warning check: JKJ should store exactly the Mok waybill number.
+  const storedAs = result?.results?.[0]?.waybillno;
+  if (storedAs && storedAs !== waybill.waybill_no) {
+    console.warn(`[JKJ] ⚠ PREFIX MISMATCH: Mok waybill is ${waybill.waybill_no} but JKJ stored it as ${storedAs}. Tracking will rely on the multi-reference lookup until this is fixed at source.`);
+  }
+
   console.log('✅ [JKJ] Waybill submitted successfully:', waybill.waybill_no);
   return result;
 };
-
-
 
 
 
