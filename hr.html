@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mok Transports | Attendance & HR</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#041b33;--blue:#0049ad;--bg:#f2f4f6;--bd:#dce3ec;--mut:#607d8b;--ok:#2e7d32;--warn:#e65100;--bad:#c62828}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Barlow',sans-serif;background:var(--bg);color:#1a2535;font-size:14px}
+.top{background:var(--navy);border-bottom:3px solid var(--blue);color:#fff;height:60px;padding:0 28px;display:flex;align-items:center;justify-content:space-between}
+.top h1{font-family:'Barlow Condensed',sans-serif;font-size:19px}.top small{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#90a4ae;font-weight:400}
+.top a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.25);padding:7px 14px;border-radius:5px;font-weight:600;font-size:12px}
+.wrap{max-width:1050px;margin:0 auto;padding:24px 20px 60px}
+.tabs{display:flex;gap:6px;margin-bottom:18px}.tab{padding:9px 18px;border:1px solid var(--bd);background:#fff;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--mut)}
+.tab.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:20px;margin-bottom:18px}
+.card h2{font-family:'Barlow Condensed',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.8px;color:var(--navy);margin-bottom:14px}
+.clock{text-align:center}.time{font-family:'Barlow Condensed',sans-serif;font-size:54px;font-weight:800;color:var(--navy);line-height:1}
+.date{color:var(--mut);margin:4px 0 12px}.pill{display:inline-block;padding:4px 14px;border-radius:20px;font-weight:700;font-size:12px;margin-bottom:14px}
+.p-off{background:#eceff1;color:#546e7a}.p-on{background:#e8f5e9;color:var(--ok)}.p-brk{background:#fff3e0;color:var(--warn)}.p-done{background:#e3f2fd;color:var(--blue)}
+.worked{font-size:12px;color:var(--mut);margin-bottom:14px}.worked b{color:var(--navy);font-size:18px;font-family:'Barlow Condensed',sans-serif}
+.btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+button,.btn{border:none;border-radius:6px;padding:11px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:#fff}
+button:disabled{opacity:.35;cursor:not-allowed}.b-in{background:var(--ok)}.b-out{background:var(--bad)}.b-brk{background:var(--warn)}.b-blue{background:var(--blue)}.b-grey{background:#78909c}
+select,input,textarea{width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:6px;font-family:inherit;font-size:13px}
+label{display:block;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:10px 0 4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}th{background:var(--navy);color:#fff;text-align:left;padding:9px 10px;font-size:11px;letter-spacing:.8px;text-transform:uppercase}
+td{padding:9px 10px;border-bottom:1px solid var(--bd)}.tag{padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700}
+.t-pending{background:#fff3e0;color:var(--warn)}.t-approved{background:#e8f5e9;color:var(--ok)}.t-rejected{background:#ffebee;color:var(--bad)}
+.tl div{padding:6px 0;border-bottom:1px dashed var(--bd);font-size:13px}.empty{color:var(--mut);padding:14px 0;text-align:center}
+#toast{position:fixed;bottom:22px;right:22px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:8px;display:none;font-weight:600}
+</style></head><body>
+<div class="top"><h1>Attendance &amp; HR<small>Mok Transports Services (Pty) Ltd · Trial</small></h1><a href="dashboard.html">← Dashboard</a></div>
+<div class="wrap">
+ <div class="tabs"><div class="tab on" id="t1" onclick="tab(1)">My Day</div><div class="tab" id="t2" onclick="tab(2)" style="display:none">Team (Admin)</div></div>
+
+ <div id="v1"><div class="grid"><div>
+  <div class="card clock"><div class="time" id="clk">--:--:--</div><div class="date" id="dt"></div>
+   <div class="pill p-off" id="status">Not clocked in</div>
+   <div class="worked">Worked today: <b id="worked">0h 00m</b> · Breaks: <b id="brk">0m</b></div>
+   <div class="btns">
+    <button class="b-in" id="bIn" onclick="act('clock-in')">Clock In</button>
+    <select id="bType" style="width:auto"><option>Lunch</option><option>Tea</option><option>Other</option></select>
+    <button class="b-brk" id="bBs" onclick="act('break/start',{break_type:g('bType')})">Start Break</button>
+    <button class="b-blue" id="bBe" onclick="act('break/end')">End Break</button>
+    <button class="b-out" id="bOut" onclick="act('clock-out')">Clock Out</button></div></div>
+  <div class="card"><h2>Today's Timeline</h2><div class="tl" id="tl"><div class="empty">No activity yet.</div></div></div>
+ </div><div>
+  <div class="card"><h2>Submit Doctor's Note / Leave</h2>
+   <div class="row2"><div><label>From</label><input type="date" id="nFrom"></div><div><label>To</label><input type="date" id="nTo"></div></div>
+   <label>Reason</label><select id="nReason"><option>Sick leave</option><option>Doctor's appointment</option><option>Family responsibility</option><option>Other</option></select>
+   <label>Comment (optional)</label><textarea id="nCom" rows="2"></textarea>
+   <label>Doctor's note (PDF / JPG / PNG, max 3MB)</label><input type="file" id="nFile" accept=".pdf,image/jpeg,image/png">
+   <button class="b-blue" style="margin-top:12px;width:100%" onclick="submitNote()">Submit to HR</button></div>
+  <div class="card"><h2>My Submissions</h2><div id="myNotes"><div class="empty">None yet.</div></div></div>
+ </div></div>
+ <div class="card"><h2>My Attendance — Last 30 Days</h2><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Breaks</th><th>Worked</th></tr></thead><tbody id="hist"></tbody></table></div></div>
+
+ <div id="v2" style="display:none">
+  <div class="card"><h2>Team Today — Live</h2><table><thead><tr><th>Name</th><th>Status</th><th>Clock In</th><th>Clock Out</th></tr></thead><tbody id="team"></tbody></table></div>
+  <div class="card"><h2>Doctor's Notes &amp; Leave Requests</h2><table><thead><tr><th>Staff</th><th>Dates</th><th>Reason</th><th>File</th><th>Status</th><th>Action</th></tr></thead><tbody id="allNotes"></tbody></table></div></div>
+</div><div id="toast"></div>
+<script>
+const API=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'http://localhost:5000/api':'https://bookings.moktransports.com/api';
+const S=JSON.parse(localStorage.getItem('mokSession')||'null');
+if(!S||!['staff','admin','office'].includes(S.role))location.href='login.html';
+const UID=S.id||S.user?.id,UNAME=S.name||S.user?.name||'',ADMIN=S.role==='admin';
+const g=id=>document.getElementById(id).value,$=id=>document.getElementById(id);
+const fmtT=d=>d?new Date(d).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}):'—';
+const fmtD=d=>d?new Date(d).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const hm=m=>`${Math.floor(m/60)}h ${String(Math.round(m%60)).padStart(2,'0')}m`;
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let T=null,skew=0;
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2600)}
+async function api(path,method='GET',body){const r=await fetch(API+'/hr/'+path,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Request failed');return d}
+async function act(p,extra={}){try{await api(p,'POST',{user_id:UID,user_name:UNAME,...extra});await load();toast('Done ✓')}catch(e){toast(e.message)}}
+function tab(n){$('v1').style.display=n===1?'':'none';$('v2').style.display=n===2?'':'none';$('t1').classList.toggle('on',n===1);$('t2').classList.toggle('on',n===2);if(n===2)loadTeam()}
+async function load(){
+ T=await api('today/'+UID);skew=new Date(T.server_now)-new Date();render();
+ const h=await api('history/'+UID);
+ $('hist').innerHTML=h.length?h.map(r=>`<tr><td>${fmtD(r.work_date)}</td><td>${fmtT(r.clock_in)}</td><td>${r.clock_out?fmtT(r.clock_out):'<span class="tag t-pending">Open</span>'}</td><td>${r.break_min}m</td><td><b>${hm(r.span_min-r.break_min)}</b></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No records yet.</td></tr>';
+ const n=await api('notes?user_id='+UID);
+ $('myNotes').innerHTML=n.length?n.map(x=>`<div style="padding:8px 0;border-bottom:1px solid var(--bd)"><b>${esc(x.reason)}</b> · ${fmtD(x.date_from)} – ${fmtD(x.date_to)} <span class="tag t-${x.status}">${x.status}</span></div>`).join(''):'<div class="empty">None yet.</div>'}
+function render(){
+ const a=T.attendance,br=T.breaks,open=br.find(b=>!b.break_end),now=new Date(Date.now()+skew);
+ let st='Not clocked in',cls='p-off';
+ if(a&&!a.clock_out){st=open?`On ${open.break_type} break`:'Working';cls=open?'p-brk':'p-on'}else if(a&&a.clock_out){st='Clocked out';cls='p-done'}
+ $('status').textContent=st;$('status').className='pill '+cls;
+ const live=a&&!a.clock_out;
+ $('bIn').disabled=!!a&&!a.clock_out||(a&&a.clock_out&&false);$('bBs').disabled=!live||!!open;$('bBe').disabled=!open;$('bOut').disabled=!live;$('bType').disabled=!live||!!open;
+ if(a&&a.clock_out)$('bIn').disabled=false;
+ let bm=0;br.forEach(b=>bm+=((b.break_end?new Date(b.break_end):now)-new Date(b.break_start))/60000);
+ const end=a?(a.clock_out?new Date(a.clock_out):now):null;
+ $('worked').textContent=a?hm(Math.max(0,(end-new Date(a.clock_in))/60000-bm)):'0h 00m';$('brk').textContent=Math.round(bm)+'m';
+ const ev=[];if(a){ev.push([a.clock_in,'Clocked in']);br.forEach(b=>{ev.push([b.break_start,b.break_type+' break started']);if(b.break_end)ev.push([b.break_end,'Break ended'])});if(a.clock_out)ev.push([a.clock_out,'Clocked out'])}
+ $('tl').innerHTML=ev.length?ev.map(e=>`<div><b>${fmtT(e[0])}</b> &nbsp;${e[1]}</div>`).join(''):'<div class="empty">No activity yet.</div>'}
+setInterval(()=>{const n=new Date(Date.now()+skew);$('clk').textContent=n.toLocaleTimeString('en-ZA');$('dt').textContent=n.toLocaleDateString('en-ZA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});if(T)render()},1000);
+async function submitNote(){
+ const f=$('nFile').files[0],from=g('nFrom'),to=g('nTo');
+ if(!from||!to)return toast('Please select the dates.');if(to<from)return toast('"To" date is before "From".');
+ if(f&&f.size>3*1024*1024)return toast('File too large (max 3MB).');
+ let b64=null;if(f)b64=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.readAsDataURL(f)});
+ try{await api('notes','POST',{user_id:UID,user_name:UNAME,date_from:from,date_to:to,reason:g('nReason')+(g('nCom')?' — '+g('nCom'):''),file_name:f?.name,file_mime:f?.type,file_b64:b64});
+  ['nFrom','nTo','nCom','nFile'].forEach(i=>$(i).value='');toast('Submitted to HR ✓');load()}catch(e){toast(e.message)}}
+async function loadTeam(){
+ const t=await api('team');$('team').innerHTML=t.map(r=>{let s='<span class="tag" style="background:#eceff1;color:#546e7a">Not in</span>';
+  if(r.clock_in&&!r.clock_out)s=r.on_break?'<span class="tag t-pending">On break</span>':'<span class="tag t-approved">Working</span>';else if(r.clock_out)s='<span class="tag" style="background:#e3f2fd;color:var(--blue)">Left</span>';
+  return `<tr><td><b>${esc(r.name)}</b></td><td>${s}</td><td>${fmtT(r.clock_in)}</td><td>${fmtT(r.clock_out)}</td></tr>`}).join('');
+ const n=await api('notes');$('allNotes').innerHTML=n.length?n.map(x=>`<tr><td><b>${esc(x.user_name)}</b></td><td>${fmtD(x.date_from)} – ${fmtD(x.date_to)}</td><td>${esc(x.reason)}</td><td>${x.file_name?`<a href="#" onclick="viewFile(${x.id});return false">View</a>`:'—'}</td><td><span class="tag t-${x.status}">${x.status}</span></td><td>${x.status==='pending'?`<button class="b-in" style="padding:5px 10px" onclick="review(${x.id},'approved')">✓</button> <button class="b-out" style="padding:5px 10px" onclick="review(${x.id},'rejected')">✕</button>`:esc(x.reviewed_by||'')}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">No submissions.</td></tr>'}
+async function review(id,status){try{await api('notes/'+id,'PATCH',{status,reviewed_by:UNAME});loadTeam()}catch(e){toast(e.message)}}
+async function viewFile(id){try{const d=await api(`notes/${id}/file`);const bin=atob(d.file_b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);window.open(URL.createObjectURL(new Blob([u],{type:d.file_mime})),'_blank')}catch(e){toast(e.message)}}
+if(ADMIN)$('t2').style.display='';
+load().catch(e=>toast(e.message));
+</script></body></html>
+
