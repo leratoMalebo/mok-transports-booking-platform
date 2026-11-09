@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mok Transports | Driver Trip Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem('mokTheme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(e){}</script>
+<style>
+:root{--navy:#041b33;--blue:#0049ad;--bg:#f2f4f6;--card:#fff;--bd:#dde2e7;--tx:#16191d;--mu:#5c6773;--slate:#55636f;--loss:#8a221c}
+[data-theme=dark]{--bg:#0b1420;--card:#111c2b;--bd:#22324a;--tx:#e7edf5;--mu:#8ea0b8;--loss:#e07a72;--blue:#2f6fc9}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+body{font-family:Barlow,Arial,sans-serif;background:var(--bg);color:var(--tx)}
+header{background:linear-gradient(120deg,var(--navy),#0a2f57);color:#fff;padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header img{height:42px;background:#fff;border-radius:8px;padding:4px}header div{flex:1}
+h1{font:800 24px/1.1 "Barlow Condensed",sans-serif;letter-spacing:.4px}header p{font-size:12.5px;color:#a9c0d9}
+header a{color:#fff;text-decoration:none;font:800 12px "Barlow Condensed",sans-serif;letter-spacing:.8px;text-transform:uppercase;border:1px solid rgba(255,255,255,.3);padding:8px 14px;border-radius:7px}
+main{max-width:1250px;margin:0 auto;padding:22px}
+.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tabs button{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:.8px;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+.tabs button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px;margin-bottom:20px}
+h3{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin:0 0 10px}
+.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 12px;align-items:end}
+label{font-size:12px;color:var(--mu);font-weight:600;display:block}
+input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--bd);border-radius:7px;font:500 14px Barlow,sans-serif;background:var(--bg);color:var(--tx)}
+.btn{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:.8px;text-transform:uppercase;padding:11px 18px;border:0;border-radius:8px;background:var(--navy);color:#fff;cursor:pointer}
+[data-theme=dark] .btn{background:var(--blue)}
+.x{border:0;background:none;color:var(--mu);font-size:18px;cursor:pointer}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--navy);color:#fff;font:800 11.5px "Barlow Condensed",sans-serif;letter-spacing:.7px;text-transform:uppercase;padding:9px 8px;text-align:left;white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--bd);white-space:nowrap}
+.pos{color:var(--blue);font-weight:700}.neg{color:var(--loss);font-weight:700}
+.note{font-size:12px;color:var(--mu);margin:10px 0 0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px 12px}
+.kpi small{display:block;font-size:10.5px;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.kpi b{font:800 20px "Barlow Condensed",sans-serif}
+</style>
+</head>
+<body>
+<header>
+  <img src="assets/images/mok-logo.png" alt="Mok Transports">
+  <div><h1>Driver Trip Log</h1><p>What every trip really cost &mdash; from the Mahindra 1-tonne to the Superlink</p></div>
+  <a href="trip-profitability.html">Trip Profitability</a>
+  <a href="dashboard.html">&larr; Dashboard</a>
+</header>
+<main>
+  <div class="tabs">
+    <button class="on" data-t="trips">Trips</button>
+    <button data-t="fuel">Fuel Log</button>
+    <button data-t="sum">Spend Summary</button>
+  </div>
+
+  <section id="trips" class="tab">
+    <div class="card"><h3>Record a trip</h3><form id="tf" class="f"></form>
+      <p class="note">Odometer start and end give the distance. Link each fuel fill to its trip in the Fuel Log tab to see the fuel cost and litres per 100 km here.</p></div>
+    <div class="card"><h3>Trips</h3><div class="tw" id="tTbl"></div></div>
+  </section>
+
+  <section id="fuel" class="tab" hidden>
+    <div class="card"><h3>Record a fuel fill &mdash; every time diesel is poured</h3><form id="ff" class="f"></form></div>
+    <div class="card"><h3>Fuel fills</h3><div class="tw" id="fTbl"></div></div>
+  </section>
+
+  <section id="sum" class="tab" hidden>
+    <div class="card">
+      <div class="kpis" id="kp"></div>
+      <label style="max-width:260px">Group spend by
+        <select id="grp"><option value="driver_name">Driver</option><option value="vehicle_reg">Vehicle registration</option><option value="vehicle_type">Vehicle type</option><option value="company">Company delivered for</option><option value="route">Route</option></select></label>
+      <div class="tw" id="sTbl" style="margin-top:12px"></div>
+      <p class="note" id="sNote"></p>
+    </div>
+  </section>
+</main>
+<datalist id="veh"></datalist><datalist id="drv"></datalist><datalist id="co"></datalist>
+
+<script>
+const $=id=>document.getElementById(id);
+const API='https://bookings.moktransports.com/api/trip-finance/';
+const R=n=>(n<0?'-':'')+'R '+Math.abs(Math.round(n)).toLocaleString('en-ZA');
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const api=async(p,o={})=>{const r=await fetch(API+p,{headers:{'Content-Type':'application/json'},...o});if(!r.ok)throw Error('HTTP '+r.status);return r.json()};
+const VT=['Mahindra 1 Tonne','Bakkie 1.5 Tonne','4 Tonne','8 Tonne','14 Tonne','Tautliner','Flatbed','Superlink'];
+const today=()=>new Date().toISOString().slice(0,10);
+let trips=[],fills=[];
+
+const TF=[['trip_date','Date','date'],['driver_name','Driver name','text','drv'],['vehicle_reg','Vehicle registration','text','veh'],['vehicle_type','Vehicle type','select',VT],['origin','From','text'],['destination','Destination','text'],['company','Delivering for (company)','text','co'],['booking_ref','Booking / waybill ref','text'],['cargo','Cargo','text'],['odo_start','Odometer start (km)','number'],['odo_end','Odometer end (km)','number'],['remuneration','Driver remuneration (R)','number'],['tolls','Tolls (R)','number'],['meals','Driver meals (R)','number'],['accommodation','Accommodation (R)','number'],['border_customs','Border & customs (R)','number'],['other_costs','Other: repairs, fines (R)','number'],['revenue','Amount charged to client (R)','number'],['notes','Notes','text']];
+const FF=[['fill_date','Date','date'],['vehicle_reg','Vehicle registration','text','veh'],['driver_name','Driver','text','drv'],['trip_id','Link to trip','trip'],['litres','Litres poured','number'],['price_per_litre','Price per litre (R)','number'],['odometer','Odometer (km)','number'],['station','Fuel station','text'],['receipt_no','Receipt no.','text']];
+function build(form,fs){
+  $(form).innerHTML=fs.map(([id,l,t,x])=>`<label>${l}${t==='select'?`<select id="${form}_${id}">${x.map(o=>`<option>${o}</option>`).join('')}</select>`:t==='trip'?`<select id="${form}_${id}"></select>`:`<input id="${form}_${id}" type="${t}" ${t==='number'?'step="any"':''} ${x?`list="${x}"`:''}>`}</label>`).join('')+'<button class="btn">Save</button>';
+  $(form+'_'+fs[0][0]).value=today();
+}
+build('tf',TF);build('ff',FF);
+const vals=(form,fs)=>Object.fromEntries(fs.map(([id])=>[id,$(form+'_'+id).value]));
+
+$('tf').onsubmit=async e=>{e.preventDefault();const v=vals('tf',TF);if(!v.driver_name||!v.vehicle_reg){alert('Driver name and vehicle registration are required.');return}
+  v.vehicle_reg=v.vehicle_reg.trim().toUpperCase();
+  try{await api('driver-trips',{method:'POST',body:JSON.stringify(v)});e.target.reset();$('tf_trip_date').value=today();await load()}catch(er){alert('Could not save the trip: '+er.message)}};
+$('ff').onsubmit=async e=>{e.preventDefault();const v=vals('ff',FF);if(!(+v.litres>0)||!v.vehicle_reg){alert('Vehicle registration and litres poured are required.');return}
+  v.vehicle_reg=v.vehicle_reg.trim().toUpperCase();v.total_cost=(+v.litres*(+v.price_per_litre||0)).toFixed(2);
+  try{await api('fuel-fills',{method:'POST',body:JSON.stringify(v)});e.target.reset();$('ff_fill_date').value=today();await load()}catch(er){alert('Could not save the fuel fill: '+er.message)}};
+async function del(p,id){if(!confirm('Delete this record?'))return;try{await api(p+'/'+id,{method:'DELETE'});await load()}catch(e){alert('Could not delete: '+e.message)}}
+
+const COSTS=['remuneration','tolls','meals','accommodation','border_customs','other_costs'];
+function stat(t){
+  const fs=fills.filter(f=>f.trip_id==t.id),L=fs.reduce((a,f)=>a+ +f.litres,0),FR=fs.reduce((a,f)=>a+(+f.total_cost||0),0);
+  const km=Math.max(0,(+t.odo_end||0)-(+t.odo_start||0)),oth=COSTS.reduce((a,k)=>a+(+t[k]||0),0),rev=+t.revenue||0;
+  return{L,FR,km,spend:oth+FR,rev,profit:rev-oth-FR,l100:km&&L?L/km*100:0};
+}
+const cl=n=>n<0?'neg':'pos';
+
+function draw(){
+  $('veh').innerHTML=[...new Set([...trips,...fills].map(x=>x.vehicle_reg).filter(Boolean))].map(v=>`<option value="${esc(v)}">`).join('');
+  $('drv').innerHTML=[...new Set([...trips,...fills].map(x=>x.driver_name).filter(Boolean))].map(v=>`<option value="${esc(v)}">`).join('');
+  $('co').innerHTML=[...new Set(trips.map(x=>x.company).filter(Boolean))].map(v=>`<option value="${esc(v)}">`).join('');
+  const sel=$('ff_trip_id'),keep=sel.value;
+  sel.innerHTML='<option value="">\u2014 not linked \u2014</option>'+trips.slice(0,80).map(t=>`<option value="${t.id}">${esc(String(t.trip_date||'').slice(0,10))} \u00b7 ${esc(t.vehicle_reg)} \u00b7 ${esc(t.origin||'?')} \u2192 ${esc(t.destination||'?')}</option>`).join('');sel.value=keep;
+
+  $('tTbl').innerHTML=trips.length?`<table><tr><th>Date</th><th>Driver</th><th>Vehicle</th><th>Route</th><th>Company</th><th>Km</th><th>Fuel (L)</th><th>L/100km</th><th>Fuel (R)</th><th>Other costs</th><th>Total spend</th><th>Charged</th><th>Profit</th><th></th></tr>${trips.map(t=>{const s=stat(t);return`<tr><td>${esc(String(t.trip_date||'').slice(0,10))}</td><td><b>${esc(t.driver_name)}</b></td><td>${esc(t.vehicle_reg)}<br><small>${esc(t.vehicle_type||'')}</small></td><td>${esc(t.origin||'?')} \u2192 ${esc(t.destination||'?')}</td><td>${esc(t.company||'')}</td><td>${s.km||'\u2014'}</td><td>${s.L?s.L.toFixed(1):'\u2014'}</td><td>${s.l100?s.l100.toFixed(1):'\u2014'}</td><td>${R(s.FR)}</td><td>${R(s.spend-s.FR)}</td><td><b>${R(s.spend)}</b></td><td>${s.rev?R(s.rev):'\u2014'}</td><td class="${cl(s.profit)}">${s.rev?R(s.profit):'\u2014'}</td><td><button class="x" onclick="del('driver-trips',${t.id})">&times;</button></td></tr>`}).join('')}</table>`:'<p class="note" style="margin:0">No trips recorded yet.</p>';
+
+  $('fTbl').innerHTML=fills.length?`<table><tr><th>Date</th><th>Vehicle</th><th>Driver</th><th>Trip</th><th>Litres</th><th>R/litre</th><th>Total</th><th>Odometer</th><th>Station</th><th>Receipt</th><th></th></tr>${fills.map(f=>{const t=trips.find(x=>x.id==f.trip_id);return`<tr><td>${esc(String(f.fill_date||'').slice(0,10))}</td><td>${esc(f.vehicle_reg)}</td><td>${esc(f.driver_name||'')}</td><td>${t?esc((t.origin||'?')+' \u2192 '+(t.destination||'?')):'\u2014'}</td><td><b>${(+f.litres).toFixed(1)}</b></td><td>${f.price_per_litre?'R '+(+f.price_per_litre).toFixed(2):'\u2014'}</td><td>${R(+f.total_cost||0)}</td><td>${f.odometer||'\u2014'}</td><td>${esc(f.station||'')}</td><td>${esc(f.receipt_no||'')}</td><td><button class="x" onclick="del('fuel-fills',${f.id})">&times;</button></td></tr>`}).join('')}</table>`:'<p class="note" style="margin:0">No fuel fills recorded yet.</p>';
+  summary();
+}
+function summary(){
+  const k=$('grp').value,G={};let T={n:0,km:0,L:0,FR:0,spend:0,rev:0};
+  trips.forEach(t=>{const s=stat(t),key=(k==='route'?(t.origin||'?')+' \u2192 '+(t.destination||'?'):t[k])||'\u2014',g=G[key]||(G[key]={n:0,km:0,L:0,FR:0,spend:0,rev:0});
+    [g,T].forEach(o=>{o.n++;o.km+=s.km;o.L+=s.L;o.FR+=s.FR;o.spend+=s.spend;o.rev+=s.rev})});
+  const unl=fills.filter(f=>!f.trip_id),unlR=unl.reduce((a,f)=>a+(+f.total_cost||0),0);
+  $('kp').innerHTML=[['Trips recorded',T.n],['Total spend on trips',R(T.spend)],['Fuel poured',Math.round(T.L)+' L'],['Fuel cost',R(T.FR)],['Charged to clients',R(T.rev)],['Profit (where charged)',R(T.rev-T.spend)]].map(x=>`<div class="kpi"><small>${x[0]}</small><b>${x[1]}</b></div>`).join('');
+  $('sTbl').innerHTML=Object.keys(G).length?`<table><tr><th>${$('grp').selectedOptions[0].text}</th><th>Trips</th><th>Km</th><th>Fuel (L)</th><th>Fuel (R)</th><th>L/100km</th><th>Total spend</th><th>Charged</th><th>Profit</th></tr>${Object.entries(G).sort((a,b)=>b[1].spend-a[1].spend).map(([n,g])=>`<tr><td><b>${esc(n)}</b></td><td>${g.n}</td><td>${Math.round(g.km)}</td><td>${g.L.toFixed(0)}</td><td>${R(g.FR)}</td><td>${g.km&&g.L?(g.L/g.km*100).toFixed(1):'\u2014'}</td><td><b>${R(g.spend)}</b></td><td>${g.rev?R(g.rev):'\u2014'}</td><td class="${cl(g.rev-g.spend)}">${g.rev?R(g.rev-g.spend):'\u2014'}</td></tr>`).join('')}</table>`:'<p class="note" style="margin:0">Record trips to see spend by driver, vehicle and company.</p>';
+  $('sNote').textContent=unl.length?`${unl.length} fuel fill(s) worth ${R(unlR)} are not linked to a trip and are not counted above \u2014 link them in the Fuel Log tab.`:'';
+}
+$('grp').onchange=summary;
+async function load(){
+  try{[trips,fills]=await Promise.all([api('driver-trips'),api('fuel-fills')]);draw()}
+  catch(e){alert('Could not load records from the database ('+e.message+'). Check you are signed in and the trip-finance API is installed.')}
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.tab').forEach(s=>s.hidden=s.id!==b.dataset.t)});
+load();
+</script>
+</body>
+</html>
+

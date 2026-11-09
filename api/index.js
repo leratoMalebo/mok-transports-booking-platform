@@ -39,6 +39,7 @@ app.use('/api/truck-bookings', require('../mok-backend/routes/truckBookings'));
 app.use('/api/truck-invoices', require('../mok-backend/routes/truckInvoices'));
 app.use('/api/dhl-invoices', require('../mok-backend/routes/dhlInvoices'));
 app.use('/api/addresses', require('../mok-backend/routes/addresses'));
+app.use('/api/trip-finance', require('../mok-backend/routes/tripFinanceRoutes'));
 
 app.use('/api/hr', require('../mok-backend/routes/hr'));
 
@@ -50,6 +51,10 @@ app.get('/api/health', (req, res) => {
 });
 
 module.exports = app;
+
+
+
+
 
 
 

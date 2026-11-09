@@ -63,6 +63,7 @@ td{padding:8px;border-bottom:1px solid var(--bd)}
 <header>
   <img src="assets/images/mok-logo.png" alt="Mok Transports">
   <div><h1>Trip Profitability &amp; Fleet Planner</h1><p>Cost every trip before you quote it, forecast demand, keep trucks on the road</p></div>
+  <a href="driver-trips.html">Driver Trip Log</a>
   <a href="dashboard.html">&larr; Dashboard</a>
 </header>
 <main>
@@ -106,7 +107,7 @@ td{padding:8px;border-bottom:1px solid var(--bd)}
         <label>Notes<input id="mnote"></label>
         <button class="btn" style="margin:0">Add entry</button>
       </form>
-      <p class="note">Records are saved in this browser. Log each truck at least twice with odometer readings to get its cost per km.</p>
+      <p class="note">Saved to the company database. Log each truck at least twice with odometer readings to get its cost per km.</p>
     </div>
     <div class="card"><h3>Fleet status</h3><div class="tw" id="mSum"></div></div>
     <div class="card"><h3>History</h3><div class="tw" id="mHist"></div></div>
@@ -120,12 +121,15 @@ const R=n=>(n<0?'-':'')+'R '+Math.abs(Math.round(n)).toLocaleString('en-ZA');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ld=k=>{try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}};
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-let trips=ld('mokTrips'),maint=ld('mokMaint'),cur={},fcLoaded=0;
+let trips=[],maint=[],cur={},fcLoaded=0;
+const api=async(p,o={})=>{const r=await fetch(API+'/trip-finance/'+p,{headers:{'Content-Type':'application/json'},...o});if(!r.ok)throw Error('HTTP '+r.status);return r.json()};
+const nTrip=t=>({id:t.id,name:t.name,km:+t.km,rev:+t.revenue,cost:+t.cost,profit:+t.profit,m:+t.margin});
+const nMaint=r=>({id:r.id,truck:r.truck,date:String(r.service_date||'').slice(0,10),type:r.type,odo:+r.odometer||0,cost:+r.cost||0,next:+r.next_km||0,note:r.note||''});
 
 /* ---------- Trip profitability ---------- */
 const G=[['Route & revenue',[['name','Route / job','JHB \u2192 Maputo','text'],['km','Distance one-way (km)',800],['rev','Quote price (R)',28000],['ret','Return load revenue (R)',0],['rt','Round trip \u2014 truck drives back to base',1,'chk']]],
-['Fuel',[['cons','Consumption (L/100 km)',38],['diesel','Diesel price (R/litre)',23.5]]],
-['Driver',[['days','Trip days (blank = auto)',''],['delay','Border / waiting days',0],['wage','Driver wage per day (R)',450],['meals','Driver meals per day (R)',180],['accom','Accommodation per night (R)',450]]],
+['Fuel',[['cons','Consumption (L/100 km)',38],['litres','Fuel actually poured (litres) — blank = estimate',''],['diesel','Diesel price (R/litre)',23.5]]],
+['Driver',[['days','Trip days (blank = auto)',''],['delay','Border / waiting days',0],['wage','Driver remuneration per trip (R)',1500],['meals','Driver meals per day (R)',180],['accom','Accommodation per night (R)',450]]],
 ['Tolls, border & customs',[['toll','Tolls (R)',0],['border','Border & permit fees (R)',0],['customs','Customs clearance (R)',0]]],
 ['Truck running costs',[['maint','Maintenance & tyres (R/km)',2.1],['over','Insurance, finance & overheads per day (R)',600],['buf','Risk buffer (%)',5],['tgt','Target margin (%)',15]]]];
 $('form').innerHTML=G.map(([h,fs])=>`<h3>${h}</h3><div class="f">${fs.map(([id,l,v,t])=>t==='chk'?`<label class="chk full"><input id="${id}" type="checkbox" ${v?'checked':''}> ${l}</label>`:`<label${id==='name'?' class="full"':''}>${l}<input id="${id}" type="${t==='text'?'text':'number'}" step="any" value="${v}"></label>`).join('')}</div>`).join('');
@@ -134,7 +138,7 @@ $('form').addEventListener('input',calc);
 function calc(){
   const g=id=>parseFloat($(id).value)||0,rt=$('rt').checked,km=g('km')*(rt?2:1);
   const auto=Math.max(1,Math.ceil(km/600)),days=($('days').value===''?auto:g('days'))+g('delay');
-  const c=[['Fuel',km*g('cons')/100*g('diesel')],['Driver wages',days*g('wage')],['Driver meals',days*g('meals')],['Accommodation',Math.max(days-1,0)*g('accom')],['Tolls',g('toll')],['Border & permit fees',g('border')],['Customs clearance',g('customs')],['Maintenance & tyres',km*g('maint')],['Insurance & overheads',days*g('over')]];
+  const c=[['Fuel',(g('litres')>0?g('litres'):km*g('cons')/100)*g('diesel')],['Driver remuneration',g('wage')],['Driver meals',days*g('meals')],['Accommodation',Math.max(days-1,0)*g('accom')],['Tolls',g('toll')],['Border & permit fees',g('border')],['Customs clearance',g('customs')],['Maintenance & tyres',km*g('maint')],['Insurance & overheads',days*g('over')]];
   const sub=c.reduce((a,x)=>a+x[1],0);c.push(['Risk buffer',sub*g('buf')/100]);
   const cost=c.reduce((a,x)=>a+x[1],0),rev=g('rev')+g('ret'),profit=rev-cost,m=rev?profit/rev:0,t=Math.min(g('tgt'),95)/100;
   const need=cost/(1-t)-g('ret'),cls=m>=t?'ok':m>=0?'mid':'bad',word=m>=t?'Profitable':m>=0?'Marginal':'Loss-making';
@@ -145,8 +149,8 @@ function calc(){
   <h3>Where the money goes</h3>${c.filter(x=>x[1]>0).map(x=>`<div class="row"><span>${x[0]}</span><div class="bar"><i style="width:${(x[1]/(cost||1)*100).toFixed(1)}%"></i></div><b>${R(x[1])}</b></div>`).join('')}
   <button class="btn" onclick="saveTrip()">Save to comparison</button>`;
 }
-function saveTrip(){trips.push({...cur});sv('mokTrips',trips);drawSaved()}
-function delTrip(i){trips.splice(i,1);sv('mokTrips',trips);drawSaved()}
+async function saveTrip(){try{const inp=Object.fromEntries([...document.querySelectorAll('#form input')].map(e=>[e.id,e.type==='checkbox'?e.checked:e.value]));trips.push(nTrip(await api('trip-calcs',{method:'POST',body:JSON.stringify({name:cur.name,km:cur.km,revenue:cur.rev,cost:cur.cost,profit:cur.profit,margin:cur.m,inputs:JSON.stringify(inp)})})));drawSaved()}catch(e){alert('Could not save the trip: '+e.message)}}
+async function delTrip(i){try{await api('trip-calcs/'+trips[i].id,{method:'DELETE'});trips.splice(i,1);drawSaved()}catch(e){alert('Could not delete: '+e.message)}}
 function drawSaved(){
   $('saved').innerHTML=trips.length?`<div class="tw"><table><tr><th>Route</th><th>km</th><th>Revenue</th><th>Cost</th><th>Profit</th><th>Margin</th><th></th></tr>${trips.map((t,i)=>[t,i]).sort((a,b)=>b[0].m-a[0].m).map(([t,i])=>`<tr><td><b>${esc(t.name)}</b></td><td>${Math.round(t.km)}</td><td>${R(t.rev)}</td><td>${R(t.cost)}</td><td>${R(t.profit)}</td><td>${(t.m*100).toFixed(1)}%</td><td><button class="x" onclick="delTrip(${i})">&times;</button></td></tr>`).join('')}</table></div>`:'<p class="note" style="margin:0">Save trips here to compare routes side by side &mdash; best margin first.</p>';
 }
@@ -180,8 +184,8 @@ function drawFC(d){
 }
 
 /* ---------- Fleet maintenance ---------- */
-$('mf').onsubmit=e=>{e.preventDefault();const g=id=>$(id).value;maint.push({truck:g('mtruck').trim().toUpperCase(),date:g('mdate')||new Date().toISOString().slice(0,10),type:g('mtype'),odo:+g('modo')||0,cost:+g('mcost')||0,next:+g('mnext')||0,note:g('mnote')});sv('mokMaint',maint);e.target.reset();drawM()};
-function delM(i){maint.splice(i,1);sv('mokMaint',maint);drawM()}
+$('mf').onsubmit=async e=>{e.preventDefault();const g=id=>$(id).value,f=e.target;try{maint.push(nMaint(await api('maintenance',{method:'POST',body:JSON.stringify({truck:g('mtruck').trim().toUpperCase(),service_date:g('mdate')||new Date().toISOString().slice(0,10),type:g('mtype'),odometer:g('modo'),cost:g('mcost'),next_km:g('mnext'),note:g('mnote')})})));f.reset();drawM()}catch(er){alert('Could not save: '+er.message)}};
+async function delM(i){try{await api('maintenance/'+maint[i].id,{method:'DELETE'});maint.splice(i,1);drawM()}catch(e){alert('Could not delete: '+e.message)}}
 function useFleet(v){$('maint').value=v.toFixed(2);calc();document.querySelector('[data-t=calc]').click()}
 function drawM(){
   const T={};maint.forEach(m=>(T[m.truck]=T[m.truck]||[]).push(m));
@@ -204,8 +208,11 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   if(b.dataset.t==='fc'&&!fcLoaded){fcLoaded=1;loadFC()}
 });
 calc();drawSaved();drawM();
+Promise.all([api('trip-calcs'),api('maintenance')]).then(([t,m])=>{trips=t.map(nTrip);maint=m.map(nMaint);drawSaved();drawM()}).catch(e=>alert('Could not load saved records from the database ('+e.message+').'));
 </script>
 </body>
 </html>
+
+
 
 
