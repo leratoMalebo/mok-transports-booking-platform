@@ -191,6 +191,51 @@ function extractNumber(text) {
   return parseFloat(text.replace(/[^\d.]/g, "")) || 0;
 }
 
+// ── Helpers for rebuilding a saved waybill (database view / download) ──
+const SERVICE_LABELS = {
+  SAMEDAY: "SameDay Express Air",
+  ONX: "Overnight Express (ONX)",
+  NDD: "NextDay Express",
+  ECO: "Economy Service (ECO)"
+};
+
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, ch => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]
+  ));
+}
+
+function parseItems(items) {
+  let list = items;
+  if (typeof list === "string") {
+    try { list = JSON.parse(list); } catch { list = []; }
+  }
+  return Array.isArray(list) ? list : [];
+}
+
+function formatKg(v) {
+  if (v === null || v === undefined || v === "") return "—";
+  const n = Number(v);
+  return Number.isFinite(n) ? n.toFixed(2) : "—";
+}
+
+// Mirrors buildAddr() in booking.js so a saved waybill reads exactly like
+// the one produced at booking time. Blank lines are skipped, and a value
+// is never printed twice (e.g. when the phone field fell back to the email).
+function buildAddressBlock(company, street, street2, suburb, town, province,
+                           postcode, email, contactName, contact) {
+  const seen = new Set();
+  const lines = [`<strong>${esc(company) || "—"}</strong>`];
+  [street, street2, suburb, town, province, postcode, email, contactName, contact]
+    .forEach(v => {
+      const s = (v === null || v === undefined) ? "" : String(v).trim();
+      if (!s || seen.has(s.toLowerCase())) return;
+      seen.add(s.toLowerCase());
+      lines.push(esc(s));
+    });
+  return lines.join("<br>");
+}
+
 async function loadWaybillFromDatabase(waybillNo) {
   try {
     const res = await fetch(`${API_BASE}/api/waybills/${waybillNo}`);
@@ -202,26 +247,40 @@ async function loadWaybillFromDatabase(waybillNo) {
 
     document.getElementById("waybillNumber").innerText = data.waybill_no || "—";
 
-    document.getElementById("shipFrom").innerHTML = `
-      <strong>${data.consignor_name || "—"}</strong><br>
-      ${data.consignor_address || "—"}<br>
-      ${data.consignor_contact || ""}
-    `;
+    // Same layout as the PDF generated at booking time: company, street,
+    // suburb, town, province, postcode, email, contact person, phone.
+    document.getElementById("shipFrom").innerHTML = buildAddressBlock(
+      data.consignor_name, data.consignor_address, data.consignor_address2,
+      data.consignor_suburb, data.consignor_town, data.consignor_province,
+      data.consignor_postcode, data.consignor_email,
+      data.consignor_contact_name, data.consignor_contact
+    );
 
-    document.getElementById("shipTo").innerHTML = `
-      <strong>${data.consignee_name || "—"}</strong><br>
-      ${data.consignee_address || "—"}<br>
-      ${data.consignee_contact || ""}
-    `;
+    document.getElementById("shipTo").innerHTML = buildAddressBlock(
+      data.consignee_name, data.consignee_address, data.consignee_address2,
+      data.consignee_suburb, data.consignee_town, data.consignee_province,
+      data.consignee_postcode, data.consignee_email,
+      data.consignee_contact_name, data.consignee_contact
+    );
 
     document.getElementById("pickupDate").innerText =
       data.booking_date ? data.booking_date.split("T")[0] : "—";
 
-    document.getElementById("deliveryType").innerText = data.service || "—";
-    document.getElementById("pieces").innerText = data.pieces || "1";
-    document.getElementById("weight").innerText = data.weight || "—";
-    document.getElementById("volumetricWeight").innerText = data.volumetric_weight || "—";
-    document.getElementById("description").innerText = data.description || "General Cargo";
+    document.getElementById("deliveryType").innerText =
+      SERVICE_LABELS[data.service] || data.service || "—";
+
+    // Pieces and description aren't stored as their own columns, but the
+    // package rows are (waybills.items), so derive both from those.
+    const itemList = parseItems(data.items);
+    const totalPieces = itemList.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+    const itemDescs = [...new Set(
+      itemList.map(i => String(i.desc || "").trim()).filter(Boolean)
+    )].join(", ");
+
+    document.getElementById("pieces").innerText = data.pieces || totalPieces || "1";
+    document.getElementById("weight").innerText = formatKg(data.weight);
+    document.getElementById("volumetricWeight").innerText = formatKg(data.volumetric_weight);
+    document.getElementById("description").innerText = data.description || itemDescs || "—";
     renderPackages(data.items);
 
     const zoneEl = document.getElementById("waybillZone");

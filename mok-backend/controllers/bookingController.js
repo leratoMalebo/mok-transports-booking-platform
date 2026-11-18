@@ -34,7 +34,9 @@ exports.createBooking = async (req, res) => {
       weight,
       volumetric_weight,
       price,
-      zone_label
+      zone_label,
+      consignor_email,
+      consignee_email
     } = req.body;
 
     const result = await db.query(
@@ -67,12 +69,14 @@ consignee_postcode,
   weight,
   volumetric_weight,
   price,
-  zone_label
+  zone_label,
+  consignor_email,
+  consignee_email
 )
        VALUES (
   $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
   $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
-  $21,$22,$23,$24,$25
+  $21,$22,$23,$24,$25,$26,$27
 )
        RETURNING *`,
       [
@@ -103,7 +107,9 @@ consignee_postcode,
         weight,
         volumetric_weight,
         price,
-        zone_label
+        zone_label,
+        consignor_email || null,
+        consignee_email || null
       ]
     );
 
@@ -135,6 +141,7 @@ exports.getBookingById = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch booking' });
   }
 };
+
 
 
 

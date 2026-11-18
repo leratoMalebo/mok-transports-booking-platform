@@ -208,17 +208,24 @@ exports.getWaybillByNumber = async (req, res) => {
         b.service,
         b.consignor_name,
         b.consignor_address,
-       b.consignor_contact,
-b.consignor_contact,
-b.consignor_contact_name,
-b.consignor_suburb,
-b.consignor_town,
-b.consignee_name,
-b.consignee_address,
-b.consignee_contact,
-b.consignee_contact_name,
-b.consignee_suburb,
-b.consignee_town,
+        b.consignor_address2,
+        b.consignor_contact,
+        b.consignor_contact_name,
+        b.consignor_email,
+        b.consignor_suburb,
+        b.consignor_town,
+        b.consignor_province,
+        b.consignor_postcode,
+        b.consignee_name,
+        b.consignee_address,
+        b.consignee_address2,
+        b.consignee_contact,
+        b.consignee_contact_name,
+        b.consignee_email,
+        b.consignee_suburb,
+        b.consignee_town,
+        b.consignee_province,
+        b.consignee_postcode,
         b.price,
         b.zone_label
        FROM waybills w
@@ -315,6 +322,5 @@ exports.saveReweigh = async (req, res) => {
     res.status(500).json({ error: 'Failed to save re-weigh details' });
   }
 };
-
 
 

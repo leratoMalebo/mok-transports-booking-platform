@@ -524,6 +524,7 @@ async function confirmBooking() {
       consignor_town: data.fromTown,
       consignor_province: data.fromProvince,
       consignor_postcode: data.fromPostal,
+      consignor_email: data.fromEmail,
 
 
       consignee_name: data.toCompany,
@@ -535,6 +536,7 @@ async function confirmBooking() {
       consignee_town: data.toTown,
       consignee_province: data.toProvince,
       consignee_postcode: data.toPostal,
+      consignee_email: data.toEmail,
 
 
       weight: parseFloat(data.chargeWeight || 0),
@@ -731,6 +733,8 @@ function fallbackDistance() {
   document.getElementById("distance").innerText = dist;
   calculateAll();
 }
+
+
 
 
 
